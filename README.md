@@ -1,5 +1,23 @@
-Sesame - a command line password manager
-========================================
+Sesame - a cmd line password manager
+====================================
+
+!!! IMPORTANT !!!
+-----------------
+
+Work on sesame has not been finished yet!
+
+What you can do so far is:
+
+* create, open, close and write containers
+* list, show, add and delete entries
+
+What is missing:
+
+* editing entries (all about tags, attributes and data)
+
+
+Introduction
+------------
 
 Sesame is a command line tool to manage passwords and keys.
 The program is written in C++ and released under the BSD 2-Clause License.
@@ -53,11 +71,11 @@ Used libraries
 * Tecla
   - http://www.astro.caltech.edu/~mcs/tecla/
 * flex
-  - http://flex.sourceforge.net/
+  - http://flex.sourceforge.net
 * LEMON
   - http://www.hwaci.com/sw/lemon/
 * zlib
-  - http://www.zlib.net/
+  - http://www.zlib.net
 * googletest
   - http://code.google.com/p/googletest/
 
