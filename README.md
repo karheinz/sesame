@@ -1,8 +1,7 @@
 Sesame - a cmd line password manager
 ====================================
 
-!!! IMPORTANT !!!
------------------
+### IMPORTANT!!! ###
 
 Work on sesame has not been finished yet!
 
