@@ -50,6 +50,7 @@ namespace
    const Vector<String> baseCommands = { "help", "clear", "quit", "edit-mode " };
    const Vector<String> noInstanceCommands = { "new", "open " };
    const Vector<String> instanceCommands = { "close", "write ", "list", "show ", "add ", "delete ", "update " };
+   const Vector<String> subCommands = { "add attribute", "delete attribute " };
 
    int cpl_add_completions(
       WordCompletion* cpl,
@@ -132,10 +133,34 @@ CPL_MATCH_FN(cpl_complete_sesame)
       Vector<String> choices;
       for ( auto entry : entries )
       {
-         choices.push_back( String( "#" ) + entry.getIdAsHexString() );;
+         choices.push_back( String( "#" ) + entry.getIdAsHexString() + " " );
       }
 
       cpl_add_completions( cpl, line, word_end, choices, right );
+   }
+   else if ( parseResult.completeSubCommand() && instance )
+   {
+      cpl_add_completions( cpl, line, word_end, subCommands, right );
+   }
+   else if ( parseResult.completeAttribute() && instance )
+   {
+      try
+      {
+         Entry entry( instance->findEntry( parseResult.getEntryId() ) );
+         Map<String,String> attributes( entry.getAttributes() );
+         Vector<String> choices;
+         for ( std::size_t i = 1; i <= attributes.size(); ++i )
+         {
+            StringStream s;
+            s << "#" << i;
+            choices.push_back( s.str() );
+         }
+         cpl_add_completions( cpl, line, word_end, choices, right );
+      }
+      catch ( std::runtime_error& )
+      {
+         // entry not found
+      }
    }
    else if ( parseResult.completeFile() )
    {

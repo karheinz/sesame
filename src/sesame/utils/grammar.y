@@ -133,30 +133,43 @@ cmd_line ::= DELETE(C) WHITESPACE OTHER_ID(ID) NEWLINE.
     parseResult->setCommand(
         std::shared_ptr<ICommand>( new EntryTask( EntryTask::DELETE, ID ) ) );
 }
-cmd_line ::= UPDATE.                { parseResult->invalidate(); parseResult->setCompleteSpace(); }
-cmd_line ::= UPDATE WHITESPACE.     { parseResult->invalidate(); parseResult->setCompleteEntry(); }
+cmd_line ::= UPDATE.                         { parseResult->invalidate(); parseResult->setCompleteSpace(); }
+cmd_line ::= UPDATE WHITESPACE.              { parseResult->invalidate(); parseResult->setCompleteEntry(); }
 cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) NEWLINE.
 {
     parseResult->addToken( ID );
     parseResult->addToken( C );
 }
+cmd_line ::= UPDATE WHITESPACE ENTRY_ID WHITESPACE. { parseResult->invalidate(); parseResult->setCompleteSubCommand(); }
 cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE ADD_ATTRIBUTE(A) NEWLINE.
 {
     parseResult->addToken( A );
     parseResult->addToken( ID );
     parseResult->addToken( C );
+
+    parseResult->setCommand(
+        std::shared_ptr<ICommand>( new EntryTask( EntryTask::ADD_ATTRIBUTE, ID ) ) );
 }
-cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE UPDATE_ATTRIBUTE(U) WHITESPACE OTHER_ID(ID2) NEWLINE.
+cmd_line ::= UPDATE WHITESPACE ENTRY_ID(ID) WHITESPACE DELETE_ATTRIBUTE WHITESPACE.
 {
-    parseResult->addToken( ID2 );
-    parseResult->addToken( U );
-    parseResult->addToken( ID );
-    parseResult->addToken( C );
+   parseResult->invalidate();
+   parseResult->setEntryId( ID );
+   parseResult->setCompleteAttribute();
 }
 cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE DELETE_ATTRIBUTE(D) WHITESPACE OTHER_ID(ID2) NEWLINE.
 {
     parseResult->addToken( ID2 );
     parseResult->addToken( D );
+    parseResult->addToken( ID );
+    parseResult->addToken( C );
+
+    parseResult->setCommand(
+        std::shared_ptr<ICommand>( new EntryTask( EntryTask::DELETE_ATTRIBUTE, ID, ID2 ) ) );
+}
+cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE UPDATE_ATTRIBUTE(U) WHITESPACE OTHER_ID(ID2) NEWLINE.
+{
+    parseResult->addToken( ID2 );
+    parseResult->addToken( U );
     parseResult->addToken( ID );
     parseResult->addToken( C );
 }

@@ -114,6 +114,8 @@ namespace sesame
           */
          Map<String,String> getAttributes() const;
 
+         std::pair<String,String> getAttribute( const String& pos ) const;
+
          /**
           * Adds an attribute to the entry.
           *

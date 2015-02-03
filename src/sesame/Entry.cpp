@@ -79,6 +79,31 @@ namespace sesame
       return m_Attributes;
    }
 
+   std::pair<String,String> Entry::getAttribute( const String& pos ) const
+   {
+      // Adjust pos.
+      String s( pos );
+
+      if ( s.find( "#" ) == 0 )
+      {
+         s.replace( 0, 1, "" );
+      }
+
+      StringStream ss;
+      ss << s;
+      std::size_t p;
+      ss >> p;
+
+      if ( p < 1 || p > m_Attributes.size() )
+      {
+         throw std::runtime_error( "attribute not found" );
+      }
+
+      Map<String,String>::const_iterator it( m_Attributes.cbegin() );
+      for ( std::size_t i = 1; i < p; ++it );
+      return *it;
+   }
+
    bool Entry::addAttribute( const String& name, const String& value )
    {
       return m_Attributes.insert( std::make_pair<String,String>( String( name ), String( value ) ) ).second;

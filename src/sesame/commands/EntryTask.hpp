@@ -44,7 +44,9 @@ class EntryTask : public ICommand
          DECRYPT,
          ADD,
          UPDATE,
-         DELETE
+         DELETE,
+         ADD_ATTRIBUTE,
+         DELETE_ATTRIBUTE
       };
 
       /**
@@ -52,8 +54,9 @@ class EntryTask : public ICommand
        *
        * @param taskType the task type
        * @param id the id of the entry
+       * @param otherId the id of the attribute or labeled data
        */
-      EntryTask( const Type taskType, const String& id = "" );
+      EntryTask( const Type taskType, const String& id = "", const String& otherId = "" );
 
       /**
        * Dtor.
@@ -74,6 +77,8 @@ class EntryTask : public ICommand
       const Type m_TaskType;
       /** the id of the entry to edit */
       String m_Id;
+      /** the id of the attribute or labeled data to edit */
+      String m_OtherId;
 };
 
 } }

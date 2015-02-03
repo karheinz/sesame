@@ -152,7 +152,7 @@ int main( int argc, char** argv)
             if ( ! parseResult.getCommandToken().empty() )
             {
                std::cout << parseResult << std::endl;
-               if ( parseResult.getCommand().get() != nullptr )
+               if ( parseResult.getCommand() != nullptr )
                {
                   try
                   {

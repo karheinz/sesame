@@ -36,7 +36,10 @@ ParseResult::ParseResult() :
    m_CompleteFile( false ),
    m_CompleteSpace( false ),
    m_CompleteEntry( false ),
-   m_CompleteCommand( false )
+   m_CompleteCommand( false ),
+   m_CompleteSubCommand( false ),
+   m_CompleteAttribute( false ),
+   m_EntryId( "" )
 {
 }
 
@@ -92,6 +95,9 @@ void ParseResult::clear()
    m_CompleteSpace = false;
    m_CompleteEntry = false;
    m_CompleteCommand = false;
+   m_CompleteSubCommand = false;
+   m_CompleteAttribute = false;
+   m_EntryId = "";
 }
 
 /** User requests completion of edit mode? */
@@ -143,6 +149,36 @@ void ParseResult::setCompleteCommand()
 bool ParseResult::completeCommand()
 {
    return m_CompleteCommand;
+}
+
+void ParseResult::setCompleteSubCommand()
+{
+   m_CompleteSubCommand = true;
+}
+
+bool ParseResult::completeSubCommand()
+{
+   return m_CompleteSubCommand;
+}
+
+void ParseResult::setCompleteAttribute()
+{
+   m_CompleteAttribute = true;
+}
+
+bool ParseResult::completeAttribute()
+{
+   return m_CompleteAttribute;
+}
+
+void ParseResult::setEntryId( const String& entryId )
+{
+   m_EntryId = entryId;
+}
+
+String ParseResult::getEntryId()
+{
+   return m_EntryId;
 }
 
 } }

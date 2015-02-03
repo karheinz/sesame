@@ -270,16 +270,13 @@ namespace sesame
       // Adjust id.
       String s( hexId );
 
-      for ( uint8_t i = 0; i < 2; ++i )
+      if ( s.find( "#" ) == 0 )
       {
-         if ( s.find( "#" ) == 0 )
-         {
-            s.replace( 0, 1, "" );
-         }
-         if ( s.find( "0x" ) == 0 )
-         {
-            s.replace( 0, 2, "" );
-         }
+         s.replace( 0, 1, "" );
+      }
+      else if ( s.find( "0x" ) == 0 )
+      {
+         s.replace( 0, 2, "" );
       }
 
       Set<Entry> result;

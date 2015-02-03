@@ -78,6 +78,30 @@ class ParseResult
       /** User requests completion of command? */
       bool completeCommand();
 
+      void setCompleteSubCommand();
+
+      /** User requests completion of sub command? */
+      bool completeSubCommand();
+
+      void setCompleteAttribute();
+
+      /** User requests completion of attribute? */
+      bool completeAttribute();
+
+      /**
+       * Sets the entry id.
+       *
+       * @param entryId the entry id
+       */
+      void setEntryId( const String& entryId );
+
+      /**
+       * Returns the entry id.
+       *
+       * @return the entry id
+       */
+      String getEntryId();
+
    private:
       bool m_Valid;
       Vector<String> m_Tokens;
@@ -87,6 +111,9 @@ class ParseResult
       bool m_CompleteSpace;
       bool m_CompleteEntry;
       bool m_CompleteCommand;
+      bool m_CompleteSubCommand;
+      bool m_CompleteAttribute;
+      String m_EntryId;
 };
 
 } }

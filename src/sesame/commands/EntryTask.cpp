@@ -28,6 +28,7 @@
 #include "types.hpp"
 #include "sesame/Entry.hpp"
 #include "sesame/commands/EntryTask.hpp"
+#include "sesame/utils/Reader.hpp"
 
 namespace sesame { namespace commands {
 
@@ -41,10 +42,11 @@ namespace {
    };
 }
 
-EntryTask::EntryTask( const Type taskType, const String& id ) :
+EntryTask::EntryTask( const Type taskType, const String& id, const String& otherId ) :
    ICommand(),
    m_TaskType( taskType ),
-   m_Id( id )
+   m_Id( id ),
+   m_OtherId( otherId )
 {
 }
 
@@ -73,14 +75,18 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
       {
          Entry entry( instance->findEntry( m_Id ) );
          std::cout << "[#" << entry.getIdAsHexString() << "] " << entry.getName() << std::endl;
+         Map<String,String> attributes( entry.getAttributes() );
+         std::size_t i = 1;
+         for ( auto attribute : attributes )
+         {
+            std::cout << "[#" << i++ << "] " << attribute.first << ": " << attribute.second << std::endl;
+         }
          break;
       }
       case ADD:
       {
-         String name;
-         std::cout << "Name: ";
-         std::getline( std::cin, name );
-
+         utils::Reader reader( 1024 );
+         String name( reader.readLine( "Name: " ) );
          Entry entry( name );
          if ( ! instance->addEntry( entry ) )
          {
@@ -97,6 +103,41 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          }
 
          std::cout << "deleted entry #" << entry.getIdAsHexString() << std::endl;
+
+         break;
+      }
+      case ADD_ATTRIBUTE:
+      {
+         Entry entry( instance->findEntry( m_Id ) );
+
+         utils::Reader reader( 1024 );
+         String name( reader.readLine( "Name: " ) );
+         String value( reader.readLine( "Value: " ) );
+
+         if ( ! entry.addAttribute( name, value ) )
+         {
+            throw std::runtime_error( "failed to add attribute" );
+         }
+         if ( ! instance->updateEntry( entry ) )
+         {
+            throw std::runtime_error( "failed to update entry" );
+         }
+
+         break;
+      }
+      case DELETE_ATTRIBUTE:
+      {
+         Entry entry( instance->findEntry( m_Id ) );
+         std::pair<String,String> attribute( entry.getAttribute( m_OtherId ) );
+
+         if ( ! entry.deleteAttribute( attribute.first ) )
+         {
+            throw std::runtime_error( "failed to delete attribute" );
+         }
+         if ( ! instance->updateEntry( entry ) )
+         {
+            throw std::runtime_error( "failed to update entry" );
+         }
 
          break;
       }
