@@ -126,37 +126,38 @@ void InstanceTask::run( std::shared_ptr<Instance>& instance )
       case OPEN:
       {
          // open and parse first
+         std::ifstream file( m_Path.c_str(), std::ios_base::in | std::ios_base::binary );
+         if ( ! file.good() )
          {
-            std::ifstream file( m_Path.c_str(), std::ios_base::in | std::ios_base::binary );
-            if ( ! file.good() )
-            {
-               throw std::runtime_error( "failed to open sesame" );
-            }
-
-            Instance::parse( file );
+            throw std::runtime_error( "failed to open sesame" );
          }
+
+         Instance::parse( file );
 
          // then try to construct
          utils::Reader reader( 1024 );
          String password( reader.readLine( "password or phrase: ", true ) );
          password = utils::strip( utils::toUtf8( password ) );
 
-         std::ifstream file( m_Path.c_str(), std::ios_base::in | std::ios_base::binary );
+         file.clear();
+         file.seekg( 0, std::ios_base::beg );
          instance.reset( new Instance( file, password ) );
 
          break;
       }
       case WRITE:
       {
-         std::ifstream check( m_Path.c_str() );
-         if ( check.good() )
          {
-            utils::Reader reader( 1024 );
-            String choice( reader.readLine( "Overwrite existing file? [y/N]  " ) );
-            choice = utils::strip( utils::toUtf8( choice ) );
-            if ( choice != u8"y" && choice != u8"Y" )
+            std::ifstream check( m_Path.c_str() );
+            if ( check.good() )
             {
-               break;
+               utils::Reader reader( 1024 );
+               String choice( reader.readLine( "Overwrite existing file? [y/N]  " ) );
+               choice = utils::strip( utils::toUtf8( choice ) );
+               if ( choice != u8"y" && choice != u8"Y" )
+               {
+                  break;
+               }
             }
          }
 
@@ -172,6 +173,15 @@ void InstanceTask::run( std::shared_ptr<Instance>& instance )
 
          utils::Reader reader( 1024 );
          String password( reader.readLine( "password or phrase: ", true ) );
+         if ( instance->isNew() )
+         {
+            String confirmation( reader.readLine( "please confirm: ", true ) );
+            if ( password != confirmation )
+            {
+               throw std::runtime_error( "confirmation failed" );
+            }
+         }
+
          password = utils::strip( utils::toUtf8( password ) );
          instance->write( file, password );
          instance->recalcInitialDigest();

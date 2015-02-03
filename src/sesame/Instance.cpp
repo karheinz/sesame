@@ -191,6 +191,11 @@ namespace sesame
       return m_DecryptAllByDefault;
    }
 
+   bool Instance::isNew() const
+   {
+      return m_Hmac.empty();
+   }
+
    Protocol Instance::getProtocol() const
    {
       return m_Protocol;
@@ -426,7 +431,7 @@ namespace sesame
       bool success( false );
 
       // No key used so far? Use passed key.
-      if ( m_Hmac.empty() )
+      if ( isNew() )
       {
          useKey( key );
          success = true;

@@ -44,7 +44,7 @@
 namespace sesame
 {
    /**
-    * Class of sesame instances protecting entries
+    * Class of sesame containers protecting entries
     * with password(s) and/or key(s).
     */
    class Instance
@@ -53,7 +53,7 @@ namespace sesame
          /**
           * Parses data read from stream.
           *
-          * @throw std::runtime_error if parsing failed
+          * @throw std::runtime_error if parsing fails
           */
          static void parse( std::istream& stream );
 
@@ -94,6 +94,14 @@ namespace sesame
          bool getDecryptAllByDefault() const;
 
          /**
+          * Returns <tt>true</tt> if the container is new,
+          * wasn't encrypted before.
+          *
+          * @return <tt>true</tt> if the container is new
+          */
+         bool isNew() const;
+
+         /**
           * Returns the protocol used for encryption/decryption.
           *
           * @return the current protocol
@@ -117,19 +125,19 @@ namespace sesame
          uint32_t getId();
 
          /**
-          * Returns all entries of the sesame with specified tags applied.
+          * Returns all entries of the container with specified tags applied.
           *
           * @param tags tags to use as filter
           *
-          * @return all entries of the sesame with specified tags applied.
+          * @return all entries of the container with specified tags applied.
           */
          Set<Entry> getEntries(
             const Set<String>& tags = Set<String>() ) const;
 
          /**
-          * Returns all tags applied to sesame entries.
+          * Returns all tags applied to container entries.
           *
-          * @return all tags applied to sesame entries
+          * @return all tags applied to container entries
           */
          Set<String> getTags() const;
 
@@ -204,7 +212,7 @@ namespace sesame
          bool isDirty() const;
 
          /**
-          * Encrypts the sesame with passed key and writes it to <tt>stream</tt>.
+          * Encrypts the container with passed key and writes it to <tt>stream</tt>.
           *
           * @param stream the stream to write to
           * @param password the password
@@ -237,9 +245,9 @@ namespace sesame
          Instance& operator=( const Instance& other ) = default;
 
          /**
-          * Calculates digest of sesame (used to detect changes).
+          * Calculates digest of container (used to detect changes).
           *
-          * @return digest of sesame
+          * @return digest of container
           */
          const Vector<uint8_t> calcDigest() const;
 
@@ -337,7 +345,7 @@ namespace sesame
          uint32_t m_Id;
          /** HMAC of id, used to check password */
          mutable Vector<uint8_t> m_Hmac;
-         /** initial digest of sesame */
+         /** initial digest of container */
          Vector<uint8_t> m_InitialDigest;
          /** decrypt all data when opening sesame */
          bool m_DecryptAllByDefault;
