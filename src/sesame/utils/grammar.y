@@ -54,9 +54,9 @@ using sesame::commands::InstanceTask;
    parseResult->invalidate();
 }
 
-cmd_line ::= START.                         { parseResult->invalidate(); parseResult->setCompleteCommand(); }
-cmd_line ::= TECLA_EDIT_MODE.               { parseResult->invalidate(); parseResult->setCompleteSpace(); }
-cmd_line ::= TECLA_EDIT_MODE WHITESPACE.    { parseResult->invalidate(); parseResult->setCompleteEditMode(); }
+cmd_line ::= START.                         { parseResult->setCompleteCommand(); }
+cmd_line ::= TECLA_EDIT_MODE.               { parseResult->setCompleteSpace(); }
+cmd_line ::= TECLA_EDIT_MODE WHITESPACE.    { parseResult->setCompleteEditMode(); }
 
 
 cmd_line ::= NEWLINE.
@@ -71,8 +71,8 @@ cmd_line ::= NEW(C) NEWLINE.
     parseResult->setCommand(
         std::shared_ptr<ICommand>( new InstanceTask( InstanceTask::NEW ) ) );
 }
-cmd_line ::= OPEN.             { parseResult->invalidate(); parseResult->setCompleteSpace(); }
-cmd_line ::= OPEN WHITESPACE.  { parseResult->invalidate(); parseResult->setCompleteFile(); }
+cmd_line ::= OPEN.             { parseResult->setCompleteSpace(); }
+cmd_line ::= OPEN WHITESPACE.  { parseResult->setCompleteFile(); }
 cmd_line ::= OPEN(C) WHITESPACE ARGUMENT(A) NEWLINE.
 {
     parseResult->addToken( A );
@@ -99,8 +99,8 @@ cmd_line ::= SEARCH(C) WHITESPACE arguments NEWLINE.
 {
     parseResult->addToken( C );
 }
-cmd_line ::= SHOW.             { parseResult->invalidate(); parseResult->setCompleteSpace(); }
-cmd_line ::= SHOW WHITESPACE.  { parseResult->invalidate(); parseResult->setCompleteEntry(); }
+cmd_line ::= SHOW.             { parseResult->setCompleteSpace(); }
+cmd_line ::= SHOW WHITESPACE.  { parseResult->setCompleteEntry(); }
 cmd_line ::= SHOW(C) WHITESPACE OTHER_ID(ID) NEWLINE.
 {
     parseResult->addToken( ID );
@@ -109,8 +109,8 @@ cmd_line ::= SHOW(C) WHITESPACE OTHER_ID(ID) NEWLINE.
     parseResult->setCommand(
         std::shared_ptr<ICommand>( new EntryTask( EntryTask::SHOW, ID ) ) );
 }
-cmd_line ::= DECRYPT.               { parseResult->invalidate(); parseResult->setCompleteSpace(); }
-cmd_line ::= DECRYPT WHITESPACE.    { parseResult->invalidate(); parseResult->setCompleteEntry(); }
+cmd_line ::= DECRYPT.               { parseResult->setCompleteSpace(); }
+cmd_line ::= DECRYPT WHITESPACE.    { parseResult->setCompleteEntry(); }
 cmd_line ::= DECRYPT(C) WHITESPACE OTHER_ID(ID) NEWLINE.
 {
     parseResult->addToken( ID );
@@ -123,8 +123,8 @@ cmd_line ::= ADD(C) NEWLINE.
     parseResult->setCommand(
         std::shared_ptr<ICommand>( new EntryTask( EntryTask::ADD ) ) );
 }
-cmd_line ::= DELETE.                { parseResult->invalidate(); parseResult->setCompleteSpace(); }
-cmd_line ::= DELETE WHITESPACE.     { parseResult->invalidate(); parseResult->setCompleteEntry(); }
+cmd_line ::= DELETE.                { parseResult->setCompleteSpace(); }
+cmd_line ::= DELETE WHITESPACE.     { parseResult->setCompleteEntry(); }
 cmd_line ::= DELETE(C) WHITESPACE OTHER_ID(ID) NEWLINE.
 {
     parseResult->addToken( ID );
@@ -133,14 +133,14 @@ cmd_line ::= DELETE(C) WHITESPACE OTHER_ID(ID) NEWLINE.
     parseResult->setCommand(
         std::shared_ptr<ICommand>( new EntryTask( EntryTask::DELETE, ID ) ) );
 }
-cmd_line ::= UPDATE.                         { parseResult->invalidate(); parseResult->setCompleteSpace(); }
-cmd_line ::= UPDATE WHITESPACE.              { parseResult->invalidate(); parseResult->setCompleteEntry(); }
+cmd_line ::= UPDATE.                         { parseResult->setCompleteSpace(); }
+cmd_line ::= UPDATE WHITESPACE.              { parseResult->setCompleteEntry(); }
 cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) NEWLINE.
 {
     parseResult->addToken( ID );
     parseResult->addToken( C );
 }
-cmd_line ::= UPDATE WHITESPACE ENTRY_ID WHITESPACE. { parseResult->invalidate(); parseResult->setCompleteSubCommand(); }
+cmd_line ::= UPDATE WHITESPACE ENTRY_ID WHITESPACE. { parseResult->setCompleteSubCommand(); }
 cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE ADD_ATTRIBUTE(A) NEWLINE.
 {
     parseResult->addToken( A );
@@ -152,7 +152,6 @@ cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE ADD_ATTRIBUTE(A) NEWLI
 }
 cmd_line ::= UPDATE WHITESPACE ENTRY_ID(ID) WHITESPACE DELETE_ATTRIBUTE WHITESPACE.
 {
-   parseResult->invalidate();
    parseResult->setEntryId( ID );
    parseResult->setCompleteAttribute();
 }
@@ -168,7 +167,6 @@ cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE DELETE_ATTRIBUTE(D) WH
 }
 cmd_line ::= UPDATE WHITESPACE ENTRY_ID(ID) WHITESPACE UPDATE_ATTRIBUTE WHITESPACE.
 {
-   parseResult->invalidate();
    parseResult->setEntryId( ID );
    parseResult->setCompleteAttribute();
 }
@@ -182,48 +180,48 @@ cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE UPDATE_ATTRIBUTE(U) WH
     parseResult->setCommand(
         std::shared_ptr<ICommand>( new EntryTask( EntryTask::UPDATE_ATTRIBUTE, ID, ID2 ) ) );
 }
-cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE ADD_TEXT(A) NEWLINE.
+cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE ADD_PASSWORD(A) NEWLINE.
 {
     parseResult->addToken( A );
     parseResult->addToken( ID );
     parseResult->addToken( C );
 }
-cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE UPDATE_TEXT(U) WHITESPACE OTHER_ID(ID2) NEWLINE.
+cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE UPDATE_PASSWORD(U) WHITESPACE OTHER_ID(ID2) NEWLINE.
 {
     parseResult->addToken( ID2 );
     parseResult->addToken( U );
     parseResult->addToken( ID );
     parseResult->addToken( C );
 }
-cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE DELETE_TEXT(D) WHITESPACE OTHER_ID(ID2) NEWLINE.
+cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE DELETE_PASSWORD(D) WHITESPACE OTHER_ID(ID2) NEWLINE.
 {
     parseResult->addToken( ID2 );
     parseResult->addToken( D );
     parseResult->addToken( ID );
     parseResult->addToken( C );
 }
-cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE ADD_DATA(A) NEWLINE.
+cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE ADD_KEY(A) NEWLINE.
 {
     parseResult->addToken( A );
     parseResult->addToken( ID );
     parseResult->addToken( C );
 }
-cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE UPDATE_DATA(U) WHITESPACE OTHER_ID(ID2) NEWLINE.
+cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE UPDATE_KEY(U) WHITESPACE OTHER_ID(ID2) NEWLINE.
 {
     parseResult->addToken( ID2 );
     parseResult->addToken( U );
     parseResult->addToken( ID );
     parseResult->addToken( C );
 }
-cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE DELETE_DATA(D) WHITESPACE OTHER_ID(ID2) NEWLINE.
+cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE DELETE_KEY(D) WHITESPACE OTHER_ID(ID2) NEWLINE.
 {
     parseResult->addToken( ID2 );
     parseResult->addToken( D );
     parseResult->addToken( ID );
     parseResult->addToken( C );
 }
-cmd_line ::= WRITE.                    { parseResult->invalidate(); parseResult->setCompleteCommand(); }
-cmd_line ::= WRITE WHITESPACE.         { parseResult->invalidate(); parseResult->setCompleteFile(); }
+cmd_line ::= WRITE.                    { parseResult->setCompleteCommand(); }
+cmd_line ::= WRITE WHITESPACE.         { parseResult->setCompleteFile(); }
 cmd_line ::= WRITE(C) WHITESPACE ARGUMENT(A) NEWLINE.
 {
     parseResult->addToken( A );

@@ -50,7 +50,7 @@ namespace
    const Vector<String> baseCommands = { "help", "clear", "quit", "edit-mode " };
    const Vector<String> noInstanceCommands = { "new", "open " };
    const Vector<String> instanceCommands = { "close", "write ", "list", "show ", "add ", "delete ", "update " };
-   const Vector<String> subCommands = { "add attribute", "delete attribute ", "update attribute " };
+   const Vector<String> subCommands = { "add_attribute", "delete_attribute ", "update_attribute " };
 
    int cpl_add_completions(
       WordCompletion* cpl,
@@ -103,6 +103,12 @@ CPL_MATCH_FN(cpl_complete_sesame)
    parseResult = parser.parse( left );
    // Reset lexer for next completion.
    parser.parse( "\n" );
+
+   // Invalid input, abort.
+   if ( ! left.empty() && ! parseResult.isValid() )
+   {
+      return 0;
+   }
 
    // Evaluate parse result.
    if ( left.empty() || parseResult.completeCommand() )

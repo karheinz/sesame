@@ -70,15 +70,15 @@ NL  (\r?\n)
 <START_COND>write                         { BEGIN( CMD_COND ); return WRITE; }
 <START_COND>{CH}+                         { return START; }
 <UPDATE_COND>#{HX}+                       { BEGIN( UPDATE_ENTRY_COND ); return ENTRY_ID; }
-<UPDATE_ENTRY_COND>add{WS}+text           { BEGIN( CMD_COND ); return ADD_TEXT; }
-<UPDATE_ENTRY_COND>update{WS}+text        { BEGIN( UPDATE_OTHER_COND ); return UPDATE_TEXT; }
-<UPDATE_ENTRY_COND>delete{WS}+text        { BEGIN( UPDATE_OTHER_COND ); return DELETE_TEXT; }
-<UPDATE_ENTRY_COND>add{WS}+data           { BEGIN( CMD_COND ); return ADD_DATA; }
-<UPDATE_ENTRY_COND>update{WS}+data        { BEGIN( UPDATE_OTHER_COND ); return UPDATE_DATA; }
-<UPDATE_ENTRY_COND>delete{WS}+data        { BEGIN( UPDATE_OTHER_COND ); return DELETE_DATA; }
-<UPDATE_ENTRY_COND>add{WS}+attribute      { BEGIN( CMD_COND ); return ADD_ATTRIBUTE; }
-<UPDATE_ENTRY_COND>update{WS}+attribute   { BEGIN( UPDATE_OTHER_COND ); return UPDATE_ATTRIBUTE; }
-<UPDATE_ENTRY_COND>delete{WS}+attribute   { BEGIN( UPDATE_OTHER_COND ); return DELETE_ATTRIBUTE; }
+<UPDATE_ENTRY_COND>add_password           { BEGIN( CMD_COND ); return ADD_PASSWORD; }
+<UPDATE_ENTRY_COND>update_password        { BEGIN( UPDATE_OTHER_COND ); return UPDATE_PASSWORD; }
+<UPDATE_ENTRY_COND>delete_password        { BEGIN( UPDATE_OTHER_COND ); return DELETE_PASSWORD; }
+<UPDATE_ENTRY_COND>add_key                { BEGIN( CMD_COND ); return ADD_KEY; }
+<UPDATE_ENTRY_COND>update_key             { BEGIN( UPDATE_OTHER_COND ); return UPDATE_KEY; }
+<UPDATE_ENTRY_COND>delete_key             { BEGIN( UPDATE_OTHER_COND ); return DELETE_KEY; }
+<UPDATE_ENTRY_COND>add_attribute          { BEGIN( CMD_COND ); return ADD_ATTRIBUTE; }
+<UPDATE_ENTRY_COND>update_attribute       { BEGIN( UPDATE_OTHER_COND ); return UPDATE_ATTRIBUTE; }
+<UPDATE_ENTRY_COND>delete_attribute       { BEGIN( UPDATE_OTHER_COND ); return DELETE_ATTRIBUTE; }
 <ENTRY_COND,UPDATE_OTHER_COND>#{HX}+      { BEGIN( CMD_COND ); return OTHER_ID; }
 ^{WS}*                                    /* ignore */
 {WS}*{NL}                                 { BEGIN( INITIAL ); return NEWLINE; }
