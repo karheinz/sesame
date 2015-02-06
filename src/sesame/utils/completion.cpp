@@ -50,7 +50,7 @@ namespace
    const Vector<String> baseCommands = { "help", "clear", "quit", "edit-mode " };
    const Vector<String> noInstanceCommands = { "new", "open " };
    const Vector<String> instanceCommands = { "close", "write ", "list", "show ", "add ", "delete ", "update " };
-   const Vector<String> subCommands = { "add attribute", "delete attribute " };
+   const Vector<String> subCommands = { "add attribute", "delete attribute ", "update attribute " };
 
    int cpl_add_completions(
       WordCompletion* cpl,

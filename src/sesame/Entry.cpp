@@ -100,7 +100,7 @@ namespace sesame
       }
 
       Map<String,String>::const_iterator it( m_Attributes.cbegin() );
-      for ( std::size_t i = 1; i < p; ++it );
+      for ( std::size_t i = 1; i < p; ++i, ++it );
       return *it;
    }
 
@@ -109,11 +109,19 @@ namespace sesame
       return m_Attributes.insert( std::make_pair<String,String>( String( name ), String( value ) ) ).second;
    }
 
-   bool Entry::updateAttribute( const String& name, const String& value )
+   bool Entry::updateAttribute(
+      const String& oldName,
+      const String& newName,
+      const String& value
+      )
    {
-      if ( m_Attributes.find( name ) != m_Attributes.end() )
+      if ( newName != oldName && m_Attributes.find( newName ) != m_Attributes.end() )
       {
-         m_Attributes[ name ] = value;
+         return false;
+      }
+      else if ( m_Attributes.erase( oldName ) == 1 )
+      {
+         m_Attributes[ newName ] = value;
          return true;
       }
       else

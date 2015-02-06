@@ -114,6 +114,13 @@ namespace sesame
           */
          Map<String,String> getAttributes() const;
 
+         /**
+          * Returns attribute at position <tt>pos</tt>.
+          *
+          * @param pos position of attribute
+          *
+          * @return attribute at position <tt>pos</tt>
+          */
          std::pair<String,String> getAttribute( const String& pos ) const;
 
          /**
@@ -129,12 +136,17 @@ namespace sesame
          /**
           * Updates an attribute.
           *
-          * @param name the name of the attribute to update
+          * @param oldName the old name of the attribute to update
+          * @param newName the new name of the attribute to update
           * @param value the new value of the attribute
           *
           * @return <tt>true</tt> for success, otherwise <tt>false</tt>
           */
-         bool updateAttribute( const String& name, const String& value );
+         bool updateAttribute(
+            const String& oldName,
+            const String& newName,
+            const String& value
+            );
 
          /**
           * Deletes an attribute.

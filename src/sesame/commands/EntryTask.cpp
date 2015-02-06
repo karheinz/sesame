@@ -112,7 +112,9 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
 
          utils::Reader reader( 1024 );
          String name( reader.readLine( "Name: " ) );
+         name = utils::strip( name );
          String value( reader.readLine( "Value: " ) );
+         value = utils::strip( value );
 
          if ( ! entry.addAttribute( name, value ) )
          {
@@ -131,6 +133,30 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          std::pair<String,String> attribute( entry.getAttribute( m_OtherId ) );
 
          if ( ! entry.deleteAttribute( attribute.first ) )
+         {
+            throw std::runtime_error( "failed to delete attribute" );
+         }
+         if ( ! instance->updateEntry( entry ) )
+         {
+            throw std::runtime_error( "failed to update entry" );
+         }
+
+         break;
+      }
+      case UPDATE_ATTRIBUTE:
+      {
+         Entry entry( instance->findEntry( m_Id ) );
+         std::pair<String,String> attribute( entry.getAttribute( m_OtherId ) );
+
+         utils::Reader reader( 1024 );
+         //std::cin.write( attribute.first );
+         String name( reader.readLine( "Name: " ) );
+         name = utils::strip( name );
+         //std::cin.write( attribute.second );
+         String value( reader.readLine( "Value: " ) );
+         value = utils::strip( value );
+
+         if ( ! entry.updateAttribute( attribute.first, name, value ) )
          {
             throw std::runtime_error( "failed to delete attribute" );
          }

@@ -166,12 +166,21 @@ cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE DELETE_ATTRIBUTE(D) WH
     parseResult->setCommand(
         std::shared_ptr<ICommand>( new EntryTask( EntryTask::DELETE_ATTRIBUTE, ID, ID2 ) ) );
 }
+cmd_line ::= UPDATE WHITESPACE ENTRY_ID(ID) WHITESPACE UPDATE_ATTRIBUTE WHITESPACE.
+{
+   parseResult->invalidate();
+   parseResult->setEntryId( ID );
+   parseResult->setCompleteAttribute();
+}
 cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE UPDATE_ATTRIBUTE(U) WHITESPACE OTHER_ID(ID2) NEWLINE.
 {
     parseResult->addToken( ID2 );
     parseResult->addToken( U );
     parseResult->addToken( ID );
     parseResult->addToken( C );
+
+    parseResult->setCommand(
+        std::shared_ptr<ICommand>( new EntryTask( EntryTask::UPDATE_ATTRIBUTE, ID, ID2 ) ) );
 }
 cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE ADD_TEXT(A) NEWLINE.
 {
