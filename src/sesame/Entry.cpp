@@ -57,7 +57,7 @@ namespace sesame
       return m_Id;
    }
 
-   String Entry::getIdAsHexString()
+   String Entry::getIdAsHexString() const
    {
       StringStream s;
       s << std::hex << std::setw( 8 ) << std::setfill( '0' ) << m_Id;
@@ -77,31 +77,6 @@ namespace sesame
    Map<String,String> Entry::getAttributes() const
    {
       return m_Attributes;
-   }
-
-   std::pair<String,String> Entry::getAttribute( const String& pos ) const
-   {
-      // Adjust pos.
-      String s( pos );
-
-      if ( s.find( "#" ) == 0 )
-      {
-         s.replace( 0, 1, "" );
-      }
-
-      StringStream ss;
-      ss << s;
-      std::size_t p;
-      ss >> p;
-
-      if ( p < 1 || p > m_Attributes.size() )
-      {
-         throw std::runtime_error( "attribute not found" );
-      }
-
-      Map<String,String>::const_iterator it( m_Attributes.cbegin() );
-      for ( std::size_t i = 1; i < p; ++i, ++it );
-      return *it;
    }
 
    bool Entry::addAttribute( const String& name, const String& value )

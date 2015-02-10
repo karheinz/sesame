@@ -25,6 +25,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <utility>
 #include "types.hpp"
 #include "sesame/Entry.hpp"
 #include "sesame/commands/EntryTask.hpp"
@@ -40,13 +41,61 @@ namespace {
          return ( a.getName() < b.getName() );
       }
    };
+
+   const Vector<Entry> toSortedVector( const Set<Entry>& s )
+   {
+      Vector<Entry> v( s.begin(), s.end() );
+      std::sort( v.begin(), v.end(), EntrySorter() );
+      return v;
+   }
+
+   template <class T>
+   struct ElemSorter
+   {
+      bool operator()( const std::pair<String,T>& a, const std::pair<String,T>& b )
+      {
+         return ( a.first < b.first );
+      }
+   };
+
+   template <class T>
+   const Vector<std::pair<String,T>> toSortedVector( const Map<String,T>& m )
+   {
+      Vector<std::pair<String,T>> v( m.begin(), m.end() );
+      std::sort( v.begin(), v.end(), ElemSorter<T>() );
+      return v;
+   }
+
+   template <class T>
+   const std::pair<String,T> getElemAtPos( const Vector<std::pair<String,T>>& v, const String& pos )
+   {
+      // Adjust pos.
+      String s( pos );
+
+      if ( s.find( "#" ) == 0 )
+      {
+         s.replace( 0, 1, "" );
+      }
+
+      StringStream ss;
+      ss << s;
+      std::size_t p;
+      ss >> p;
+
+      if ( p < 1 || p > v.size() )
+      {
+         throw std::runtime_error( "elem not found" );
+      }
+
+      return v[ p - 1 ];
+   }
 }
 
-EntryTask::EntryTask( const Type taskType, const String& id, const String& otherId ) :
+EntryTask::EntryTask( const Type taskType, const String& id, const String& pos ) :
    ICommand(),
    m_TaskType( taskType ),
    m_Id( id ),
-   m_OtherId( otherId )
+   m_Pos( pos )
 {
 }
 
@@ -61,9 +110,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
    {
       case LIST:
       {
-         Set<Entry> tmp( instance->getEntries() );
-         Vector<Entry> entries( tmp.begin(), tmp.end() );
-         std::sort( entries.begin(), entries.end(), EntrySorter() );
+         const Vector<Entry> entries( toSortedVector( instance->getEntries() ) );
 
          for ( auto entry : entries )
          {
@@ -73,9 +120,9 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
       }
       case SHOW:
       {
-         Entry entry( instance->findEntry( m_Id ) );
+         const Entry entry( instance->findEntry( m_Id ) );
          std::cout << "[#" << entry.getIdAsHexString() << "] " << entry.getName() << std::endl;
-         Map<String,String> attributes( entry.getAttributes() );
+         const Vector<std::pair<String,String>> attributes( toSortedVector( entry.getAttributes() ) );
          std::size_t i = 1;
          for ( auto attribute : attributes )
          {
@@ -130,7 +177,8 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
       case DELETE_ATTRIBUTE:
       {
          Entry entry( instance->findEntry( m_Id ) );
-         std::pair<String,String> attribute( entry.getAttribute( m_OtherId ) );
+         Vector<std::pair<String,String>> attributes( toSortedVector( entry.getAttributes() ) );
+         const std::pair<String,String> attribute( getElemAtPos( attributes, m_Pos ) );
 
          if ( ! entry.deleteAttribute( attribute.first ) )
          {
@@ -146,7 +194,8 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
       case UPDATE_ATTRIBUTE:
       {
          Entry entry( instance->findEntry( m_Id ) );
-         std::pair<String,String> attribute( entry.getAttribute( m_OtherId ) );
+         const Vector<std::pair<String,String>> attributes( toSortedVector( entry.getAttributes() ) );
+         const std::pair<String,String> attribute( getElemAtPos( attributes, m_Pos ) );
 
          utils::Reader reader( 1024 );
          //std::cin.write( attribute.first );

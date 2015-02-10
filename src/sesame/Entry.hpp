@@ -91,7 +91,7 @@ namespace sesame
           *
           * @return id as hex string
           */
-         String getIdAsHexString();
+         String getIdAsHexString() const;
 
          /**
           * Returns the name of the entry.
@@ -113,15 +113,6 @@ namespace sesame
           * @return the attributes of the entry
           */
          Map<String,String> getAttributes() const;
-
-         /**
-          * Returns attribute at position <tt>pos</tt>.
-          *
-          * @param pos position of attribute
-          *
-          * @return attribute at position <tt>pos</tt>
-          */
-         std::pair<String,String> getAttribute( const String& pos ) const;
 
          /**
           * Adds an attribute to the entry.

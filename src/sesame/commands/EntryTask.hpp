@@ -55,9 +55,9 @@ class EntryTask : public ICommand
        *
        * @param taskType the task type
        * @param id the id of the entry
-       * @param otherId the id of the attribute or labeled data
+       * @param pos the position of the attribute or labeled data (starting with 1)
        */
-      EntryTask( const Type taskType, const String& id = "", const String& otherId = "" );
+      EntryTask( const Type taskType, const String& id = "", const String& pos = "" );
 
       /**
        * Dtor.
@@ -78,8 +78,11 @@ class EntryTask : public ICommand
       const Type m_TaskType;
       /** the id of the entry to edit */
       String m_Id;
-      /** the id of the attribute or labeled data to edit */
-      String m_OtherId;
+      /**
+       * the position of the attribute or labeled data
+       * to edit (starting with 1)
+       */
+      String m_Pos;
 };
 
 } }

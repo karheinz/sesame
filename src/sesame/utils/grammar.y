@@ -155,30 +155,30 @@ cmd_line ::= UPDATE WHITESPACE ENTRY_ID(ID) WHITESPACE DELETE_ATTRIBUTE WHITESPA
    parseResult->setEntryId( ID );
    parseResult->setCompleteAttribute();
 }
-cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE DELETE_ATTRIBUTE(D) WHITESPACE OTHER_ID(ID2) NEWLINE.
+cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE DELETE_ATTRIBUTE(D) WHITESPACE OTHER_ID(POS) NEWLINE.
 {
-    parseResult->addToken( ID2 );
+    parseResult->addToken( POS );
     parseResult->addToken( D );
     parseResult->addToken( ID );
     parseResult->addToken( C );
 
     parseResult->setCommand(
-        std::shared_ptr<ICommand>( new EntryTask( EntryTask::DELETE_ATTRIBUTE, ID, ID2 ) ) );
+        std::shared_ptr<ICommand>( new EntryTask( EntryTask::DELETE_ATTRIBUTE, ID, POS ) ) );
 }
 cmd_line ::= UPDATE WHITESPACE ENTRY_ID(ID) WHITESPACE UPDATE_ATTRIBUTE WHITESPACE.
 {
    parseResult->setEntryId( ID );
    parseResult->setCompleteAttribute();
 }
-cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE UPDATE_ATTRIBUTE(U) WHITESPACE OTHER_ID(ID2) NEWLINE.
+cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE UPDATE_ATTRIBUTE(U) WHITESPACE OTHER_ID(POS) NEWLINE.
 {
-    parseResult->addToken( ID2 );
+    parseResult->addToken( POS );
     parseResult->addToken( U );
     parseResult->addToken( ID );
     parseResult->addToken( C );
 
     parseResult->setCommand(
-        std::shared_ptr<ICommand>( new EntryTask( EntryTask::UPDATE_ATTRIBUTE, ID, ID2 ) ) );
+        std::shared_ptr<ICommand>( new EntryTask( EntryTask::UPDATE_ATTRIBUTE, ID, POS ) ) );
 }
 cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE ADD_PASSWORD(A) NEWLINE.
 {
@@ -186,16 +186,16 @@ cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE ADD_PASSWORD(A) NEWLIN
     parseResult->addToken( ID );
     parseResult->addToken( C );
 }
-cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE UPDATE_PASSWORD(U) WHITESPACE OTHER_ID(ID2) NEWLINE.
+cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE UPDATE_PASSWORD(U) WHITESPACE OTHER_ID(POS) NEWLINE.
 {
-    parseResult->addToken( ID2 );
+    parseResult->addToken( POS );
     parseResult->addToken( U );
     parseResult->addToken( ID );
     parseResult->addToken( C );
 }
-cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE DELETE_PASSWORD(D) WHITESPACE OTHER_ID(ID2) NEWLINE.
+cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE DELETE_PASSWORD(D) WHITESPACE OTHER_ID(POS) NEWLINE.
 {
-    parseResult->addToken( ID2 );
+    parseResult->addToken( POS );
     parseResult->addToken( D );
     parseResult->addToken( ID );
     parseResult->addToken( C );
@@ -206,16 +206,16 @@ cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE ADD_KEY(A) NEWLINE.
     parseResult->addToken( ID );
     parseResult->addToken( C );
 }
-cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE UPDATE_KEY(U) WHITESPACE OTHER_ID(ID2) NEWLINE.
+cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE UPDATE_KEY(U) WHITESPACE OTHER_ID(POS) NEWLINE.
 {
-    parseResult->addToken( ID2 );
+    parseResult->addToken( POS );
     parseResult->addToken( U );
     parseResult->addToken( ID );
     parseResult->addToken( C );
 }
-cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE DELETE_KEY(D) WHITESPACE OTHER_ID(ID2) NEWLINE.
+cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE DELETE_KEY(D) WHITESPACE OTHER_ID(POS) NEWLINE.
 {
-    parseResult->addToken( ID2 );
+    parseResult->addToken( POS );
     parseResult->addToken( D );
     parseResult->addToken( ID );
     parseResult->addToken( C );
