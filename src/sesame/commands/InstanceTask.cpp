@@ -137,7 +137,7 @@ void InstanceTask::run( std::shared_ptr<Instance>& instance )
          // then try to construct
          utils::Reader reader( 1024 );
          String password( reader.readLine( "password or phrase: ", true ) );
-         password = utils::strip( utils::toUtf8( password ) );
+         password = utils::strip( password );
 
          file.clear();
          file.seekg( 0, std::ios_base::beg );
@@ -182,7 +182,7 @@ void InstanceTask::run( std::shared_ptr<Instance>& instance )
             }
          }
 
-         password = utils::strip( utils::toUtf8( password ) );
+         password = utils::strip( password );
          instance->write( file, password );
          instance->recalcInitialDigest();
          break;

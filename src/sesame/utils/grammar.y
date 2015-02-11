@@ -115,6 +115,9 @@ cmd_line ::= DECRYPT(C) WHITESPACE OTHER_ID(ID) NEWLINE.
 {
     parseResult->addToken( ID );
     parseResult->addToken( C );
+
+    parseResult->setCommand(
+        std::shared_ptr<ICommand>( new EntryTask( EntryTask::DECRYPT, ID ) ) );
 }
 cmd_line ::= ADD(C) NEWLINE.
 {
@@ -185,6 +188,9 @@ cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE ADD_PASSWORD(A) NEWLIN
     parseResult->addToken( A );
     parseResult->addToken( ID );
     parseResult->addToken( C );
+
+    parseResult->setCommand(
+        std::shared_ptr<ICommand>( new EntryTask( EntryTask::ADD_PASSWORD, ID ) ) );
 }
 cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE UPDATE_PASSWORD(U) WHITESPACE OTHER_ID(POS) NEWLINE.
 {

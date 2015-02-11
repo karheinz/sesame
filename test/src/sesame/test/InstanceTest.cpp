@@ -233,4 +233,57 @@ TEST( InstanceTest, DeSerialization )
    file5.close();
 }
 
+TEST( InstanceTest, LabeledData )
+{
+   utils::setLocale();
+
+   Map<String,Vector<uint8_t>> params;
+   {
+      Vector<uint8_t> ldN;
+      packV( ldN, 10U );
+      params[ utils::fromUtf8( u8"ldN" ) ] = ldN;
+   }
+   Instance instance( PROTOCOL_SCRYPT_AES_CBC_SHA_V1, params );
+   ASSERT_FALSE( instance.getDecryptAllByDefault() );
+   ASSERT_EQ( PROTOCOL_SCRYPT_AES_CBC_SHA_V1, instance.getProtocol() );
+
+   Entry e1( "Example Entry 1" );
+   e1.addTag( "tag1" );
+   e1.addTag( "tag2" );
+   e1.addTag( "tag3" );
+   ASSERT_TRUE( instance.addEntry( e1 ) );
+   ASSERT_TRUE( instance.isNew() );
+   ASSERT_TRUE( instance.isDirty() );
+
+   Data data( "password" );
+   ASSERT_TRUE( data.isDirty() );
+   Entry copy( instance.findEntry( e1.getIdAsHexString() ) );
+   ASSERT_TRUE( copy.addLabeledData( "password", data ) );
+   ASSERT_TRUE( instance.updateEntry( copy ) );
+   ASSERT_TRUE( instance.isDirty() );
+
+   std::ofstream file1( "instance.bin", std::ios_base::out | std::ios_base::trunc | std::ios_base::binary );
+   ASSERT_NO_THROW( instance.write( file1, "hello world" ) );
+   file1.close();
+   ASSERT_FALSE( instance.isNew() );
+   ASSERT_FALSE( instance.isDirty() );
+
+   std::ifstream file2( "instance.bin", std::ios_base::in | std::ios_base::binary );
+   ASSERT_NO_THROW( Instance tmp( file2, "hello world" ) );
+   file2.seekg( 0, std::ios_base::beg );
+   Instance rebuild( file2, "hello world" );
+   file2.close();
+   ASSERT_EQ( instance.getId(), rebuild.getId() );
+   ASSERT_EQ( instance.getProtocol(), rebuild.getProtocol() );
+   ASSERT_EQ( instance.getEntries(), rebuild.getEntries() );
+   ASSERT_FALSE( rebuild.isNew() );
+   ASSERT_FALSE( rebuild.isDirty() );
+
+   copy = rebuild.findEntry( e1.getIdAsHexString() );
+   ASSERT_FALSE( copy.getLabeledData().begin()->second.isPlaintextAvailable() );
+   ASSERT_NO_THROW( rebuild.decryptEntry( copy, "hello world" ) );
+   ASSERT_TRUE( copy.getLabeledData().begin()->second.isPlaintextAvailable() );
+   ASSERT_EQ( String( "password" ), copy.getLabeledData().begin()->second.getPlaintext<String>() );
+}
+
 } }

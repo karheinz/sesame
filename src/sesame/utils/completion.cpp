@@ -49,8 +49,8 @@ namespace
    const Vector<String> editModes = { "emacs", "vi" };
    const Vector<String> baseCommands = { "help", "clear", "quit", "edit-mode " };
    const Vector<String> noInstanceCommands = { "new", "open " };
-   const Vector<String> instanceCommands = { "close", "write ", "list", "show ", "add ", "delete ", "update " };
-   const Vector<String> subCommands = { "add_attribute", "delete_attribute ", "update_attribute " };
+   const Vector<String> instanceCommands = { "close", "write ", "list", "show ", "decrypt ", "add ", "delete ", "update " };
+   const Vector<String> subCommands = { "add_attribute", "add_password", "delete_attribute ", "update_attribute " };
 
    int cpl_add_completions(
       WordCompletion* cpl,
@@ -62,7 +62,7 @@ namespace
    {
       int success( 0 );
       String::size_type hit;
-      for ( auto choice : choices )
+      for ( auto& choice : choices )
       {
          hit = String::npos;
          hit = choice.find( part );
@@ -137,7 +137,7 @@ CPL_MATCH_FN(cpl_complete_sesame)
    {
       Set<Entry> entries( instance->findEntries( right ) );
       Vector<String> choices;
-      for ( auto entry : entries )
+      for ( auto& entry : entries )
       {
          choices.push_back( String( "#" ) + entry.getIdAsHexString() + " " );
       }

@@ -47,7 +47,8 @@ class EntryTask : public ICommand
          DELETE,
          ADD_ATTRIBUTE,
          DELETE_ATTRIBUTE,
-         UPDATE_ATTRIBUTE
+         UPDATE_ATTRIBUTE,
+         ADD_PASSWORD
       };
 
       /**

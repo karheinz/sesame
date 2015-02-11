@@ -146,7 +146,7 @@ std::size_t Transcoder::getBomSize( const String& data )
    if ( data.size() > 4 )
    {
       tmp = Vector<char>( data.data(), data.data() + 4 );
-      for ( auto bom : BOMS_UTF32 )
+      for ( auto& bom : BOMS_UTF32 )
       {
          if ( bom == tmp )
          {
@@ -165,7 +165,7 @@ std::size_t Transcoder::getBomSize( const String& data )
    if ( data.size() > 2 )
    {
       tmp = Vector<char>( data.data(), data.data() + 2 );
-      for ( auto bom : BOMS_UTF16 )
+      for ( auto& bom : BOMS_UTF16 )
       {
          if ( bom == tmp )
          {

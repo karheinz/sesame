@@ -127,7 +127,7 @@ inline std::ostream& operator<<( std::ostream& s, sesame::utils::ParseResult& p 
    else
    {
       s << p.getCommandToken();
-      for ( const auto argument : p.getArgumentTokens() )
+      for ( auto& argument : p.getArgumentTokens() )
       {
          s << "\n  " << argument;
       }

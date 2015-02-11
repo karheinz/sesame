@@ -78,7 +78,7 @@ namespace sesame
          throw std::runtime_error( "failed to get key derivation params" );
       }
 
-      m_InitialDigest = calcDigest();
+      recalcInitialDigest();
    }
 
    Instance::Instance( std::istream& stream, const String& password )
@@ -174,13 +174,22 @@ namespace sesame
          throw std::runtime_error( "unexpected derivation params" );
       }
 
+      // Reset m_Dirty of data as default ctor was used for deserialization.
+      for ( auto& entry : instance.m_Entries )
+      {
+         for ( auto& date : entry.m_LabeledData )
+         {
+            const_cast<Data&>( date.second ).m_Dirty = false;
+         }
+      }
+
       // Decrypt data?
       if ( instance.getDecryptAllByDefault() )
       {
          instance.decryptEntries( key );
       }
 
-      instance.m_InitialDigest = instance.calcDigest();
+      instance.recalcInitialDigest();
 
       // Now replace current instance with deserialized.
       *this = instance;
@@ -281,7 +290,7 @@ namespace sesame
 
       Set<Entry> result;
       Set<Entry> entries( getEntries() );
-      for ( auto entry : entries )
+      for ( auto& entry : entries )
       {
          StringStream id;
          id << std::hex << std::setw( 8 ) << std::setfill( '0' ) << entry.getId();
@@ -315,22 +324,24 @@ namespace sesame
 
       crypto::IMachine& machine( getCryptoMachine() );
 
-      for ( auto labeledData : entry.m_LabeledData )
+      for ( auto& labeledData : entry.m_LabeledData )
       {
-         if ( ! labeledData.second.isPlaintextAvailable() )
+         Data& data( const_cast<Data&>( labeledData.second ) );
+         if ( ! data.isPlaintextAvailable() )
          {
+            std::cout << "decrypting" << std::endl;
             Vector<uint8_t> calculatedHmac;
-            if ( machine.calcHmac( labeledData.second.m_Ciphertext, key, calculatedHmac ) )
+            if ( machine.calcHmac( data.m_Ciphertext, key, calculatedHmac ) )
             {
-               if ( calculatedHmac == labeledData.second.m_Hmac )
+               if ( calculatedHmac == data.m_Hmac )
                {
-                  if ( labeledData.second.getType() == Data::TEXT )
+                  if ( data.getType() == Data::TEXT )
                   {
                      Vector<uint8_t> buffer;
-                     if ( machine.decrypt( labeledData.second.m_Ciphertext, key, buffer ) )
+                     if ( machine.decrypt( data.m_Ciphertext, key, buffer ) )
                      {
                         String tmp( utils::fromUtf8( reinterpret_cast<const char*>( buffer.data() ), buffer.size() ) );
-                        labeledData.second.m_Plaintext =
+                        data.m_Plaintext =
                            Vector<uint8_t>(
                               reinterpret_cast<const uint8_t*>( tmp.data() ),
                               reinterpret_cast<const uint8_t*>( tmp.data() ) + tmp.size()
@@ -343,7 +354,7 @@ namespace sesame
                   }
                   else
                   {
-                     if ( ! machine.decrypt( labeledData.second.m_Ciphertext, key, labeledData.second.m_Plaintext ) )
+                     if ( ! machine.decrypt( data.m_Ciphertext, key, data.m_Plaintext ) )
                      {
                         throw std::runtime_error( "decryption failed" );
                      }
@@ -358,15 +369,17 @@ namespace sesame
             {
                throw std::runtime_error( "failed to calculate HMAC" );
             }
+
+            data.m_PlaintextAvailable = true;
          }
       }
    }
 
    void Instance::decryptEntries( const Vector<uint8_t>& key )
    {
-      for ( auto entry : m_Entries )
+      for ( auto& entry : m_Entries )
       {
-         decryptEntry( entry, key );
+         decryptEntry( const_cast<Entry&>( entry ), key );
       }
    }
 
@@ -457,18 +470,19 @@ namespace sesame
 
       crypto::IMachine& machine( getCryptoMachine() );
 
-      for ( auto labeledData : entry.m_LabeledData )
+      for ( auto& labeledData : entry.m_LabeledData )
       {
-         if ( labeledData.second.isDirty() )
+         Data& data( const_cast<Data&>( labeledData.second ) );
+         if ( data.isDirty() )
          {
-            if ( labeledData.second.getType() == Data::TEXT )
+            if ( data.getType() == Data::TEXT )
             {
-               String utf8String( utils::toUtf8( labeledData.second.getPlaintext<String>() ) );
+               String utf8String( utils::toUtf8( data.getPlaintext<String>() ) );
                if ( ! machine.encrypt(
                        reinterpret_cast<const uint8_t*>( utf8String.data() ),
                        utf8String.size(),
                        key,
-                       labeledData.second.m_Ciphertext
+                       data.m_Ciphertext
                        )
                   )
                {
@@ -477,15 +491,15 @@ namespace sesame
             }
             else
             {
-               if ( ! machine.encrypt( labeledData.second.m_Plaintext, key, labeledData.second.m_Ciphertext ) )
+               if ( ! machine.encrypt( data.m_Plaintext, key, data.m_Ciphertext ) )
                {
                   throw std::runtime_error( "encryption failed" );
                }
             }
 
-            if ( machine.calcHmac( labeledData.second.m_Ciphertext, key, labeledData.second.m_Hmac ) )
+            if ( machine.calcHmac( data.m_Ciphertext, key, data.m_Hmac ) )
             {
-               labeledData.second.m_Dirty = false;
+               data.m_Dirty = false;
             }
             else
             {
@@ -497,9 +511,9 @@ namespace sesame
 
    void Instance::encryptEntries( const Vector<uint8_t>& key )
    {
-      for ( auto entry : m_Entries )
+      for ( auto& entry : m_Entries )
       {
-         encryptEntry( entry, key );
+         encryptEntry( const_cast<Entry&>( entry ), key );
       }
    }
 
@@ -566,9 +580,9 @@ namespace sesame
       }
 
       // 2. check entries
-      for ( auto entry : m_Entries )
+      for ( auto& entry : m_Entries )
       {
-         for ( auto data : entry.getLabeledData() )
+         for ( auto& data : entry.getLabeledData() )
          {
             if ( data.second.isDirty() )
             {
@@ -659,6 +673,9 @@ namespace sesame
          data.read( buffer.data(), buffer.size() );
          stream.write( buffer.data(), data.gcount() );
       }
+
+      // Remember saved changes.
+      recalcInitialDigest();
    }
 
    void Instance::throwIfProtocolIsUnknown( const Protocol protocol )

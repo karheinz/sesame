@@ -112,7 +112,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
       {
          const Vector<Entry> entries( toSortedVector( instance->getEntries() ) );
 
-         for ( auto entry : entries )
+         for ( auto& entry : entries )
          {
             std::cout << "[#" << entry.getIdAsHexString() << "] " << entry.getName() << std::endl;
          }
@@ -124,10 +124,27 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          std::cout << "[#" << entry.getIdAsHexString() << "] " << entry.getName() << std::endl;
          const Vector<std::pair<String,String>> attributes( toSortedVector( entry.getAttributes() ) );
          std::size_t i = 1;
-         for ( auto attribute : attributes )
+         for ( auto& attribute : attributes )
          {
             std::cout << "[#" << i++ << "] " << attribute.first << ": " << attribute.second << std::endl;
          }
+         const Vector<std::pair<String,Data>> data( toSortedVector( entry.getLabeledData() ) );
+         std::size_t k = 1;
+         for ( auto& date : data )
+         {
+            std::cout << "[#" << k++ << "] " << date.first << ": " <<
+               date.second.getPlaintext<String>() << std::endl;
+         }
+         break;
+      }
+      case DECRYPT:
+      {
+         Entry entry( instance->findEntry( m_Id ) );
+         utils::Reader reader( 1024 );
+         String password( reader.readLine( "password or phrase: ", true ) );
+         password = utils::strip( password );
+         instance->decryptEntry( entry, password );
+         instance->updateEntry( entry );
          break;
       }
       case ADD:
@@ -208,6 +225,34 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          if ( ! entry.updateAttribute( attribute.first, name, value ) )
          {
             throw std::runtime_error( "failed to delete attribute" );
+         }
+         if ( ! instance->updateEntry( entry ) )
+         {
+            throw std::runtime_error( "failed to update entry" );
+         }
+
+         break;
+      }
+      case ADD_PASSWORD:
+      {
+         Entry entry( instance->findEntry( m_Id ) );
+
+         utils::Reader reader( 1024 );
+         String name( reader.readLine( "Name: " ) );
+         name = utils::strip( name );
+         String password( reader.readLine( "Password: ", true ) );
+         password = utils::strip( password );
+         String confirmation( reader.readLine( "Confirmation: ", true ) );
+         confirmation = utils::strip( confirmation );
+
+         if ( password != confirmation )
+         {
+            throw std::runtime_error( "confirmation failed" );
+         }
+
+         if ( ! entry.addLabeledData( name, Data( password ) ) )
+         {
+            throw std::runtime_error( "failed to add password" );
          }
          if ( ! instance->updateEntry( entry ) )
          {

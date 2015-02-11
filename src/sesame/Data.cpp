@@ -110,7 +110,6 @@ namespace sesame
       // Stop at first zero byte.
       // Implementation here is not very effective but its OK
       // as only small content size is expected.
-
       String tmp(
          reinterpret_cast<const char*>( &( m_Plaintext.front() ) ),
          reinterpret_cast<const char*>( &( m_Plaintext.back() ) ) + 1

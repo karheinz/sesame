@@ -473,7 +473,7 @@ TEST( ScryptAesCbcShaV1MachineTest, NistAesAvs )
 {
    std::vector<std::string> fileNames( getRspFiles( AESAVS_DIRECTORY ) );
 
-   for ( const auto fileName : fileNames )
+   for ( auto& fileName : fileNames )
    {
       std::cout << "handle file: " << fileName << std::endl;
       handleRspFile( fileName );
