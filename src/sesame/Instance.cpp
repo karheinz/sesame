@@ -25,7 +25,6 @@
 
 #include <algorithm>
 #include <iomanip>
-#include <iostream>
 #include <memory>
 #include <random>
 #include <stdexcept>
@@ -329,7 +328,6 @@ namespace sesame
          Data& data( const_cast<Data&>( labeledData.second ) );
          if ( ! data.isPlaintextAvailable() )
          {
-            std::cout << "decrypting" << std::endl;
             Vector<uint8_t> calculatedHmac;
             if ( machine.calcHmac( data.m_Ciphertext, key, calculatedHmac ) )
             {

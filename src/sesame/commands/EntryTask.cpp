@@ -132,8 +132,32 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          std::size_t k = 1;
          for ( auto& date : data )
          {
-            std::cout << "[#" << k++ << "] " << date.first << ": " <<
-               date.second.getPlaintext<String>() << std::endl;
+            std::cout << "[#" << k++ << "] " << date.first << ": ";
+            if ( date.second.getType() == Data::TEXT )
+            {
+               if ( date.second.isPlaintextAvailable() )
+               {
+                  std::cout << date.second.getPlaintext<String>();
+               }
+               else
+               {
+                  std::cout << "<encrypted text>";
+               }
+            }
+            else
+            {
+               if ( date.second.isPlaintextAvailable() )
+               {
+                  std::cout << "binary data (" <<
+                     date.second.getPlaintext<Vector<uint8_t>>().size() << " bytes)";
+               }
+               else
+               {
+                  std::cout << "<encrypted binary data>";
+               }
+            }
+
+            std::cout << std::endl;
          }
          break;
       }
