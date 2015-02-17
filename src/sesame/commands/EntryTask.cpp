@@ -29,7 +29,9 @@
 #include "types.hpp"
 #include "sesame/Entry.hpp"
 #include "sesame/commands/EntryTask.hpp"
+#include "sesame/utils/lines.hpp"
 #include "sesame/utils/Reader.hpp"
+#include "sesame/utils/string.hpp"
 
 namespace sesame { namespace commands {
 
@@ -112,26 +114,73 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
       {
          const Vector<Entry> entries( toSortedVector( instance->getEntries() ) );
 
+         if ( entries.empty() )
+         {
+            std::cout << "No entries yet." << std::endl;
+         }
+         else if ( entries.size() == 1 )
+         {
+            std::cout << "Entry:" << std::endl;
+         }
+         else
+         {
+            std::cout << "Entries:" << std::endl;
+         }
+
+         std::size_t i( entries.size() );
          for ( auto& entry : entries )
          {
+            if ( i > 1 )
+            {
+               std::cout << utils::branch();
+            }
+            else
+            {
+               std::cout << utils::corner();
+            }
+
             std::cout << "[#" << entry.getIdAsHexString() << "] " << entry.getName() << std::endl;
+
+            --i;
          }
          break;
       }
       case SHOW:
       {
          const Entry entry( instance->findEntry( m_Id ) );
-         std::cout << "[#" << entry.getIdAsHexString() << "] " << entry.getName() << std::endl;
+         //std::cout << "[#" << entry.getIdAsHexString() << "] " << entry.getName() << std::endl;
+         std::cout << entry.getName() << std::endl;
          const Vector<std::pair<String,String>> attributes( toSortedVector( entry.getAttributes() ) );
+         const Vector<std::pair<String,Data>> data( toSortedVector( entry.getLabeledData() ) );
+         String filler( data.empty() ? utils::empty() : utils::down() );
+
+         std::cout << utils::branch() << "Attribute(s):" << std::endl;
          std::size_t i = 1;
          for ( auto& attribute : attributes )
          {
+            if ( i < attributes.size() )
+            {
+               std::cout << filler << utils::branch( 1 );
+            }
+            else
+            {
+               std::cout << filler << utils::corner( 1 );
+            }
             std::cout << "[#" << i++ << "] " << attribute.first << ": " << attribute.second << std::endl;
          }
-         const Vector<std::pair<String,Data>> data( toSortedVector( entry.getLabeledData() ) );
+
+         std::cout << utils::corner() << "Password(s)/Key(s):" << std::endl;
          std::size_t k = 1;
          for ( auto& date : data )
          {
+            if ( k < data.size() )
+            {
+               std::cout << utils::empty() << utils::branch( 1 );
+            }
+            else
+            {
+               std::cout << utils::empty() << utils::corner( 1 );
+            }
             std::cout << "[#" << k++ << "] " << date.first << ": ";
             if ( date.second.getType() == Data::TEXT )
             {
