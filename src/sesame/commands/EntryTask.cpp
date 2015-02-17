@@ -118,10 +118,6 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          {
             std::cout << "No entries yet." << std::endl;
          }
-         else if ( entries.size() == 1 )
-         {
-            std::cout << "Entry:" << std::endl;
-         }
          else
          {
             std::cout << "Entries:" << std::endl;
@@ -148,11 +144,10 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
       case SHOW:
       {
          const Entry entry( instance->findEntry( m_Id ) );
-         //std::cout << "[#" << entry.getIdAsHexString() << "] " << entry.getName() << std::endl;
          std::cout << entry.getName() << std::endl;
          const Vector<std::pair<String,String>> attributes( toSortedVector( entry.getAttributes() ) );
          const Vector<std::pair<String,Data>> data( toSortedVector( entry.getLabeledData() ) );
-         String filler( data.empty() ? utils::empty() : utils::down() );
+         String filler( utils::down() );
 
          std::cout << utils::branch() << "Attribute(s):" << std::endl;
          std::size_t i = 1;
@@ -311,7 +306,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          Entry entry( instance->findEntry( m_Id ) );
 
          utils::Reader reader( 1024 );
-         String name( reader.readLine( "Name: " ) );
+         String name( reader.readLine( "Label: " ) );
          name = utils::strip( name );
          String password( reader.readLine( "Password: ", true ) );
          password = utils::strip( password );
