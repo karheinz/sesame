@@ -4,15 +4,14 @@
 
 namespace sesame { namespace utils {
 
-const uint8_t INDENTATION( 2 );
+namespace
+{
+   const uint8_t INDENTATION( 2 );
+}
 
 String buildLine( uint8_t level, const String& elem )
 {
    StringStream s;
-//   if ( level == 0 )
-//   {
-//      s << u8" ";
-//   }
    for ( uint8_t i = 0; i < ( level * INDENTATION ); ++i )
    {
       s << u8" ";
@@ -29,10 +28,6 @@ String buildLine( uint8_t level, const String& elem )
 String empty( uint8_t level )
 {
    StringStream s;
-//   if ( level == 0 )
-//   {
-//      s << u8" ";
-//   }
    for ( uint8_t i = 0; i <= ( level * INDENTATION ); ++i )
    {
       s << u8" ";
@@ -44,10 +39,6 @@ String empty( uint8_t level )
 String down( uint8_t level )
 {
    StringStream s;
-//   if ( level == 0 )
-//   {
-//      s << u8" ";
-//   }
    for ( uint8_t i = 0; i < ( level * INDENTATION ); ++i )
    {
       s << u8" ";
