@@ -23,20 +23,20 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-#ifndef SESAME_UTILS_LINES_HPP
-#define SESAME_UTILS_LINES_HPP
+#ifndef SESAME_UTILS_COLORS_HPP
+#define SESAME_UTILS_COLORS_HPP
 
-#include "sesame/utils/string.hpp"
+#include "types.hpp"
+
 
 namespace sesame { namespace utils {
 
-String empty( uint8_t level = 0 );
-
-String down( uint8_t level = 0 );
-
-String branch( uint8_t level = 0 );
-
-String corner( uint8_t level = 0 );
+namespace
+{
+   const String CSI( "\033[" );
+}
+const String ESC_SEQ_RESET( CSI + "0m" );
+const String ESC_SEQ_BOLD( CSI + "1m" );
 
 } }
 

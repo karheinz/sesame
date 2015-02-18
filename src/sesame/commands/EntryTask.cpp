@@ -29,6 +29,7 @@
 #include "types.hpp"
 #include "sesame/Entry.hpp"
 #include "sesame/commands/EntryTask.hpp"
+#include "sesame/utils/colors.hpp"
 #include "sesame/utils/lines.hpp"
 #include "sesame/utils/Reader.hpp"
 #include "sesame/utils/string.hpp"
@@ -135,7 +136,11 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
                std::cout << utils::corner();
             }
 
-            std::cout << "[#" << entry.getIdAsHexString() << "] " << entry.getName() << std::endl;
+            std::cout << "[#" << entry.getIdAsHexString() << "] "
+                      << utils::ESC_SEQ_BOLD
+                      << entry.getName()
+                      << utils::ESC_SEQ_RESET
+                      << std::endl;
 
             --i;
          }
@@ -144,7 +149,12 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
       case SHOW:
       {
          const Entry entry( instance->findEntry( m_Id ) );
-         std::cout << entry.getName() << std::endl;
+         std::cout << "[#" << entry.getIdAsHexString() << "] "
+                   << utils::ESC_SEQ_BOLD
+                   << entry.getName()
+                   << utils::ESC_SEQ_RESET
+                   << std::endl;
+
          const Vector<std::pair<String,String>> attributes( toSortedVector( entry.getAttributes() ) );
          const Vector<std::pair<String,Data>> data( toSortedVector( entry.getLabeledData() ) );
          String filler( utils::down() );
