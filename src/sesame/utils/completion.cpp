@@ -26,6 +26,7 @@
 #include <iostream>
 #include <memory>
 #include "types.hpp"
+#include "sesame/Data.hpp"
 #include "sesame/Entry.hpp"
 #include "sesame/Instance.hpp"
 #include "sesame/utils/completion.hpp"
@@ -33,6 +34,7 @@
 #include "sesame/utils/Parser.hpp"
 #include "sesame/utils/ParseResult.hpp"
 
+using sesame::Data;
 using sesame::Entry;
 using sesame::Instance;
 using sesame::utils::lstrip;
@@ -50,7 +52,8 @@ namespace
    const Vector<String> baseCommands = { "help", "clear", "quit", "edit-mode " };
    const Vector<String> noInstanceCommands = { "new", "open " };
    const Vector<String> instanceCommands = { "close", "write ", "list", "show ", "decrypt ", "add ", "delete ", "update " };
-   const Vector<String> subCommands = { "add_attribute", "add_password", "delete_attribute ", "update_attribute " };
+   const Vector<String> subCommands = { "add_attribute", "update_attribute ", "delete_attribute ",
+                                        "add_password", "update_password_or_key ", "delete_password_or_key " };
 
    int cpl_add_completions(
       WordCompletion* cpl,
@@ -168,6 +171,27 @@ CPL_MATCH_FN(cpl_complete_sesame)
          // entry not found
       }
    }
+   else if ( parseResult.completePasswordOrKey() && instance )
+   {
+      try
+      {
+         Entry entry( instance->findEntry( parseResult.getEntryId() ) );
+         Map<String,Data> labeledData( entry.getLabeledData() );
+         Vector<String> choices;
+         for ( std::size_t i = 1; i <= labeledData.size(); ++i )
+         {
+            StringStream s;
+            s << "#" << i;
+            choices.push_back( s.str() );
+         }
+         cpl_add_completions( cpl, line, word_end, choices, right );
+      }
+      catch ( std::runtime_error& )
+      {
+         // entry not found
+      }
+   }
+
    else if ( parseResult.completeFile() )
    {
       cpl_file_completions( cpl, nullptr, right.c_str(), right.size() );

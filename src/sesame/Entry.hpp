@@ -167,14 +167,15 @@ namespace sesame
          bool addLabeledData( const String& label, const Data& data );
 
          /**
-          * Updates data labeled with <tt>label</tt>.
+          * Updates data labeled with <tt>oldLabel</tt>.
           *
-          * @param label the label to use
+          * @param oldLabel the old label of the data to update
+          * @param newLabel the new label of the data to update
           * @param data the data
           *
           * @return <tt>true</tt> for success, otherwise <tt>false</tt>
           */
-         bool updateLabeledData( const String& label, const Data& data );
+         bool updateLabeledData( const String& oldLabel, const String& newLabel, const Data& data );
 
          /**
           * Deletes data labeled with <tt>label</tt>.

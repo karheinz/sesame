@@ -71,11 +71,9 @@ NL  (\r?\n)
 <START_COND>{CH}+                         { return START; }
 <UPDATE_COND>#{HX}+                       { BEGIN( UPDATE_ENTRY_COND ); return ENTRY_ID; }
 <UPDATE_ENTRY_COND>add_password           { BEGIN( CMD_COND ); return ADD_PASSWORD; }
-<UPDATE_ENTRY_COND>update_password        { BEGIN( UPDATE_OTHER_COND ); return UPDATE_PASSWORD; }
-<UPDATE_ENTRY_COND>delete_password        { BEGIN( UPDATE_OTHER_COND ); return DELETE_PASSWORD; }
 <UPDATE_ENTRY_COND>add_key                { BEGIN( CMD_COND ); return ADD_KEY; }
-<UPDATE_ENTRY_COND>update_key             { BEGIN( UPDATE_OTHER_COND ); return UPDATE_KEY; }
-<UPDATE_ENTRY_COND>delete_key             { BEGIN( UPDATE_OTHER_COND ); return DELETE_KEY; }
+<UPDATE_ENTRY_COND>update_password_or_key { BEGIN( UPDATE_OTHER_COND ); return UPDATE_PASSWORD_OR_KEY; }
+<UPDATE_ENTRY_COND>delete_password_or_key { BEGIN( UPDATE_OTHER_COND ); return DELETE_PASSWORD_OR_KEY; }
 <UPDATE_ENTRY_COND>add_attribute          { BEGIN( CMD_COND ); return ADD_ATTRIBUTE; }
 <UPDATE_ENTRY_COND>update_attribute       { BEGIN( UPDATE_OTHER_COND ); return UPDATE_ATTRIBUTE; }
 <UPDATE_ENTRY_COND>delete_attribute       { BEGIN( UPDATE_OTHER_COND ); return DELETE_ATTRIBUTE; }

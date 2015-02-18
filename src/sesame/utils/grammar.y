@@ -192,39 +192,41 @@ cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE ADD_PASSWORD(A) NEWLIN
     parseResult->setCommand(
         std::shared_ptr<ICommand>( new EntryTask( EntryTask::ADD_PASSWORD, ID ) ) );
 }
-cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE UPDATE_PASSWORD(U) WHITESPACE OTHER_ID(POS) NEWLINE.
-{
-    parseResult->addToken( POS );
-    parseResult->addToken( U );
-    parseResult->addToken( ID );
-    parseResult->addToken( C );
-}
-cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE DELETE_PASSWORD(D) WHITESPACE OTHER_ID(POS) NEWLINE.
-{
-    parseResult->addToken( POS );
-    parseResult->addToken( D );
-    parseResult->addToken( ID );
-    parseResult->addToken( C );
-}
 cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE ADD_KEY(A) NEWLINE.
 {
     parseResult->addToken( A );
     parseResult->addToken( ID );
     parseResult->addToken( C );
 }
-cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE UPDATE_KEY(U) WHITESPACE OTHER_ID(POS) NEWLINE.
+cmd_line ::= UPDATE WHITESPACE ENTRY_ID(ID) WHITESPACE UPDATE_PASSWORD_OR_KEY WHITESPACE.
+{
+   parseResult->setEntryId( ID );
+   parseResult->setCompletePasswordOrKey();
+}
+cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE UPDATE_PASSWORD_OR_KEY(U) WHITESPACE OTHER_ID(POS) NEWLINE.
 {
     parseResult->addToken( POS );
     parseResult->addToken( U );
     parseResult->addToken( ID );
     parseResult->addToken( C );
+
+    parseResult->setCommand(
+        std::shared_ptr<ICommand>( new EntryTask( EntryTask::UPDATE_PASSWORD_OR_KEY, ID, POS ) ) );
 }
-cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE DELETE_KEY(D) WHITESPACE OTHER_ID(POS) NEWLINE.
+cmd_line ::= UPDATE WHITESPACE ENTRY_ID(ID) WHITESPACE DELETE_PASSWORD_OR_KEY WHITESPACE.
+{
+   parseResult->setEntryId( ID );
+   parseResult->setCompletePasswordOrKey();
+}
+cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE DELETE_PASSWORD_OR_KEY(D) WHITESPACE OTHER_ID(POS) NEWLINE.
 {
     parseResult->addToken( POS );
     parseResult->addToken( D );
     parseResult->addToken( ID );
     parseResult->addToken( C );
+
+    parseResult->setCommand(
+        std::shared_ptr<ICommand>( new EntryTask( EntryTask::DELETE_PASSWORD_OR_KEY, ID, POS ) ) );
 }
 cmd_line ::= WRITE.                    { parseResult->setCompleteCommand(); }
 cmd_line ::= WRITE WHITESPACE.         { parseResult->setCompleteFile(); }

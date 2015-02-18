@@ -130,7 +130,7 @@ TEST( EntryTest, LabeledData )
    ASSERT_EQ( "password", ( *data ).first );
    ASSERT_EQ( "123456", ( *data ).second.getPlaintext<String>() );
 
-   ASSERT_TRUE( e1.updateLabeledData( "password", Data( "654321" ) ) );
+   ASSERT_TRUE( e1.updateLabeledData( "password", "password", Data( "654321" ) ) );
    labeledData = e1.getLabeledData();
    ASSERT_EQ( 1, labeledData.size() );
    ASSERT_FALSE( labeledData.find( "password" ) == labeledData.end() );

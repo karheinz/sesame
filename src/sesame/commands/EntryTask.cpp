@@ -302,7 +302,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
 
          if ( ! entry.updateAttribute( attribute.first, name, value ) )
          {
-            throw std::runtime_error( "failed to delete attribute" );
+            throw std::runtime_error( "failed to update attribute" );
          }
          if ( ! instance->updateEntry( entry ) )
          {
@@ -316,21 +316,54 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          Entry entry( instance->findEntry( m_Id ) );
 
          utils::Reader reader( 1024 );
-         String name( reader.readLine( "Label: " ) );
-         name = utils::strip( name );
-         String password( reader.readLine( "Password: ", true ) );
+         String label( reader.readLine( "Label: " ) );
+         label = utils::strip( label );
+         String password( reader.readLine( "Password: " ) );
          password = utils::strip( password );
-         String confirmation( reader.readLine( "Confirmation: ", true ) );
-         confirmation = utils::strip( confirmation );
 
-         if ( password != confirmation )
-         {
-            throw std::runtime_error( "confirmation failed" );
-         }
-
-         if ( ! entry.addLabeledData( name, Data( password ) ) )
+         if ( ! entry.addLabeledData( label, Data( password ) ) )
          {
             throw std::runtime_error( "failed to add password" );
+         }
+         if ( ! instance->updateEntry( entry ) )
+         {
+            throw std::runtime_error( "failed to update entry" );
+         }
+
+         break;
+      }
+      case DELETE_PASSWORD_OR_KEY:
+      {
+         Entry entry( instance->findEntry( m_Id ) );
+         Vector<std::pair<String,Data>> labeledData( toSortedVector( entry.getLabeledData() ) );
+         const std::pair<String,Data> labeledDate( getElemAtPos( labeledData, m_Pos ) );
+
+         if ( ! entry.deleteLabeledData( labeledDate.first ) )
+         {
+            throw std::runtime_error( "failed to delete password or key" );
+         }
+         if ( ! instance->updateEntry( entry ) )
+         {
+            throw std::runtime_error( "failed to update entry" );
+         }
+
+         break;
+      }
+      case UPDATE_PASSWORD_OR_KEY:
+      {
+         Entry entry( instance->findEntry( m_Id ) );
+         const Vector<std::pair<String,Data>> labeledData( toSortedVector( entry.getLabeledData() ) );
+         const std::pair<String,Data> labeledDate( getElemAtPos( labeledData, m_Pos ) );
+
+         utils::Reader reader( 1024 );
+         String label( reader.readLine( "Label: " ) );
+         label = utils::strip( label );
+         String password( reader.readLine( "Password: " ) );
+         password = utils::strip( password );
+
+         if ( ! entry.updateLabeledData( labeledDate.first, label, Data( password ) ) )
+         {
+            throw std::runtime_error( "failed to update password" );
          }
          if ( ! instance->updateEntry( entry ) )
          {

@@ -88,6 +88,11 @@ class ParseResult
       /** User requests completion of attribute? */
       bool completeAttribute();
 
+      void setCompletePasswordOrKey();
+
+      /** User requests completion of password or key? */
+      bool completePasswordOrKey();
+
       /**
        * Sets the entry id.
        *
@@ -113,6 +118,7 @@ class ParseResult
       bool m_CompleteCommand;
       bool m_CompleteSubCommand;
       bool m_CompleteAttribute;
+      bool m_CompletePasswordOrKey;
       String m_EntryId;
 };
 

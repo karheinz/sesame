@@ -120,11 +120,15 @@ namespace sesame
       return m_LabeledData.insert( std::make_pair<String,Data>( String( label ), Data( data ) ) ).second;
    }
 
-   bool Entry::updateLabeledData( const String& label, const Data& data )
+   bool Entry::updateLabeledData( const String& oldLabel, const String& newLabel, const Data& data )
    {
-      if ( m_LabeledData.find( label ) != m_LabeledData.end() )
+      if ( newLabel != oldLabel && m_LabeledData.find( newLabel ) != m_LabeledData.end() )
       {
-         m_LabeledData[ label ] = data;
+         return false;
+      }
+      else if ( m_LabeledData.erase( oldLabel ) == 1 )
+      {
+         m_LabeledData[ newLabel ] = data;
          return true;
       }
       else

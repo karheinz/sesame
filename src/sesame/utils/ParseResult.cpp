@@ -39,6 +39,7 @@ ParseResult::ParseResult() :
    m_CompleteCommand( false ),
    m_CompleteSubCommand( false ),
    m_CompleteAttribute( false ),
+   m_CompletePasswordOrKey( false ),
    m_EntryId( "" )
 {
 }
@@ -97,6 +98,7 @@ void ParseResult::clear()
    m_CompleteCommand = false;
    m_CompleteSubCommand = false;
    m_CompleteAttribute = false;
+   m_CompletePasswordOrKey = false;
    m_EntryId = "";
 }
 
@@ -169,6 +171,16 @@ void ParseResult::setCompleteAttribute()
 bool ParseResult::completeAttribute()
 {
    return m_CompleteAttribute;
+}
+
+void ParseResult::setCompletePasswordOrKey()
+{
+   m_CompletePasswordOrKey = true;
+}
+
+bool ParseResult::completePasswordOrKey()
+{
+   return m_CompletePasswordOrKey;
 }
 
 void ParseResult::setEntryId( const String& entryId )
