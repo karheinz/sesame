@@ -451,7 +451,7 @@ namespace sesame { namespace crypto {
       if ( params.find( utils::fromUtf8( u8"p" ) ) == params.end() )
       {
          uint32_t p;
-         p = 8;
+         p = 1;
          Vector<uint8_t> v;
          packV( v, p );
          params[ utils::fromUtf8( u8"p" ) ] = v;
