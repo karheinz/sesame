@@ -605,10 +605,16 @@ namespace sesame
          throw std::runtime_error( "key derivation failed" );
       }
 
-      // 1. Encrypt all entries.
+      // 1. Check key.
+      if ( ! isKeyValid( key ) )
+      {
+         throw std::runtime_error( "key is invalid" );
+      }
+
+      // 2. Encrypt all entries.
       encryptEntries( key );
 
-      // 2. Pack and write meta data.
+      // 3. Pack and write meta data.
       StringStream data;
 
       // sesame major version
@@ -620,7 +626,7 @@ namespace sesame
       // derivation params
       pack( data, m_Params );
 
-      // 3. Serialize and encrypt.
+      // 4. Serialize and encrypt.
       Vector<uint8_t> ciphertext;
       {
          Vector<uint8_t> serialized;
@@ -637,7 +643,7 @@ namespace sesame
       }
       pack( data, ciphertext );
 
-      // 4. Calc HMAC of data and append.
+      // 5. Calc HMAC of data and append.
       Vector<uint8_t> hmac;
       {
          Vector<uint8_t> serialized;
@@ -650,7 +656,7 @@ namespace sesame
       }
       pack( data, hmac );
 
-      // 5. Calc digest and append.
+      // 6. Calc digest and append.
       Vector<uint8_t> digest;
       {
          Vector<uint8_t> serialized;
@@ -663,7 +669,7 @@ namespace sesame
       }
       pack( data, digest );
 
-      // 6. Write to file.
+      // 7. Write to file.
       data.seekg( 0, std::ios_base::beg );
       Vector<char> buffer( 128 );
       while ( data.good() )
