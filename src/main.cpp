@@ -128,17 +128,20 @@ int main( int argc, char** argv)
       }
       else if ( normalized == "quit\n" )
       {
-         try
+         if ( instance )
          {
-            InstanceTask task( InstanceTask::CLOSE );
-            task.run( instance );
-         }
-         catch ( std::runtime_error& e )
-         {
-            std::cerr << "ERROR: " << e.what() << std::endl;;
+            try
+            {
+               InstanceTask task( InstanceTask::CLOSE );
+               task.run( instance );
+            }
+            catch ( std::runtime_error& e )
+            {
+               std::cerr << "ERROR: " << e.what() << std::endl;;
+            }
          }
 
-         // Quit only if instance was closed!
+         // Quit only if no instance is open!
          if ( ! instance )
          {
             break;
