@@ -3,16 +3,19 @@ Sesame - a cmd line password manager
 
 ### IMPORTANT!!! ###
 
-Work on sesame has not been finished yet!
+Work on sesame is in progress and has not been finished yet!
 
 What you can do so far is:
 
 * create, open, close and write containers
-* list, show, add and delete entries
+* list, show, add, update and delete entries
+* add, update and delete attributes and passwords
 
 What is missing:
 
-* editing entries (all about tags, attributes and data)
+* managing keys (binary data)
+* signal handler for clean shutdown (on SIGTERM etc.)
+* ...
 
 
 Introduction
