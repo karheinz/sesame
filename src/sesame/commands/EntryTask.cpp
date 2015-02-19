@@ -248,6 +248,22 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
 
          break;
       }
+      case UPDATE:
+      {
+         Entry entry( instance->findEntry( m_Id ) );
+
+         utils::Reader reader( 1024 );
+         String name( reader.readLine( "Name: " ) );
+         name = utils::strip( name );
+         entry.setName( name );
+
+         if ( ! instance->updateEntry( entry ) )
+         {
+            throw std::runtime_error( "failed to update entry" );
+         }
+
+         break;
+      }
       case ADD_ATTRIBUTE:
       {
          Entry entry( instance->findEntry( m_Id ) );
