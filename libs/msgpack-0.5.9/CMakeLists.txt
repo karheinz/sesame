@@ -10,7 +10,7 @@ SET (exec_prefix "\${prefix}")
 SET (libdir "\${exec_prefix}/lib")
 SET (includedir "\${prefix}/include")
 
-FIND_PACKAGE (GTest)
+#FIND_PACKAGE (GTest)
 FIND_PACKAGE (ZLIB)
 FIND_PACKAGE (Threads)
 IF (GTEST_FOUND AND ZLIB_FOUND AND THREADS_FOUND)
