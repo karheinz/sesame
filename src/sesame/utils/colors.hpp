@@ -33,10 +33,10 @@ namespace sesame { namespace utils {
 
 namespace
 {
-   const String CSI( "\033[" );
+   static const String CSI( "\033[" );
 }
-const String ESC_SEQ_RESET( CSI + "0m" );
-const String ESC_SEQ_BOLD( CSI + "1m" );
+static const String ESC_SEQ_RESET( CSI + "0m" );
+static const String ESC_SEQ_BOLD( CSI + "1m" );
 
 } }
 
