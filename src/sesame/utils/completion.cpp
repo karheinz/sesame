@@ -53,7 +53,7 @@ namespace
    const Vector<String> noInstanceCommands = { "new", "open " };
    const Vector<String> instanceCommands = { "close", "write ", "list", "show ", "decrypt ", "add ", "delete ", "update " };
    const Vector<String> subCommands = { "add_attribute", "update_attribute ", "delete_attribute ",
-                                        "add_password", "update_password_or_key ", "delete_password_or_key " };
+                                        "add_password", "add_key", "update_password_or_key ", "delete_password_or_key " };
 
    int cpl_add_completions(
       WordCompletion* cpl,
@@ -191,7 +191,6 @@ CPL_MATCH_FN(cpl_complete_sesame)
          // entry not found
       }
    }
-
    else if ( parseResult.completeFile() )
    {
       cpl_file_completions( cpl, nullptr, right.c_str(), right.size() );

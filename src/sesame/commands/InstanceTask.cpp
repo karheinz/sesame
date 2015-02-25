@@ -30,6 +30,7 @@
 
 #include "sesame/Instance.hpp"
 #include "sesame/commands/InstanceTask.hpp"
+#include "sesame/utils/filesystem.hpp"
 #include "sesame/utils/string.hpp"
 #include "sesame/utils/Reader.hpp"
 
@@ -126,6 +127,17 @@ void InstanceTask::run( std::shared_ptr<Instance>& instance )
       case OPEN:
       {
          // open and parse first
+         if ( ! utils::exists( m_Path ) )
+         {
+            throw std::runtime_error( "file not found" );
+         }
+         else if ( ! utils::isFile( m_Path ) )
+         {
+            StringStream s;
+            s << m_Path << " is no file";
+            throw std::runtime_error( s.str().c_str() );
+         }
+
          std::ifstream file( m_Path.c_str(), std::ios_base::in | std::ios_base::binary );
          if ( ! file.good() )
          {
@@ -147,9 +159,11 @@ void InstanceTask::run( std::shared_ptr<Instance>& instance )
       }
       case WRITE:
       {
+         bool alreadyExists( utils::exists( m_Path.c_str() ) );
+
+         if ( alreadyExists )
          {
-            std::ifstream check( m_Path.c_str() );
-            if ( check.good() )
+            if ( utils::isFile( m_Path.c_str() ) )
             {
                utils::Reader reader( 1024 );
                String choice( reader.readLine( "Overwrite existing file? [y/N]  " ) );
@@ -158,6 +172,12 @@ void InstanceTask::run( std::shared_ptr<Instance>& instance )
                {
                   break;
                }
+            }
+            else
+            {
+               StringStream s;
+               s << m_Path << " is no file";
+               throw std::runtime_error( s.str().c_str() );
             }
          }
 
@@ -178,13 +198,31 @@ void InstanceTask::run( std::shared_ptr<Instance>& instance )
             String confirmation( reader.readLine( "please confirm: ", true ) );
             if ( password != confirmation )
             {
+               if ( ! alreadyExists )
+               {
+                  file.close();
+                  utils::removeFile( m_Path );
+               }
                throw std::runtime_error( "confirmation failed" );
             }
          }
 
          password = utils::strip( password );
-         instance->write( file, password );
-         instance->recalcInitialDigest();
+         try
+         {
+            instance->write( file, password );
+            instance->recalcInitialDigest();
+         }
+         catch ( std::runtime_error& )
+         {
+            if ( ! alreadyExists )
+            {
+               file.close();
+               utils::removeFile( m_Path );
+            }
+            throw;
+         }
+
          break;
       }
       case CLOSE:

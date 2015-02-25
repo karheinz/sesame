@@ -33,8 +33,9 @@
 #include "types.hpp"
 #include "sesame/Instance.hpp"
 #include "sesame/commands/InstanceTask.hpp"
-#include "sesame/utils/string.hpp"
 #include "sesame/utils/completion.hpp"
+#include "sesame/utils/filesystem.hpp"
+#include "sesame/utils/string.hpp"
 #include "sesame/utils/Parser.hpp"
 #include "sesame/utils/ParseResult.hpp"
 #include "sesame/utils/TeclaReader.hpp"
@@ -66,6 +67,11 @@ int main( int argc, char** argv)
          task.run( instance );
       }
       catch ( std::runtime_error& e )
+      {
+         std::cerr << "ERROR: " << e.what() << std::endl;;
+         return 1;
+      }
+      catch ( std::bad_alloc& e )
       {
          std::cerr << "ERROR: " << e.what() << std::endl;;
          return 1;
@@ -164,6 +170,11 @@ int main( int argc, char** argv)
                   catch ( std::runtime_error& e )
                   {
                      std::cerr << "ERROR: " << e.what() << std::endl;
+                  }
+                  catch ( std::bad_alloc& e )
+                  {
+                     std::cerr << "ERROR: " << e.what() << std::endl;;
+                     return 1;
                   }
                }
             }

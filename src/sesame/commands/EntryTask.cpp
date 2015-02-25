@@ -23,6 +23,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <utility>
@@ -30,9 +31,12 @@
 #include "sesame/Entry.hpp"
 #include "sesame/commands/EntryTask.hpp"
 #include "sesame/utils/colors.hpp"
+#include "sesame/utils/completion.hpp"
+#include "sesame/utils/filesystem.hpp"
 #include "sesame/utils/lines.hpp"
-#include "sesame/utils/Reader.hpp"
 #include "sesame/utils/string.hpp"
+#include "sesame/utils/Reader.hpp"
+#include "sesame/utils/TeclaReader.hpp"
 
 namespace sesame { namespace commands {
 
@@ -345,6 +349,45 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          {
             throw std::runtime_error( "failed to update entry" );
          }
+
+         break;
+      }
+      case ADD_KEY:
+      {
+         Entry entry( instance->findEntry( m_Id ) );
+
+         utils::Reader reader1( 1024 );
+         String label( reader1.readLine( "Label: " ) );
+         label = utils::strip( label );
+         utils::TeclaReader reader2( 1024 );
+         reader2.addCompletion( cpl_file_completions, nullptr );
+         String path( reader2.readLine( "File: " ) );
+         path = utils::strip( path );
+
+         if ( ! utils::isFile( path.c_str() ) )
+         {
+            StringStream s;
+            s << path << " is no file";
+            throw std::runtime_error( s.str().c_str() );
+         }
+
+         std::ifstream file( path.c_str(), std::ios_base::in | std::ios_base::binary );
+         if ( ! file.good() )
+         {
+            throw std::runtime_error( "failed to open file" );
+         }
+         Vector<uint8_t> data;
+         data.resize( utils::getFileSize( path ) );
+         file.read( reinterpret_cast<char*>( data.data() ), data.size() );
+         if ( ! entry.addLabeledData( label, Data( data ) ) )
+         {
+            throw std::runtime_error( "failed to add key" );
+         }
+         if ( ! instance->updateEntry( entry ) )
+         {
+            throw std::runtime_error( "failed to update entry" );
+         }
+
 
          break;
       }
