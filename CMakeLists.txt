@@ -39,6 +39,7 @@ SET( LIBMSGPACK "msgpack" )
 SET( LIBMSGPACK_DIR "libs/msgpack-0.5.9" )
 SET( LIBMSGPACK_INCLUDE_DIR "${LIBMSGPACK_DIR}/src" )
 ADD_SUBDIRECTORY( ${LIBMSGPACK_DIR} )
+ADD_DEPENDENCIES( msgpack gtest gtest_main )
 
 # where to place generated sources
 SET( GEN_SOURCE_DIR "${CMAKE_BINARY_DIR}/gen" )
