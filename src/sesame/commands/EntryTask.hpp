@@ -51,7 +51,8 @@ class EntryTask : public ICommand
          ADD_PASSWORD,
          ADD_KEY,
          DELETE_PASSWORD_OR_KEY,
-         UPDATE_PASSWORD_OR_KEY
+         UPDATE_PASSWORD_OR_KEY,
+         EXPORT_KEY
       };
 
       /**

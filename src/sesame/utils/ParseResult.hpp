@@ -78,10 +78,15 @@ class ParseResult
       /** User requests completion of command? */
       bool completeCommand();
 
-      void setCompleteSubCommand();
+      void setCompleteUpdateCommand();
 
-      /** User requests completion of sub command? */
-      bool completeSubCommand();
+      /** User requests completion of update command? */
+      bool completeUpdateCommand();
+
+      void setCompleteSelectCommand();
+
+      /** User requests completion of update command? */
+      bool completeSelectCommand();
 
       void setCompleteAttribute();
 
@@ -92,6 +97,11 @@ class ParseResult
 
       /** User requests completion of password or key? */
       bool completePasswordOrKey();
+
+      void setCompleteKey();
+
+      /** User requests completion of key? */
+      bool completeKey();
 
       /**
        * Sets the entry id.
@@ -116,9 +126,11 @@ class ParseResult
       bool m_CompleteSpace;
       bool m_CompleteEntry;
       bool m_CompleteCommand;
-      bool m_CompleteSubCommand;
+      bool m_CompleteUpdateCommand;
+      bool m_CompleteSelectCommand;
       bool m_CompleteAttribute;
       bool m_CompletePasswordOrKey;
+      bool m_CompleteKey;
       String m_EntryId;
 };
 

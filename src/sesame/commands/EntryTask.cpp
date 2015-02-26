@@ -364,7 +364,11 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          String path( reader2.readLine( "File: " ) );
          path = utils::strip( path );
 
-         if ( ! utils::isFile( path.c_str() ) )
+         if ( path.empty() )
+         {
+            throw std::runtime_error( "missing filename" );
+         }
+         else if ( ! utils::isFile( path.c_str() ) )
          {
             StringStream s;
             s << path << " is no file";
@@ -378,6 +382,12 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          }
          Vector<uint8_t> data;
          data.resize( utils::getFileSize( path ) );
+
+         if ( data.empty() )
+         {
+            throw std::runtime_error( "file is empty" );
+         }
+
          file.read( reinterpret_cast<char*>( data.data() ), data.size() );
          if ( ! entry.addLabeledData( label, Data( data ) ) )
          {
@@ -387,7 +397,6 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          {
             throw std::runtime_error( "failed to update entry" );
          }
-
 
          break;
       }
@@ -427,6 +436,69 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          if ( ! instance->updateEntry( entry ) )
          {
             throw std::runtime_error( "failed to update entry" );
+         }
+
+         break;
+      }
+      case EXPORT_KEY:
+      {
+         Entry entry( instance->findEntry( m_Id ) );
+         const Vector<std::pair<String,Data>> labeledData( toSortedVector( entry.getLabeledData() ) );
+         const std::pair<String,Data> labeledDate( getElemAtPos( labeledData, m_Pos ) );
+
+         if ( labeledDate.second.getType() != Data::BINARY )
+         {
+            throw std::runtime_error( "key not found" );
+         }
+
+         // FIXME: Need to decrypt?
+
+         utils::TeclaReader reader( 1024 );
+         reader.addCompletion( cpl_file_completions, nullptr );
+         String path( reader.readLine( "File: " ) );
+         path = utils::strip( path );
+
+         if ( path.empty() )
+         {
+            throw std::runtime_error( "missing filename" );
+         }
+
+         bool alreadyExists( utils::exists( path.c_str() ) );
+
+         if ( alreadyExists )
+         {
+            if ( utils::isFile( path.c_str() ) )
+            {
+               utils::Reader reader( 1024 );
+               String choice( reader.readLine( "Overwrite existing file? [y/N]  " ) );
+               choice = utils::strip( utils::toUtf8( choice ) );
+               if ( choice != u8"y" && choice != u8"Y" )
+               {
+                  break;
+               }
+            }
+            else
+            {
+               StringStream s;
+               s << path << " is no file";
+               throw std::runtime_error( s.str().c_str() );
+            }
+         }
+
+         std::ofstream file(
+            path.c_str(),
+            std::ios_base::out | std::ios_base::trunc | std::ios_base::binary
+            );
+
+         if ( ! file.good() )
+         {
+            throw std::runtime_error( "failed to open file" );
+         }
+
+         Vector<uint8_t> key( labeledDate.second.getPlaintext<Vector<uint8_t>>() );
+         if ( ! key.empty() )
+         {
+            file.write( reinterpret_cast<char*>( key.data() ), key.size() );
          }
 
          break;

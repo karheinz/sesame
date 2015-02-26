@@ -23,6 +23,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+#include <algorithm>
 #include <iostream>
 #include <memory>
 #include "types.hpp"
@@ -51,9 +52,11 @@ namespace
    const Vector<String> editModes = { "emacs", "vi" };
    const Vector<String> baseCommands = { "help", "clear", "quit", "edit-mode " };
    const Vector<String> noInstanceCommands = { "new", "open " };
-   const Vector<String> instanceCommands = { "close", "write ", "list", "show ", "decrypt ", "add ", "delete ", "update " };
-   const Vector<String> subCommands = { "add_attribute", "update_attribute ", "delete_attribute ",
-                                        "add_password", "add_key", "update_password_or_key ", "delete_password_or_key " };
+   const Vector<String> instanceCommands = { "close", "write ", "list", "show ", "decrypt ",
+                                             "add ", "delete ", "update ", "select " };
+   const Vector<String> updateCommands = { "add_attribute", "update_attribute ", "delete_attribute ",
+                                           "add_password", "add_key", "update_password_or_key ", "delete_password_or_key " };
+   const Vector<String> selectCommands = { "export_key " };
 
    int cpl_add_completions(
       WordCompletion* cpl,
@@ -85,6 +88,23 @@ namespace
       }
 
       return ( success == 0 );
+   }
+
+   template <class T>
+   struct ElemSorter
+   {
+      bool operator()( const std::pair<String,T>& a, const std::pair<String,T>& b )
+      {
+         return ( a.first < b.first );
+      }
+   };
+
+   template <class T>
+   const Vector<std::pair<String,T>> toSortedVector( const Map<String,T>& m )
+   {
+      Vector<std::pair<String,T>> v( m.begin(), m.end() );
+      std::sort( v.begin(), v.end(), ElemSorter<T>() );
+      return v;
    }
 }
 
@@ -147,9 +167,13 @@ CPL_MATCH_FN(cpl_complete_sesame)
 
       cpl_add_completions( cpl, line, word_end, choices, right );
    }
-   else if ( parseResult.completeSubCommand() && instance )
+   else if ( parseResult.completeUpdateCommand() && instance )
    {
-      cpl_add_completions( cpl, line, word_end, subCommands, right );
+      cpl_add_completions( cpl, line, word_end, updateCommands, right );
+   }
+   else if ( parseResult.completeSelectCommand() && instance )
+   {
+      cpl_add_completions( cpl, line, word_end, selectCommands, right );
    }
    else if ( parseResult.completeAttribute() && instance )
    {
@@ -183,6 +207,29 @@ CPL_MATCH_FN(cpl_complete_sesame)
             StringStream s;
             s << "#" << i;
             choices.push_back( s.str() );
+         }
+         cpl_add_completions( cpl, line, word_end, choices, right );
+      }
+      catch ( std::runtime_error& )
+      {
+         // entry not found
+      }
+   }
+   else if ( parseResult.completeKey() && instance )
+   {
+      try
+      {
+         Entry entry( instance->findEntry( parseResult.getEntryId() ) );
+         const Vector<std::pair<String,Data>> labeledData( toSortedVector( entry.getLabeledData() ) );
+         Vector<String> choices;
+         for ( std::size_t i = 1; i <= labeledData.size(); ++i )
+         {
+            if ( labeledData[ i - 1 ].second.getType() == sesame::Data::BINARY )
+            {
+               StringStream s;
+               s << "#" << i;
+               choices.push_back( s.str() );
+            }
          }
          cpl_add_completions( cpl, line, word_end, choices, right );
       }

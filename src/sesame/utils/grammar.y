@@ -136,6 +136,24 @@ cmd_line ::= DELETE(C) WHITESPACE OTHER_ID(ID) NEWLINE.
     parseResult->setCommand(
         std::shared_ptr<ICommand>( new EntryTask( EntryTask::DELETE, ID ) ) );
 }
+cmd_line ::= SELECT.                         { parseResult->setCompleteSpace(); }
+cmd_line ::= SELECT WHITESPACE.              { parseResult->setCompleteEntry(); }
+cmd_line ::= SELECT WHITESPACE ENTRY_ID WHITESPACE. { parseResult->setCompleteSelectCommand(); }
+cmd_line ::= SELECT WHITESPACE ENTRY_ID(ID) WHITESPACE EXPORT_KEY WHITESPACE.
+{
+   parseResult->setEntryId( ID );
+   parseResult->setCompleteKey();
+}
+cmd_line ::= SELECT(C) WHITESPACE ENTRY_ID(ID) WHITESPACE EXPORT_KEY(E) WHITESPACE OTHER_ID(POS) NEWLINE.
+{
+    parseResult->addToken( POS );
+    parseResult->addToken( E );
+    parseResult->addToken( ID );
+    parseResult->addToken( C );
+
+    parseResult->setCommand(
+        std::shared_ptr<ICommand>( new EntryTask( EntryTask::EXPORT_KEY, ID, POS ) ) );
+}
 cmd_line ::= UPDATE.                         { parseResult->setCompleteSpace(); }
 cmd_line ::= UPDATE WHITESPACE.              { parseResult->setCompleteEntry(); }
 cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) NEWLINE.
@@ -146,7 +164,7 @@ cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) NEWLINE.
     parseResult->setCommand(
         std::shared_ptr<ICommand>( new EntryTask( EntryTask::UPDATE, ID ) ) );
 }
-cmd_line ::= UPDATE WHITESPACE ENTRY_ID WHITESPACE. { parseResult->setCompleteSubCommand(); }
+cmd_line ::= UPDATE WHITESPACE ENTRY_ID WHITESPACE. { parseResult->setCompleteUpdateCommand(); }
 cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE ADD_ATTRIBUTE(A) NEWLINE.
 {
     parseResult->addToken( A );

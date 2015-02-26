@@ -45,6 +45,9 @@
 %s UPDATE_COND
 %s UPDATE_ENTRY_COND
 %s UPDATE_OTHER_COND
+%s SELECT_COND
+%s SELECT_ENTRY_COND
+%s SELECT_OTHER_COND
 
     /* aliases */
 WS  [ \t]
@@ -67,6 +70,7 @@ NL  (\r?\n)
 <START_COND>add                           { BEGIN( CMD_COND ); return ADD; }
 <START_COND>delete                        { BEGIN( ENTRY_COND ); return DELETE; }
 <START_COND>update                        { BEGIN( UPDATE_COND ); return UPDATE; }
+<START_COND>select                        { BEGIN( SELECT_COND ); return SELECT; }
 <START_COND>write                         { BEGIN( CMD_COND ); return WRITE; }
 <START_COND>{CH}+                         { return START; }
 <UPDATE_COND>#{HX}+                       { BEGIN( UPDATE_ENTRY_COND ); return ENTRY_ID; }
@@ -77,7 +81,9 @@ NL  (\r?\n)
 <UPDATE_ENTRY_COND>add_attribute          { BEGIN( CMD_COND ); return ADD_ATTRIBUTE; }
 <UPDATE_ENTRY_COND>update_attribute       { BEGIN( UPDATE_OTHER_COND ); return UPDATE_ATTRIBUTE; }
 <UPDATE_ENTRY_COND>delete_attribute       { BEGIN( UPDATE_OTHER_COND ); return DELETE_ATTRIBUTE; }
-<ENTRY_COND,UPDATE_OTHER_COND>#{HX}+      { BEGIN( CMD_COND ); return OTHER_ID; }
+<SELECT_COND>#{HX}+                       { BEGIN( SELECT_ENTRY_COND ); return ENTRY_ID; }
+<SELECT_ENTRY_COND>export_key             { BEGIN( SELECT_OTHER_COND ); return EXPORT_KEY; }
+<ENTRY_COND,UPDATE_OTHER_COND,SELECT_OTHER_COND>#{HX}+   { BEGIN( CMD_COND ); return OTHER_ID; }
 ^{WS}*                                    /* ignore */
 {WS}*{NL}                                 { BEGIN( INITIAL ); return NEWLINE; }
 {WS}+                                     { return WHITESPACE; }
