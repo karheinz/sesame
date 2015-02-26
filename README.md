@@ -9,11 +9,11 @@ What you can do so far is:
 
 * create, open, close and write containers
 * list, show, add, update and delete entries
-* add, update and delete attributes and passwords
+* add, update and delete attributes, passwords and keys
+* export keys
 
-What is missing:
+What is missing?
 
-* managing keys (binary data)
 * signal handler for clean shutdown (on SIGTERM etc.)
 * ...
 
@@ -38,7 +38,7 @@ and message authentication codes (HMAC-SHA256). A custom memory allocator
 is used to ensure that text and binary data are zeroed after usage.
 
 Containers are (de)serialized using MessagePack binary format.
-Interactive command line editing facilities provided by Tecla.
+Interactive command line editing facilities are provided by Tecla.
 
 
 Installation
