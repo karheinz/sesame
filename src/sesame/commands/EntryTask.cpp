@@ -221,12 +221,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
       }
       case DECRYPT:
       {
-         Entry entry( instance->findEntry( m_Id ) );
-         utils::Reader reader( 1024 );
-         String password( reader.readLine( "password or phrase: ", true ) );
-         password = utils::strip( password );
-         instance->decryptEntry( entry, password );
-         instance->updateEntry( entry );
+         decryptEntry( instance );
          break;
       }
       case ADD:
@@ -356,39 +351,11 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
       {
          Entry entry( instance->findEntry( m_Id ) );
 
-         utils::Reader reader1( 1024 );
-         String label( reader1.readLine( "Label: " ) );
+         utils::Reader reader( 1024 );
+         String label( reader.readLine( "Label: " ) );
          label = utils::strip( label );
-         utils::TeclaReader reader2( 1024 );
-         reader2.addCompletion( cpl_file_completions, nullptr );
-         String path( reader2.readLine( "File: " ) );
-         path = utils::strip( path );
+         const Vector<uint8_t> data( askForInputFileAndRead() );
 
-         if ( path.empty() )
-         {
-            throw std::runtime_error( "missing filename" );
-         }
-         else if ( ! utils::isFile( path.c_str() ) )
-         {
-            StringStream s;
-            s << path << " is no file";
-            throw std::runtime_error( s.str().c_str() );
-         }
-
-         std::ifstream file( path.c_str(), std::ios_base::in | std::ios_base::binary );
-         if ( ! file.good() )
-         {
-            throw std::runtime_error( "failed to open file" );
-         }
-         Vector<uint8_t> data;
-         data.resize( utils::getFileSize( path ) );
-
-         if ( data.empty() )
-         {
-            throw std::runtime_error( "file is empty" );
-         }
-
-         file.read( reinterpret_cast<char*>( data.data() ), data.size() );
          if ( ! entry.addLabeledData( label, Data( data ) ) )
          {
             throw std::runtime_error( "failed to add key" );
@@ -426,13 +393,27 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          utils::Reader reader( 1024 );
          String label( reader.readLine( "Label: " ) );
          label = utils::strip( label );
-         String password( reader.readLine( "Password: " ) );
-         password = utils::strip( password );
 
-         if ( ! entry.updateLabeledData( labeledDate.first, label, Data( password ) ) )
+         if ( labeledDate.second.getType() == Data::TEXT )
          {
-            throw std::runtime_error( "failed to update password" );
+            String password( reader.readLine( "Password: " ) );
+            password = utils::strip( password );
+
+            if ( ! entry.updateLabeledData( labeledDate.first, label, Data( password ) ) )
+            {
+               throw std::runtime_error( "failed to update password" );
+            }
          }
+         else
+         {
+            const Vector<uint8_t> data( askForInputFileAndRead() );
+
+            if ( ! entry.updateLabeledData( labeledDate.first, label, Data( data ) ) )
+            {
+               throw std::runtime_error( "failed to update key" );
+            }
+         }
+
          if ( ! instance->updateEntry( entry ) )
          {
             throw std::runtime_error( "failed to update entry" );
@@ -451,7 +432,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
             throw std::runtime_error( "key not found" );
          }
 
-         // FIXME: Need to decrypt?
+         decryptEntry( instance );
 
          utils::TeclaReader reader( 1024 );
          reader.addCompletion( cpl_file_completions, nullptr );
@@ -506,6 +487,58 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
       default:
       {
          throw std::runtime_error( "command not implemented yet" );
+      }
+   }
+}
+
+const Vector<uint8_t> EntryTask::askForInputFileAndRead()
+{
+   utils::TeclaReader reader( 1024 );
+   reader.addCompletion( cpl_file_completions, nullptr );
+   String path( reader.readLine( "File: " ) );
+   path = utils::strip( path );
+
+   if ( path.empty() )
+   {
+      throw std::runtime_error( "missing filename" );
+   }
+   else if ( ! utils::isFile( path.c_str() ) )
+   {
+      StringStream s;
+      s << path << " is no file";
+      throw std::runtime_error( s.str().c_str() );
+   }
+
+   std::ifstream file( path.c_str(), std::ios_base::in | std::ios_base::binary );
+   if ( ! file.good() )
+   {
+      throw std::runtime_error( "failed to open file" );
+   }
+   Vector<uint8_t> data;
+   data.resize( utils::getFileSize( path ) );
+
+   if ( data.empty() )
+   {
+      throw std::runtime_error( "file is empty" );
+   }
+
+   file.read( reinterpret_cast<char*>( data.data() ), data.size() );
+
+   return data;
+}
+
+void EntryTask::decryptEntry( std::shared_ptr<Instance>& instance )
+{
+   if ( instance )
+   {
+      Entry entry( instance->findEntry( m_Id ) );
+      if ( ! entry.isPlain() )
+      {
+         utils::Reader reader( 1024 );
+         String password( reader.readLine( "password or phrase: ", true ) );
+         password = utils::strip( password );
+         instance->decryptEntry( entry, password );
+         instance->updateEntry( entry );
       }
    }
 }

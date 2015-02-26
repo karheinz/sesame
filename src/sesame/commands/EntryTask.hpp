@@ -79,6 +79,21 @@ class EntryTask : public ICommand
       virtual void run( std::shared_ptr<Instance>& instance );
 
    private:
+      /**
+       * Decrypts the entry identified by <tt>m_Id</tt>.
+       *
+       * @param instance the instance of the entry
+       */
+      void decryptEntry( std::shared_ptr<Instance>& instance );
+
+      /**
+       * Asks for input file and reads binary content.
+       *
+       * @return path to input file
+       */
+      const Vector<uint8_t> askForInputFileAndRead();
+
+
       /** task type */
       const Type m_TaskType;
       /** the id of the entry to edit */
