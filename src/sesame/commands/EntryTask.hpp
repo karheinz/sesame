@@ -80,11 +80,12 @@ class EntryTask : public ICommand
 
    private:
       /**
-       * Decrypts the entry identified by <tt>m_Id</tt>.
+       * Decrypts the passed entry.
        *
        * @param instance the instance of the entry
+       * @param entry the entry to decrypt
        */
-      void decryptEntry( std::shared_ptr<Instance>& instance );
+      void decryptEntry( std::shared_ptr<Instance>& instance, Entry& entry );
 
       /**
        * Asks for input file and reads binary content.

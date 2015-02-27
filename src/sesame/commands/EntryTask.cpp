@@ -221,7 +221,9 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
       }
       case DECRYPT:
       {
-         decryptEntry( instance );
+         Entry entry( instance->findEntry( m_Id ) );
+         decryptEntry( instance, entry );
+         instance->updateEntry( entry );
          break;
       }
       case ADD:
@@ -424,15 +426,20 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
       case EXPORT_KEY:
       {
          Entry entry( instance->findEntry( m_Id ) );
-         const Vector<std::pair<String,Data>> labeledData( toSortedVector( entry.getLabeledData() ) );
-         const std::pair<String,Data> labeledDate( getElemAtPos( labeledData, m_Pos ) );
+         Vector<std::pair<String,Data>> labeledData( toSortedVector( entry.getLabeledData() ) );
+         std::pair<String,Data> labeledDate( getElemAtPos( labeledData, m_Pos ) );
 
          if ( labeledDate.second.getType() != Data::BINARY )
          {
             throw std::runtime_error( "key not found" );
          }
 
-         decryptEntry( instance );
+         if ( ! labeledDate.second.isPlaintextAvailable() )
+         {
+            decryptEntry( instance, entry );
+            labeledData = toSortedVector( entry.getLabeledData() );
+            labeledDate = getElemAtPos( labeledData, m_Pos );
+         }
 
          utils::TeclaReader reader( 1024 );
          reader.addCompletion( cpl_file_completions, nullptr );
@@ -527,19 +534,14 @@ const Vector<uint8_t> EntryTask::askForInputFileAndRead()
    return data;
 }
 
-void EntryTask::decryptEntry( std::shared_ptr<Instance>& instance )
+void EntryTask::decryptEntry( std::shared_ptr<Instance>& instance, Entry& entry )
 {
-   if ( instance )
+   if ( ! entry.isPlain() )
    {
-      Entry entry( instance->findEntry( m_Id ) );
-      if ( ! entry.isPlain() )
-      {
-         utils::Reader reader( 1024 );
-         String password( reader.readLine( "password or phrase: ", true ) );
-         password = utils::strip( password );
-         instance->decryptEntry( entry, password );
-         instance->updateEntry( entry );
-      }
+      utils::Reader reader( 1024 );
+      String password( reader.readLine( "password or phrase: ", true ) );
+      password = utils::strip( password );
+      instance->decryptEntry( entry, password );
    }
 }
 
