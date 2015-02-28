@@ -88,6 +88,14 @@ class EntryTask : public ICommand
       void decryptEntry( std::shared_ptr<Instance>& instance, Entry& entry );
 
       /**
+       * Decrypts the passed data.
+       *
+       * @param instance the instance of the entry
+       * @param data the data to decrypt
+       */
+      void decryptData( std::shared_ptr<Instance>& instance, Data& data );
+
+      /**
        * Asks for input file and reads binary content.
        *
        * @return path to input file

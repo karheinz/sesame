@@ -434,12 +434,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
             throw std::runtime_error( "key not found" );
          }
 
-         if ( ! labeledDate.second.isPlaintextAvailable() )
-         {
-            decryptEntry( instance, entry );
-            labeledData = toSortedVector( entry.getLabeledData() );
-            labeledDate = getElemAtPos( labeledData, m_Pos );
-         }
+         decryptData( instance, labeledDate.second );
 
          utils::TeclaReader reader( 1024 );
          reader.addCompletion( cpl_file_completions, nullptr );
@@ -542,6 +537,17 @@ void EntryTask::decryptEntry( std::shared_ptr<Instance>& instance, Entry& entry 
       String password( reader.readLine( "password or phrase: ", true ) );
       password = utils::strip( password );
       instance->decryptEntry( entry, password );
+   }
+}
+
+void EntryTask::decryptData( std::shared_ptr<Instance>& instance, Data& data )
+{
+   if ( ! data.isPlaintextAvailable() )
+   {
+      utils::Reader reader( 1024 );
+      String password( reader.readLine( "password or phrase: ", true ) );
+      password = utils::strip( password );
+      instance->decryptData( data, password );
    }
 }
 

@@ -173,6 +173,16 @@ namespace sesame
          void decryptEntry( Entry& entry, const String& password );
 
          /**
+          * Decrypts data.
+          *
+          * @param data the data to decrypt
+          * @param password the password to use
+          *
+          * @throw std::runtime_error on failure
+          */
+         void decryptData( Data& data, const String& password );
+
+         /**
           * Adds the passed entry.
           *
           * @param[in,out] entry the entry to add
@@ -319,6 +329,16 @@ namespace sesame
           * @throw std::runtime_error on failure
           */
          void decryptEntries( const Vector<uint8_t>& key );
+
+         /**
+          * Decrypts data.
+          *
+          * @param data the data to decrypt
+          * @param key the key to use
+          *
+          * @throw std::runtime_error on failure
+          */
+         void decryptData( Data& data, const Vector<uint8_t>& key );
 
          /**
           * Throws an exception if protocol is unknown.

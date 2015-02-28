@@ -316,60 +316,10 @@ namespace sesame
 
    void Instance::decryptEntry( Entry& entry, const Vector<uint8_t>& key )
    {
-      if ( ! isKeyValid( key ) )
-      {
-         throw std::runtime_error( "key is invalid" );
-      }
-
-      crypto::IMachine& machine( getCryptoMachine() );
-
       for ( auto& labeledData : entry.m_LabeledData )
       {
          Data& data( const_cast<Data&>( labeledData.second ) );
-         if ( ! data.isPlaintextAvailable() )
-         {
-            Vector<uint8_t> calculatedHmac;
-            if ( machine.calcHmac( data.m_Ciphertext, key, calculatedHmac ) )
-            {
-               if ( calculatedHmac == data.m_Hmac )
-               {
-                  if ( data.getType() == Data::TEXT )
-                  {
-                     Vector<uint8_t> buffer;
-                     if ( machine.decrypt( data.m_Ciphertext, key, buffer ) )
-                     {
-                        String tmp( utils::fromUtf8( reinterpret_cast<const char*>( buffer.data() ), buffer.size() ) );
-                        data.m_Plaintext =
-                           Vector<uint8_t>(
-                              reinterpret_cast<const uint8_t*>( tmp.data() ),
-                              reinterpret_cast<const uint8_t*>( tmp.data() ) + tmp.size()
-                              );
-                     }
-                     else
-                     {
-                        throw std::runtime_error( "decryption failed" );
-                     }
-                  }
-                  else
-                  {
-                     if ( ! machine.decrypt( data.m_Ciphertext, key, data.m_Plaintext ) )
-                     {
-                        throw std::runtime_error( "decryption failed" );
-                     }
-                  }
-               }
-               else
-               {
-                  throw std::runtime_error( "key is invalid" );
-               }
-            }
-            else
-            {
-               throw std::runtime_error( "failed to calculate HMAC" );
-            }
-
-            data.m_PlaintextAvailable = true;
-         }
+         decryptData( data, key );
       }
    }
 
@@ -378,6 +328,73 @@ namespace sesame
       for ( auto& entry : m_Entries )
       {
          decryptEntry( const_cast<Entry&>( entry ), key );
+      }
+   }
+
+   void Instance::decryptData( Data& data, const String& password )
+   {
+      Vector<uint8_t> key;
+
+      if ( ! getCryptoMachine().deriveKey( utils::toUtf8( password ), m_Params, key ) )
+      {
+         throw std::runtime_error( "key derivation failed" );
+      }
+
+      decryptData( data, key );
+   }
+
+   void Instance::decryptData( Data& data, const Vector<uint8_t>& key )
+   {
+      if ( ! isKeyValid( key ) )
+      {
+         throw std::runtime_error( "key is invalid" );
+      }
+
+      if ( ! data.isPlaintextAvailable() )
+      {
+         crypto::IMachine& machine( getCryptoMachine() );
+
+         Vector<uint8_t> calculatedHmac;
+         if ( machine.calcHmac( data.m_Ciphertext, key, calculatedHmac ) )
+         {
+            if ( calculatedHmac == data.m_Hmac )
+            {
+               if ( data.getType() == Data::TEXT )
+               {
+                  Vector<uint8_t> buffer;
+                  if ( machine.decrypt( data.m_Ciphertext, key, buffer ) )
+                  {
+                     String tmp( utils::fromUtf8( reinterpret_cast<const char*>( buffer.data() ), buffer.size() ) );
+                     data.m_Plaintext =
+                        Vector<uint8_t>(
+                           reinterpret_cast<const uint8_t*>( tmp.data() ),
+                           reinterpret_cast<const uint8_t*>( tmp.data() ) + tmp.size()
+                           );
+                  }
+                  else
+                  {
+                     throw std::runtime_error( "decryption failed" );
+                  }
+               }
+               else
+               {
+                  if ( ! machine.decrypt( data.m_Ciphertext, key, data.m_Plaintext ) )
+                  {
+                     throw std::runtime_error( "decryption failed" );
+                  }
+               }
+            }
+            else
+            {
+               throw std::runtime_error( "key is invalid" );
+            }
+         }
+         else
+         {
+            throw std::runtime_error( "failed to calculate HMAC" );
+         }
+
+         data.m_PlaintextAvailable = true;
       }
    }
 
