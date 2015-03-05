@@ -74,14 +74,15 @@ void xdeselect()
    if ( xclipThread1.joinable() )
    {
       xclipThread2 = std::thread( &xclip, mutex.native_handle(), currentSelectionPtr );
+      xclipThread1.join();
+      xclipThread2.join();
    }
    else if ( xclipThread2.joinable() )
    {
       xclipThread1 = std::thread( &xclip, mutex.native_handle(), currentSelectionPtr );
+      xclipThread1.join();
+      xclipThread2.join();
    }
-
-   xclipThread1.join();
-   xclipThread2.join();
 }
 
 } }
