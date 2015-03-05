@@ -23,10 +23,15 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+#include <chrono>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <thread>
 #include <utility>
+
+#include <xselection.h>
+
 #include "types.hpp"
 #include "sesame/Entry.hpp"
 #include "sesame/commands/EntryTask.hpp"
@@ -419,6 +424,23 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          if ( ! instance->updateEntry( entry ) )
          {
             throw std::runtime_error( "failed to update entry" );
+         }
+
+         break;
+      }
+      case EXPORT_PASSWORD_OR_KEY:
+      {
+         Entry entry( instance->findEntry( m_Id ) );
+         Vector<std::pair<String,Data>> labeledData( toSortedVector( entry.getLabeledData() ) );
+         std::pair<String,Data> labeledDate( getElemAtPos( labeledData, m_Pos ) );
+
+         if ( labeledDate.second.getType() == Data::TEXT )
+         {
+            String password( labeledDate.second.getPlaintext<String>() );
+            std::thread t( &xclip, password.c_str() );
+            t.detach();
+            std::chrono::milliseconds duration( 250 );
+            std::this_thread::sleep_for( duration );
          }
 
          break;

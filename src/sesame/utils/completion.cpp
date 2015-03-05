@@ -56,7 +56,7 @@ namespace
                                              "add ", "delete ", "update ", "select " };
    const Vector<String> updateCommands = { "add_attribute", "update_attribute ", "delete_attribute ",
                                            "add_password", "add_key", "update_password_or_key ", "delete_password_or_key " };
-   const Vector<String> selectCommands = { "export_key " };
+   const Vector<String> selectCommands = { "export_key ", "export_password_or_key " };
 
    int cpl_add_completions(
       WordCompletion* cpl,

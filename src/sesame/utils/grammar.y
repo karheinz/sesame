@@ -139,6 +139,21 @@ cmd_line ::= DELETE(C) WHITESPACE OTHER_ID(ID) NEWLINE.
 cmd_line ::= SELECT.                         { parseResult->setCompleteSpace(); }
 cmd_line ::= SELECT WHITESPACE.              { parseResult->setCompleteEntry(); }
 cmd_line ::= SELECT WHITESPACE ENTRY_ID WHITESPACE. { parseResult->setCompleteSelectCommand(); }
+cmd_line ::= SELECT WHITESPACE ENTRY_ID(ID) WHITESPACE EXPORT_PASSWORD_OR_KEY WHITESPACE.
+{
+   parseResult->setEntryId( ID );
+   parseResult->setCompletePasswordOrKey();
+}
+cmd_line ::= SELECT(C) WHITESPACE ENTRY_ID(ID) WHITESPACE EXPORT_PASSWORD_OR_KEY(E) WHITESPACE OTHER_ID(POS) NEWLINE.
+{
+    parseResult->addToken( POS );
+    parseResult->addToken( E );
+    parseResult->addToken( ID );
+    parseResult->addToken( C );
+
+    parseResult->setCommand(
+        std::shared_ptr<ICommand>( new EntryTask( EntryTask::EXPORT_PASSWORD_OR_KEY, ID, POS ) ) );
+}
 cmd_line ::= SELECT WHITESPACE ENTRY_ID(ID) WHITESPACE EXPORT_KEY WHITESPACE.
 {
    parseResult->setEntryId( ID );

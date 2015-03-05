@@ -8,6 +8,9 @@ SET( CMAKE_CXX_FLAGS "-std=c++11 -Wall -Wno-deprecated-declarations" )
 FIND_PROGRAM( BINFLEX "flex" )
 FIND_LIBRARY( LIBFLEX "fl" )
 
+# threads
+FIND_LIBRARY( LIBPTHREAD "pthread" )
+
 # crypto libs
 FIND_LIBRARY( LIBSSL "ssl" )
 FIND_LIBRARY( LIBCRYPTO "crypto" )
@@ -15,10 +18,19 @@ FIND_LIBRARY( LIBCRYPTO "crypto" )
 # lib for editing command line
 FIND_LIBRARY( LIBTECLA "tecla" )
 
+# X11
+FIND_LIBRARY( LIBX11 "X11" )
+
+# X11 selection lib
+SET( LIBXSEL "xsel" )
+SET( LIBXSEL_DIR "libs/xsel-1.2.0" )
+SET( LIBXSEL_INCLUDE_DIR "${LIBXSEL_DIR}/include" )
+ADD_SUBDIRECTORY( ${LIBXSEL_DIR} )
+
 # libs/scrypt
 SET( LIBSCRYPT "scrypt" )
 SET( LIBSCRYPT_DIR "libs/scrypt-1.1.6" )
-SET( LIBSCRYPT_INCLUDE_DIR "libs/scrypt-1.1.6/lib/crypto" )
+SET( LIBSCRYPT_INCLUDE_DIR "${LIBSCRYPT_DIR}/lib/crypto" )
 ADD_SUBDIRECTORY( ${LIBSCRYPT_DIR} )
 
 # libs/gtest
