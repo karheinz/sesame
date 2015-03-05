@@ -10,7 +10,7 @@ What you can do so far is:
 * create, open, close and write containers
 * list, show, add, update and delete entries
 * add, update and delete attributes, passwords and keys
-* export keys
+* export passwords and keys
 
 What is missing?
 
@@ -80,6 +80,8 @@ Used libraries
   - http://www.zlib.net
 * googletest
   - http://code.google.com/p/googletest/
+* xsel
+  - http://www.vergenet.net/~conrad/software/xsel/
 
 The sources and - at least - the licenses of the stated libraries
 can be found in the libs directory. The LEMON sources are located
