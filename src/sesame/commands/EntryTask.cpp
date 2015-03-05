@@ -23,10 +23,10 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-#include <chrono>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <mutex>
 #include <thread>
 #include <utility>
 
@@ -40,6 +40,7 @@
 #include "sesame/utils/filesystem.hpp"
 #include "sesame/utils/lines.hpp"
 #include "sesame/utils/string.hpp"
+#include "sesame/utils/xselection.hpp"
 #include "sesame/utils/Reader.hpp"
 #include "sesame/utils/TeclaReader.hpp"
 
@@ -436,11 +437,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
 
          if ( labeledDate.second.getType() == Data::TEXT )
          {
-            String password( labeledDate.second.getPlaintext<String>() );
-            std::thread t( &xclip, password.c_str() );
-            t.detach();
-            std::chrono::milliseconds duration( 250 );
-            std::this_thread::sleep_for( duration );
+            utils::xselect( labeledDate.second.getPlaintext<String>() );
          }
 
          break;

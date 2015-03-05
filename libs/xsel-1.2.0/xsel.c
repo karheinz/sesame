@@ -40,8 +40,8 @@
 static char * progname;
 
 /* Verbosity level for debugging */
-//static int debug_level = DEBUG_LEVEL;
-static int debug_level = D_TRACE;
+static int debug_level = DEBUG_LEVEL;
+//static int debug_level = D_TRACE;
 
 /* Our X Display and Window */
 static Display * display;
@@ -1731,12 +1731,17 @@ handle_selection_request (XEvent event, unsigned char * sel)
  * SelectionClear event is received for the specified selection.
  */
 static void
-set_selection (Atom selection, unsigned char * sel)
+set_selection (Atom selection, pthread_mutex_t* mutex, unsigned char * sel)
 {
   XEvent event;
   IncrTrack * it;
 
   if (own_selection (selection) == False) return;
+
+  if ( strlen( (char*)sel ) == 0 )
+  {
+     return;
+  }
 
   for (;;) {
     /* Flush before unblocking signals so we send replies before exiting */
@@ -1744,16 +1749,25 @@ set_selection (Atom selection, unsigned char * sel)
     unblock_exit_sigs ();
     XNextEvent (display, &event);
     block_exit_sigs ();
+    pthread_mutex_lock( mutex );
 
     switch (event.type) {
     case SelectionClear:
-      if (event.xselectionclear.selection == selection) return;
+      if (event.xselectionclear.selection == selection)
+      {
+         pthread_mutex_unlock( mutex );
+         return;
+      }
       break;
     case SelectionRequest:
       if (event.xselectionrequest.selection != selection) break;
 
-      if (!handle_selection_request (event, sel)) return;
-      
+      if (!handle_selection_request (event, sel))
+      {
+         pthread_mutex_unlock( mutex );
+         return;
+      }
+
       break;
     case PropertyNotify:
       if (event.xproperty.state != PropertyDelete) break;
@@ -1768,29 +1782,31 @@ set_selection (Atom selection, unsigned char * sel)
     default:
       break;
     }
+
+    pthread_mutex_unlock( mutex );
   }
 }
 
-/*
- * set_selection__daemon (selection, sel)
- *
- * Creates a daemon process to handle selection requests for the
- * specified selection 'selection', to respond with selection text 'sel'.
- * If 'sel' is an empty string (NULL or "") then no daemon process is
- * created and the specified selection is cleared instead.
- */
-static void
-set_selection__daemon (Atom selection, unsigned char * sel)
-{
-  if (empty_string (sel) && !do_follow) {
-    clear_selection (selection);
-    return;
-  }
-
-  become_daemon ();
-
-  set_selection (selection, sel);
-}
+///*
+// * set_selection__daemon (selection, sel)
+// *
+// * Creates a daemon process to handle selection requests for the
+// * specified selection 'selection', to respond with selection text 'sel'.
+// * If 'sel' is an empty string (NULL or "") then no daemon process is
+// * created and the specified selection is cleared instead.
+// */
+//static void
+//set_selection__daemon (Atom selection, unsigned char * sel)
+//{
+//  if (empty_string (sel) && !do_follow) {
+//    clear_selection (selection);
+//    return;
+//  }
+//
+//  become_daemon ();
+//
+//  set_selection (selection, sel);
+//}
 
 /*
  * set_selection_pair (sel_p, sel_s)
@@ -2302,13 +2318,8 @@ expand_argv(int * argc, char **argv[])
 //  usage ();
 //  exit (0);
 //}
-void xclip( const char* text )
+void xclip( pthread_mutex_t* mutex, const char* text )
 {
-  size_t length = strlen( text );
-  char* text_ = malloc( length + 1 );
-  memcpy( text_, text, length );
-  text_[ length ] = '\0';
-
   Window root;
   Atom selection = XA_PRIMARY, test_atom;
   int black;
@@ -2417,7 +2428,6 @@ void xclip( const char* text )
 
   /* Find the "CLIPBOARD" selection if required */
   selection = XInternAtom (display, "CLIPBOARD", False);
-  set_selection (selection, text_);
-  free( text_ );
+  set_selection (selection, mutex, (unsigned char*)text);
   print_debug (D_INFO, "exit xclip()");
 }

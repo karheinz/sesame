@@ -36,6 +36,7 @@
 #include "sesame/utils/completion.hpp"
 #include "sesame/utils/filesystem.hpp"
 #include "sesame/utils/string.hpp"
+#include "sesame/utils/xselection.hpp"
 #include "sesame/utils/Parser.hpp"
 #include "sesame/utils/ParseResult.hpp"
 #include "sesame/utils/TeclaReader.hpp"
@@ -150,6 +151,8 @@ int main( int argc, char** argv)
          // Quit only if no instance is open!
          if ( ! instance )
          {
+            // Remove data from X clipboard.
+            sesame::utils::xdeselect();
             break;
          }
       }
