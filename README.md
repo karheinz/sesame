@@ -1,22 +1,6 @@
 Sesame - a cmd line password manager
 ====================================
 
-Features
---------
-
-What you can do so far is:
-
-* create, open, close and write containers
-* list, show, add, update and delete entries
-* add, update and delete attributes, passwords and keys
-* export passwords and keys
-
-What is missing?
-
-* signal handler for clean shutdown (on SIGTERM etc.)
-* ...
-
-
 Introduction
 ------------
 
@@ -40,12 +24,28 @@ Containers are (de)serialized using MessagePack binary format.
 Interactive command line editing facilities are provided by Tecla.
 
 
+Features
+--------
+
+What you can do so far is:
+
+* create, open, close and write containers
+* list, show, add, update and delete entries
+* add, update and delete attributes, passwords and keys
+* export passwords and keys
+
+What is missing?
+
+* signal handler for clean shutdown (on SIGTERM etc.)
+* ...
+
+
 Installation
 ------------
 
 1. Install the required libraries:
 ```
-   # apt-get install flex libfl-dev openssl libtecla1-dev
+   # apt-get install flex libfl-dev openssl libtecla1-dev libx11-dev
 ```
 
 2. Build sesame and run tests.
