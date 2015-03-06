@@ -1,9 +1,8 @@
 Sesame - a cmd line password manager
 ====================================
 
-### IMPORTANT!!! ###
-
-Work on sesame is in progress and has not been finished yet!
+Features
+--------
 
 What you can do so far is:
 
@@ -80,7 +79,7 @@ Used libraries
   - http://www.zlib.net
 * googletest
   - http://code.google.com/p/googletest/
-* xsel
+* xsel (modified)
   - http://www.vergenet.net/~conrad/software/xsel/
 
 The sources and - at least - the licenses of the stated libraries

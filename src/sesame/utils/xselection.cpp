@@ -23,6 +23,8 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+#include <chrono>
+#include <condition_variable>
 #include <mutex>
 #include <thread>
 
@@ -36,18 +38,47 @@ namespace
 {
    std::thread xclipThread1;
    std::thread xclipThread2;
+   std::thread xclipTimerThread;
    std::mutex mutex;
+   std::mutex cvMutex;
+   std::condition_variable cv;
    String currentSelection;
    char* currentSelectionPtr( 0 );
+   const char zero( '\0' );
+   std::chrono::seconds timeout( 30 );
+
+   void xclear()
+   {
+      std::unique_lock<std::mutex> lock( cvMutex );
+      cv.wait_for( lock, timeout );
+
+      std::this_thread::sleep_for( timeout );
+
+      mutex.lock();
+      currentSelection.resize( 0 );
+      currentSelectionPtr = const_cast<char*>( &zero );
+      mutex.unlock();
+
+      xclip( mutex.native_handle(), currentSelectionPtr );
+   }
 }
 
 void xselect( const String& selection )
 {
+   // Setup timeout.
+   if ( xclipTimerThread.joinable() )
+   {
+      std::unique_lock<std::mutex> lock( cvMutex );
+      cv.notify_one();
+      xclipTimerThread.join();
+   }
+   xclipTimerThread = std::thread( &xclear );
+
+   // Select.
    mutex.lock();
    currentSelection = selection;
    currentSelectionPtr = const_cast<char*>( currentSelection.c_str() );
    mutex.unlock();
-
    if ( xclipThread1.joinable() )
    {
       xclipThread2 = std::thread( &xclip, mutex.native_handle(), currentSelectionPtr );
@@ -68,7 +99,7 @@ void xdeselect()
 {
    mutex.lock();
    currentSelection.resize( 0 );
-   currentSelectionPtr = const_cast<char*>( currentSelection.c_str() );
+   currentSelectionPtr = const_cast<char*>( &zero );
    mutex.unlock();
 
    if ( xclipThread1.joinable() )
@@ -82,6 +113,13 @@ void xdeselect()
       xclipThread1 = std::thread( &xclip, mutex.native_handle(), currentSelectionPtr );
       xclipThread1.join();
       xclipThread2.join();
+   }
+
+   if ( xclipTimerThread.joinable() )
+   {
+      std::unique_lock<std::mutex> lock( cvMutex );
+      cv.notify_one();
+      xclipTimerThread.join();
    }
 }
 
