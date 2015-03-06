@@ -45,7 +45,8 @@ namespace
 namespace sesame { namespace utils {
 
 Transcoder::Transcoder( const String& from, const String& to ) :
-   m_Descriptor( iconv_open( to.c_str(), from.c_str() ) ),
+   m_To( to + "//TRANSLIT" ),
+   m_Descriptor( iconv_open( m_To.c_str(), from.c_str() ) ),
    m_Buffer( 4096 ),
    m_ChunkSize( m_Buffer.size() / 4 )
 {

@@ -46,6 +46,7 @@ class Transcoder
    private:
       std::size_t getBomSize( const String& string );
 
+      const String m_To;
       iconv_t m_Descriptor;
       Vector<char> m_Buffer;
       std::size_t m_ChunkSize;
