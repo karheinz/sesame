@@ -437,70 +437,58 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
 
          if ( labeledDate.second.getType() == Data::TEXT )
          {
+            decryptData( instance, labeledDate.second );
             utils::xselect( labeledDate.second.getPlaintext<String>() );
          }
-
-         break;
-      }
-      case EXPORT_KEY:
-      {
-         Entry entry( instance->findEntry( m_Id ) );
-         Vector<std::pair<String,Data>> labeledData( toSortedVector( entry.getLabeledData() ) );
-         std::pair<String,Data> labeledDate( getElemAtPos( labeledData, m_Pos ) );
-
-         if ( labeledDate.second.getType() != Data::BINARY )
+         else
          {
-            throw std::runtime_error( "key not found" );
-         }
+            utils::TeclaReader reader( 1024 );
+            reader.addCompletion( cpl_file_completions, nullptr );
+            String path( reader.readLine( "File: " ) );
+            path = utils::strip( path );
 
-         decryptData( instance, labeledDate.second );
-
-         utils::TeclaReader reader( 1024 );
-         reader.addCompletion( cpl_file_completions, nullptr );
-         String path( reader.readLine( "File: " ) );
-         path = utils::strip( path );
-
-         if ( path.empty() )
-         {
-            throw std::runtime_error( "missing filename" );
-         }
-
-         bool alreadyExists( utils::exists( path.c_str() ) );
-
-         if ( alreadyExists )
-         {
-            if ( utils::isFile( path.c_str() ) )
+            if ( path.empty() )
             {
-               utils::Reader reader( 1024 );
-               String choice( reader.readLine( "Overwrite existing file? [y/N]  " ) );
-               choice = utils::strip( utils::toUtf8( choice ) );
-               if ( choice != u8"y" && choice != u8"Y" )
+               throw std::runtime_error( "missing filename" );
+            }
+
+            bool alreadyExists( utils::exists( path.c_str() ) );
+
+            if ( alreadyExists )
+            {
+               if ( utils::isFile( path.c_str() ) )
                {
-                  break;
+                  utils::Reader reader( 1024 );
+                  String choice( reader.readLine( "Overwrite existing file? [y/N]  " ) );
+                  choice = utils::strip( utils::toUtf8( choice ) );
+                  if ( choice != u8"y" && choice != u8"Y" )
+                  {
+                     break;
+                  }
+               }
+               else
+               {
+                  StringStream s;
+                  s << path << " is no file";
+                  throw std::runtime_error( s.str().c_str() );
                }
             }
-            else
+
+            std::ofstream file(
+               path.c_str(),
+               std::ios_base::out | std::ios_base::trunc | std::ios_base::binary
+               );
+
+            if ( ! file.good() )
             {
-               StringStream s;
-               s << path << " is no file";
-               throw std::runtime_error( s.str().c_str() );
+               throw std::runtime_error( "failed to open file" );
             }
-         }
 
-         std::ofstream file(
-            path.c_str(),
-            std::ios_base::out | std::ios_base::trunc | std::ios_base::binary
-            );
-
-         if ( ! file.good() )
-         {
-            throw std::runtime_error( "failed to open file" );
-         }
-
-         Vector<uint8_t> key( labeledDate.second.getPlaintext<Vector<uint8_t>>() );
-         if ( ! key.empty() )
-         {
-            file.write( reinterpret_cast<char*>( key.data() ), key.size() );
+            Vector<uint8_t> key( labeledDate.second.getPlaintext<Vector<uint8_t>>() );
+            if ( ! key.empty() )
+            {
+               file.write( reinterpret_cast<char*>( key.data() ), key.size() );
+            }
          }
 
          break;

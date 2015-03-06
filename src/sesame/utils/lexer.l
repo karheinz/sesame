@@ -83,7 +83,6 @@ NL  (\r?\n)
 <UPDATE_ENTRY_COND>delete_attribute       { BEGIN( UPDATE_OTHER_COND ); return DELETE_ATTRIBUTE; }
 <SELECT_COND>#{HX}+                       { BEGIN( SELECT_ENTRY_COND ); return ENTRY_ID; }
 <SELECT_ENTRY_COND>export_password_or_key { BEGIN( SELECT_OTHER_COND ); return EXPORT_PASSWORD_OR_KEY; }
-<SELECT_ENTRY_COND>export_key             { BEGIN( SELECT_OTHER_COND ); return EXPORT_KEY; }
 <ENTRY_COND,UPDATE_OTHER_COND,SELECT_OTHER_COND>#{HX}+   { BEGIN( CMD_COND ); return OTHER_ID; }
 ^{WS}*                                    /* ignore */
 {WS}*{NL}                                 { BEGIN( INITIAL ); return NEWLINE; }
