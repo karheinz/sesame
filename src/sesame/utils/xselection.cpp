@@ -50,9 +50,10 @@ namespace
    void xclear()
    {
       std::unique_lock<std::mutex> lock( cvMutex );
-      cv.wait_for( lock, timeout );
-
-      std::this_thread::sleep_for( timeout );
+      if ( cv.wait_for( lock, timeout ) ==  std::cv_status::no_timeout )
+      {
+         lock.unlock();
+      }
 
       mutex.lock();
       currentSelection.resize( 0 );
@@ -68,7 +69,6 @@ void xselect( const String& selection )
    // Setup timeout.
    if ( xclipTimerThread.joinable() )
    {
-      std::unique_lock<std::mutex> lock( cvMutex );
       cv.notify_one();
       xclipTimerThread.join();
    }
@@ -117,7 +117,6 @@ void xdeselect()
 
    if ( xclipTimerThread.joinable() )
    {
-      std::unique_lock<std::mutex> lock( cvMutex );
       cv.notify_one();
       xclipTimerThread.join();
    }
