@@ -1008,12 +1008,14 @@ set_selection (Atom selection, std::mutex* mutex, unsigned char * sel)
 
   if (own_selection (selection) == False) return;
 
-  if ( strlen( (char*)sel ) == 0 )
   {
-     return;
+     std::lock_guard<std::mutex> g( *mutex );
+     if ( strlen( (char*)sel ) == 0 )
+     {
+        return;
+     }
   }
 
-  std::lock_guard<std::mutex> g( *mutex );
   for (;;) {
     /* Flush before unblocking signals so we send replies before exiting */
     XFlush (display);
@@ -1028,7 +1030,10 @@ set_selection (Atom selection, std::mutex* mutex, unsigned char * sel)
     case SelectionRequest:
       if (event.xselectionrequest.selection != selection) break;
 
-      if (!handle_selection_request (event, sel)) return;
+      {
+         std::lock_guard<std::mutex> g( *mutex );
+         if (!handle_selection_request (event, sel)) return;
+      }
 
       break;
     case PropertyNotify:
