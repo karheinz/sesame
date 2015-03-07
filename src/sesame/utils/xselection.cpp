@@ -66,12 +66,20 @@ namespace
 
 void xselect( const String& selection )
 {
-   // Setup timeout.
+   // Stop timeout thread?
    if ( xclipTimerThread.joinable() )
    {
       cv.notify_one();
       xclipTimerThread.join();
    }
+
+   // X available?
+   if ( ! xopen_display() )
+   {
+      throw std::runtime_error( "failed to copy password to clipboard" );
+   }
+
+   // Start timeout thread.
    xclipTimerThread = std::thread( &xclear );
 
    // Select.

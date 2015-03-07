@@ -7,6 +7,7 @@
 extern "C" {
 #endif
 
+int xopen_display();
 void xclip( pthread_mutex_t* mutex, const char* text );
 
 #ifdef __cplusplus

@@ -224,24 +224,6 @@ xs_malloc (size_t size)
 }
 
 /*
- * xs_strdup (s)
- *
- * strdup wrapper for unsigned char *
- */
-#define xs_strdup(s) ((unsigned char *) _xs_strdup ((const char *)s))
-static char * _xs_strdup (const char * s)
-{
-  char * ret;
-
-  if (s == NULL) return NULL;
-  if ((ret = strdup(s)) == NULL) {
-    exit_err ("strdup error");
-  }
-
-  return ret; 
-}
-
-/*
  * xs_strlen (s)
  *
  * strlen wrapper for unsigned char *
@@ -390,23 +372,6 @@ get_append_property (XSelectionEvent * xsl, unsigned char ** buffer,
  * The following functions allow a given selection to be set, appended to
  * or cleared, or to exchange the primary and secondary selections.
  */
-
-/*
- * copy_sel (s)
- *
- * Copy a string into a new selection buffer, and intitialise
- * current_alloc and total_input to exactly its length.
- */
-static unsigned char *
-copy_sel (unsigned char * s)
-{
-  unsigned char * new_sel = NULL;
-
-  new_sel = xs_strdup (s);
-  current_alloc = total_input = xs_strlen (s);
-
-  return new_sel;
-}
 
 /* Forward declaration of refuse_all_incr () */
 static void
@@ -1209,6 +1174,11 @@ set_selection (Atom selection, pthread_mutex_t* mutex, unsigned char * sel)
   }
 }
 
+int xopen_display()
+{
+  return (XOpenDisplay(NULL)!=NULL);
+}
+
 void xclip( pthread_mutex_t* mutex, const char* text )
 {
   Window root;
@@ -1216,11 +1186,11 @@ void xclip( pthread_mutex_t* mutex, const char* text )
   int black;
   int i, s=0;
   unsigned char * old_sel = NULL, * new_sel = NULL;
-  char * display_name = NULL;
 
-  display = XOpenDisplay (display_name);
+  display = XOpenDisplay (NULL);
   if (display==NULL) {
-    exit_err ("Can't open display: %s\n", display_name);
+    //exit_err ("Can't open display\n");
+    return;
   }
   root = XDefaultRootWindow (display);
   
