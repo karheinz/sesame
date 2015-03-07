@@ -11,12 +11,6 @@
  * implied warranty.
  */
 
-/*
- * This file was modified by Karsten Heinze <karsten.heinze@sidenotes.de>.
- * See xsel.c.orig for the original source. Xsel is used as library to
- * allow selection of passwords to clipboard in sesame.
- */
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -39,15 +33,13 @@
 #include <X11/Xatom.h>
 
 #include "xsel.h"
-#include "include/xselection.h"
 
 
-/* The name of the lib.*/
-static char progname[] = "xsel";
+/* The name we were invoked as (argv[0]) */
+static char * progname;
 
 /* Verbosity level for debugging */
 static int debug_level = DEBUG_LEVEL;
-//static int debug_level = D_TRACE;
 
 /* Our X Display and Window */
 static Display * display;
@@ -78,9 +70,87 @@ static Atom compound_text_atom; /* The COMPOUND_TEXT atom */
 static int NUM_TARGETS;
 static Atom supported_targets[MAX_NUM_TARGETS];
 
+/* do_zeroflush: Use only last zero-separated part of input.
+ * All previous parts are discarded */
+static Bool do_zeroflush = False;
+
+/* do_follow: Follow mode for output */
+static Bool do_follow = False;
+
+/* nodaemon: Disable daemon mode if True. */
+static Bool no_daemon = False;
+
+/* logfile: name of file to log error messages to when detached */
+static char logfile[MAXFNAME];
+
+/* fstat() on stdin and stdout */
+static struct stat in_statbuf, out_statbuf;
+
 static int total_input = 0;
 static int current_alloc = 0;
 
+static long timeout = 0;
+static struct itimerval timer;
+
+#define USEC_PER_SEC 1000000
+
+static int saved_argc;
+static char ** saved_argv;
+
+/*
+ * usage ()
+ *
+ * print usage information.
+ */
+static void
+usage (void)
+{
+  printf ("Usage: xsel [options]\n");
+  printf ("Manipulate the X selection.\n\n");
+  printf ("By default the current selection is output and not modified if both\n");
+  printf ("standard input and standard output are terminals (ttys).  Otherwise,\n");
+  printf ("the current selection is output if standard output is not a terminal\n");
+  printf ("(tty), and the selection is set from standard input if standard input\n");
+  printf ("is not a terminal (tty). If any input or output options are given then\n");
+  printf ("the program behaves only in the requested mode.\n\n");
+  printf ("If both input and output is required then the previous selection is\n");
+  printf ("output before being replaced by the contents of standard input.\n\n");
+  printf ("Input options\n");
+  printf ("  -a, --append          Append standard input to the selection\n");
+  printf ("  -f, --follow          Append to selection as standard input grows\n");
+  printf ("  -z, --zeroflush       Overwrites selection when zero ('\\0') is received\n");
+  printf ("  -i, --input           Read standard input into the selection\n\n");
+  printf ("Output options\n");
+  printf ("  -o, --output          Write the selection to standard output\n\n");
+  printf ("Action options\n");
+  printf ("  -c, --clear           Clear the selection\n");
+  printf ("  -d, --delete          Request that the selection be cleared and that\n");
+  printf ("                        the application owning it delete its contents\n\n");
+  printf ("Selection options\n");
+  printf ("  -p, --primary         Operate on the PRIMARY selection (default)\n");
+  printf ("  -s, --secondary       Operate on the SECONDARY selection\n");
+  printf ("  -b, --clipboard       Operate on the CLIPBOARD selection\n\n");
+  printf ("  -k, --keep            Do not modify the selections, but make the PRIMARY\n");
+  printf ("                        and SECONDARY selections persist even after the\n");
+  printf ("                        programs they were selected in exit.\n");
+  printf ("  -x, --exchange        Exchange the PRIMARY and SECONDARY selections\n\n");
+  printf ("X options\n");
+  printf ("  --display displayname\n");
+  printf ("                        Specify the connection to the X server\n");
+  printf ("  -t ms, --selectionTimeout ms\n");
+  printf ("                        Specify the timeout in milliseconds within which the\n");
+  printf ("                        selection must be retrieved. A value of 0 (zero)\n");
+  printf ("                        specifies no timeout (default)\n\n");
+  printf ("Miscellaneous options\n");
+  printf ("  -l, --logfile         Specify file to log errors to when detached.\n");
+  printf ("  -n, --nodetach        Do not detach from the controlling terminal. Without\n");
+  printf ("                        this option, xsel will fork to become a background\n");
+  printf ("                        process in input, exchange and keep modes.\n\n");
+  printf ("  -h, --help            Display this help and exit\n");
+  printf ("  -v, --verbose         Print informative messages\n");
+  printf ("  --version             Output version information and exit\n\n");
+  printf ("Please report bugs to <conrad@vergenet.net>.\n");
+}
 
 /*
  * exit_err (fmt)
@@ -224,6 +294,24 @@ xs_malloc (size_t size)
 }
 
 /*
+ * xs_strdup (s)
+ *
+ * strdup wrapper for unsigned char *
+ */
+#define xs_strdup(s) ((unsigned char *) _xs_strdup ((const char *)s))
+static char * _xs_strdup (const char * s)
+{
+  char * ret;
+
+  if (s == NULL) return NULL;
+  if ((ret = strdup(s)) == NULL) {
+    exit_err ("strdup error");
+  }
+
+  return ret; 
+}
+
+/*
  * xs_strlen (s)
  *
  * strlen wrapper for unsigned char *
@@ -247,6 +335,46 @@ _xs_strncpy (char * dest, const char * src, size_t n)
 }
 
 /*
+ * get_homedir ()
+ *
+ * Get the user's home directory.
+ */
+static char *
+get_homedir (void)
+{
+  uid_t uid;
+  char * username, * homedir;
+  struct passwd * pw;
+
+  if ((homedir = getenv ("HOME")) != NULL) {
+    return homedir;
+  }
+
+  /* else ... go hunting for it */
+  uid = getuid ();
+
+  username = getenv ("LOGNAME");
+  if (!username) username = getenv ("USER");
+
+  if (username) {
+    pw = getpwnam (username);
+    if (pw && pw->pw_uid == uid) goto gotpw;
+  }
+
+  pw = getpwuid (uid);
+
+gotpw:
+
+  if (!pw) {
+    exit_err ("error retrieving passwd entry");
+  }
+
+  homedir = _xs_strdup (pw->pw_dir);
+
+  return homedir;
+}
+
+/*
  * The set of terminal signals we block while handling SelectionRequests.
  *
  * If we exit in the middle of handling a SelectionRequest, we might leave the
@@ -264,6 +392,150 @@ static void block_exit_sigs(void)
 static void unblock_exit_sigs(void)
 {
   sigprocmask (SIG_UNBLOCK, &exit_sigs, NULL);
+}
+
+/* The jmp_buf to longjmp out of the signal handler */
+static sigjmp_buf env_alrm;
+
+/*
+ * alarm_handler (sig)
+ *
+ * Signal handler for catching SIGALRM.
+ */
+static void
+alarm_handler (int sig)
+{
+  siglongjmp (env_alrm, 1);
+}
+
+/*
+ * set_timer_timeout ()
+ *
+ * Set timer parameters according to specified timeout.
+ */
+static void
+set_timer_timeout (void)
+{
+  timer.it_interval.tv_sec = timeout / USEC_PER_SEC;
+  timer.it_interval.tv_usec = timeout % USEC_PER_SEC;
+  timer.it_value.tv_sec = timeout / USEC_PER_SEC;
+  timer.it_value.tv_usec = timeout % USEC_PER_SEC;
+}
+
+/*
+ * set_daemon_timeout ()
+ *
+ * Set up a timer to cause the daemon to exit after the desired
+ * amount of time.
+ */
+static void
+set_daemon_timeout (void)
+{
+  if (signal (SIGALRM, alarm_handler) == SIG_ERR) {
+    exit_err ("error setting timeout handler");
+  }
+
+  set_timer_timeout ();
+
+  if (sigsetjmp (env_alrm, 0) == 0) {
+    setitimer (ITIMER_REAL, &timer, (struct itimerval *)0);
+  } else {
+    print_debug (D_INFO, "daemon exiting after %d ms", timeout / 1000);
+    exit (0);
+  }
+}
+
+
+/*
+ * become_daemon ()
+ *
+ * Perform the required procedure to become a daemon process, as
+ * outlined in the Unix programming FAQ:
+ * http://www.steve.org.uk/Reference/Unix/faq_2.html#SEC16
+ * and open a logfile.
+ */
+static void
+become_daemon (void)
+{
+  pid_t pid;
+  int null_r_fd, null_w_fd, log_fd;
+  char * homedir;
+
+  if (no_daemon) {
+	  /* If the user has specified a timeout, enforce it even if we don't
+	   * actually daemonize */
+	  set_daemon_timeout ();
+	  return;
+  }
+
+  homedir = get_homedir ();
+
+  /* Check that we can open a logfile before continuing */
+
+  /* If the user has specified a --logfile, use that ... */
+  if (logfile[0] == '\0') {
+    /* ... otherwise use the default logfile */
+    snprintf (logfile, MAXFNAME, "%s/.xsel.log", homedir);
+  }
+
+  /* Make sure to create the logfile with sane permissions */
+  log_fd = open (logfile, O_WRONLY|O_APPEND|O_CREAT, 0600);
+  if (log_fd == -1) {
+    exit_err ("error opening logfile %s for writing", logfile);
+  }
+  print_debug (D_INFO, "opened logfile %s", logfile);
+
+  if ((pid = fork()) == -1) {
+    exit_err ("error forking");
+  } else if (pid > 0) {
+    _exit (0);
+  }
+
+  if (setsid () == -1) {
+    exit_err ("setsid error");
+  }
+
+  if ((pid = fork()) == -1) {
+    exit_err ("error forking");
+  } else if (pid > 0) {
+    _exit (0);
+  }
+
+  umask (0);
+
+  if (chdir (homedir) == -1) {
+    print_debug (D_WARN, "Could not chdir to %s\n", homedir);
+    if (chdir ("/") == -1) {
+      exit_err ("Error chdir to /");
+    }
+  }
+
+  /* dup2 /dev/null on stdin unless following input */
+  if (!do_follow) {
+    null_r_fd = open ("/dev/null", O_RDONLY);
+    if (null_r_fd == -1) {
+      exit_err ("error opening /dev/null for reading");
+    }
+    if (dup2 (null_r_fd, 0) == -1) {
+      exit_err ("error duplicating /dev/null on stdin");
+    }
+  }
+
+  /* dup2 /dev/null on stdout */
+  null_w_fd = open ("/dev/null", O_WRONLY|O_APPEND);
+  if (null_w_fd == -1) {
+    exit_err ("error opening /dev/null for writing");
+  }
+  if (dup2 (null_w_fd, 1) == -1) {
+    exit_err ("error duplicating /dev/null on stdout");
+  }
+
+  /* dup2 logfile on stderr */
+  if (dup2 (log_fd, 2) == -1) {
+    exit_err ("error duplicating logfile %s on stderr", logfile);
+  }
+
+  set_daemon_timeout ();
 }
 
 /*
@@ -365,6 +637,206 @@ get_append_property (XSelectionEvent * xsl, unsigned char ** buffer,
   return True;
 }
 
+
+/*
+ * wait_incr_selection (selection)
+ *
+ * Retrieve a property of target type INCR. Perform incremental retrieval
+ * and return the resulting data.
+ */
+static unsigned char *
+wait_incr_selection (Atom selection, XSelectionEvent * xsl, int init_alloc)
+{
+  XEvent event;
+  unsigned char * incr_base = NULL, * incr_ptr = NULL;
+  unsigned long incr_alloc = 0, incr_xfer = 0;
+  Bool wait_prop = True;
+
+  print_debug (D_TRACE, "Initialising incremental retrieval of at least %d bytes\n", init_alloc);
+
+  /* Take an interest in the requestor */
+  XSelectInput (xsl->display, xsl->requestor, PropertyChangeMask);
+
+  incr_alloc = init_alloc;
+  incr_base = xs_malloc (incr_alloc);
+  incr_ptr = incr_base;
+
+  print_debug (D_TRACE, "Deleting property that informed of INCR transfer");
+  XDeleteProperty (xsl->display, xsl->requestor, xsl->property);
+
+  print_debug (D_TRACE, "Waiting on PropertyNotify events");
+  while (wait_prop) {
+    XNextEvent (xsl->display, &event);
+
+    switch (event.type) {
+    case PropertyNotify:
+      if (event.xproperty.state != PropertyNewValue) break;
+
+      wait_prop = get_append_property (xsl, &incr_base, &incr_xfer,
+                                       &incr_alloc);
+      break;
+    default:
+      break;
+    }
+  }
+
+  /* when zero length found, finish up & delete last */
+  XDeleteProperty (xsl->display, xsl->requestor, xsl->property);
+
+  print_debug (D_TRACE, "Finished INCR retrieval");
+
+  return incr_base;
+}
+
+/*
+ * wait_selection (selection, request_target)
+ *
+ * Block until we receive a SelectionNotify event, and return its
+ * contents; or NULL in the case of a deletion or error. This assumes we
+ * have already called XConvertSelection, requesting a string (explicitly
+ * XA_STRING) or deletion (delete_atom).
+ */
+static unsigned char *
+wait_selection (Atom selection, Atom request_target)
+{
+  XEvent event;
+  Atom target;
+  int format;
+  unsigned long bytesafter, length;
+  unsigned char * value, * retval = NULL;
+  Bool keep_waiting = True;
+
+  while (keep_waiting) {
+    XNextEvent (display, &event);
+
+    switch (event.type) {
+    case SelectionNotify:
+      if (event.xselection.selection != selection) break;
+
+      if (event.xselection.property == None) {
+        print_debug (D_WARN, "Conversion refused");
+        value = NULL;
+        keep_waiting = False;
+      } else if (event.xselection.property == null_atom &&
+                 request_target == delete_atom) {
+      } else {
+	XGetWindowProperty (event.xselection.display,
+			    event.xselection.requestor,
+			    event.xselection.property, 0L, 1000000,
+			    False, (Atom)AnyPropertyType, &target,
+			    &format, &length, &bytesafter, &value);
+
+        debug_property (D_TRACE, event.xselection.requestor,
+                        event.xselection.property, target, length);
+
+        if (request_target == delete_atom && value == NULL) {
+          keep_waiting = False;
+        } else if (target == incr_atom) {
+          /* Handle INCR transfers */
+          retval = wait_incr_selection (selection, &event.xselection,
+                                        *(int *)value);
+          keep_waiting = False;
+        } else if (target != utf8_atom && target != XA_STRING &&
+                   target != compound_text_atom &&
+                   request_target != delete_atom) {
+          /* Report non-TEXT atoms */
+          print_debug (D_WARN, "Selection (type %s) is not a string.",
+                       get_atom_name (target));
+          free (retval);
+          retval = NULL;
+          keep_waiting = False;
+        } else {
+          retval = xs_strdup (value);
+          XFree (value);
+          keep_waiting = False;
+        }
+
+        XDeleteProperty (event.xselection.display,
+                         event.xselection.requestor,
+                         event.xselection.property);
+
+      }
+      break;
+    default:
+      break;
+    }
+  }
+
+  /* Now that we've received the SelectionNotify event, clear any
+   * remaining timeout. */
+  if (timeout > 0) {
+    setitimer (ITIMER_REAL, (struct itimerval *)0, (struct itimerval *)0);
+  }
+
+  return retval;
+}
+
+/*
+ * get_selection (selection, request_target)
+ *
+ * Retrieves the specified selection and returns its value.
+ *
+ * If a non-zero timeout is specified then set a virtual interval
+ * timer. Return NULL and print an error message if the timeout
+ * expires before the selection has been retrieved.
+ */
+static unsigned char *
+get_selection (Atom selection, Atom request_target)
+{
+  Atom prop;
+  unsigned char * retval;
+
+  prop = XInternAtom (display, "XSEL_DATA", False);
+  XConvertSelection (display, selection, request_target, prop, window,
+                     timestamp);
+  XSync (display, False);
+
+  if (timeout > 0) {
+    if (signal (SIGALRM, alarm_handler) == SIG_ERR) {
+      exit_err ("error setting timeout handler");
+    }
+
+    set_timer_timeout ();
+
+    if (sigsetjmp (env_alrm, 0) == 0) {
+      setitimer (ITIMER_REAL, &timer, (struct itimerval *)0);
+      retval = wait_selection (selection, request_target);
+    } else {
+      print_debug (D_WARN, "selection timed out");
+      retval = NULL;
+    }
+  } else {
+    retval = wait_selection (selection, request_target);
+  }
+
+  return retval;
+}
+
+/*
+ * get_selection_text (Atom selection)
+ *
+ * Retrieve a text selection. First attempt to retrieve it as UTF_STRING,
+ * and if that fails attempt to retrieve it as a plain XA_STRING.
+ *
+ * NB. Before implementing this, an attempt was made to query TARGETS and
+ * request UTF8_STRING only if listed there, as described in:
+ * http://www.pps.jussieu.fr/~jch/software/UTF8_STRING/UTF8_STRING.text
+ * However, that did not seem to work reliably when tested against various
+ * applications (eg. Mozilla Firefox). This method is of course more
+ * reliable.
+ */
+static unsigned char *
+get_selection_text (Atom selection)
+{
+  unsigned char * retval;
+
+  if ((retval = get_selection (selection, utf8_atom)) == NULL)
+    retval = get_selection (selection, XA_STRING);
+
+  return retval;
+}
+
+
 /*
  * SELECTION SETTING
  * =================
@@ -372,6 +844,145 @@ get_append_property (XSelectionEvent * xsl, unsigned char ** buffer,
  * The following functions allow a given selection to be set, appended to
  * or cleared, or to exchange the primary and secondary selections.
  */
+
+/*
+ * copy_sel (s)
+ *
+ * Copy a string into a new selection buffer, and intitialise
+ * current_alloc and total_input to exactly its length.
+ */
+static unsigned char *
+copy_sel (unsigned char * s)
+{
+  unsigned char * new_sel = NULL;
+
+  new_sel = xs_strdup (s);
+  current_alloc = total_input = xs_strlen (s);
+
+  return new_sel;
+}
+
+/*
+ * read_input (read_buffer, do_select)
+ *
+ * Read input from stdin into the specified read_buffer.
+ *
+ * read_buffer must have been dynamically allocated before calling this
+ * function, or be NULL. Input is read until end-of-file is reached, and
+ * read_buffer will be reallocated to accomodate the entire contents of
+ * the input. read_buffer, which may have been reallocated, is returned
+ * upon completion.
+ *
+ * If 'do_select' is True, this function will first check if any data
+ * is available for reading, and return immediately if not.
+ */
+static unsigned char *
+read_input (unsigned char * read_buffer, Bool do_select)
+{
+  int insize = in_statbuf.st_blksize;
+  unsigned char * new_buffer = NULL;
+  int d, fatal = 0, nfd;
+  ssize_t n;
+  fd_set fds;
+  struct timeval select_timeout;
+
+  do {
+
+    if (do_select) {
+try_read:
+      /* Check if data is available for reading -- if not, return immediately */
+      FD_ZERO (&fds);
+      FD_SET (0, &fds);
+
+      select_timeout.tv_sec = (time_t)0;
+      select_timeout.tv_usec = (time_t)0;
+
+      nfd = select (1, &fds, NULL, NULL, &select_timeout);
+      if (nfd == -1) {
+        if (errno == EINTR) goto try_read;
+        else exit_err ("select error");
+      } else if (nfd == 0) {
+        print_debug (D_TRACE, "No data available for reading");
+        break;
+      }
+    }
+
+    /* check if buffer is full */
+    if (current_alloc == total_input) {
+      if ((d = (current_alloc % insize)) != 0) current_alloc += (insize-d);
+      current_alloc *= 2;
+      new_buffer = realloc (read_buffer, current_alloc);
+      if (new_buffer == NULL) {
+        exit_err ("realloc error");
+      }
+      read_buffer = new_buffer;
+    }
+
+    /* read the remaining data, up to the optimal block length */
+    n = read (0, &read_buffer[total_input],
+              MIN(current_alloc - total_input, insize));
+    if (n == -1) {
+      switch (errno) {
+      case EAGAIN:
+      case EINTR:
+        break;
+      default:
+        perror ("read error");
+        fatal = 1;
+        break;
+      }
+    }
+    total_input += n;
+  } while (n != 0 && !fatal);
+
+  read_buffer[total_input] = '\0';
+
+  if(do_zeroflush && total_input > 0) {
+    int i;
+    for(i=total_input-1; i>=0; i--) {
+      if(read_buffer[i] == '\0') {
+        print_debug (D_TRACE, "Flushing input at %d", i);
+        memmove(&read_buffer[0], &read_buffer[i+1], total_input - i);
+        total_input = total_input - i - 1;
+        read_buffer[total_input] = '\0';
+        break;
+      }
+    }
+  }
+
+  print_debug (D_TRACE, "Accumulated %d bytes input", total_input);
+
+  return read_buffer;
+}
+
+/*
+ * initialise_read (read_buffer)
+ *
+ * Initialises the read_buffer and the state variable current_alloc.
+ * read_buffer is reallocated to accomodate either the entire input
+ * if stdin is a regular file, or at least one block of input otherwise.
+ * If the supplied read_buffer is NULL, a new buffer will be allocated.
+ */
+static unsigned char *
+initialise_read (unsigned char * read_buffer)
+{
+  int insize = in_statbuf.st_blksize;
+  unsigned char * new_buffer = NULL;
+
+  if (S_ISREG (in_statbuf.st_mode)) {
+    current_alloc += in_statbuf.st_size;
+  } else {
+    current_alloc += insize;
+  }
+
+  if ((new_buffer = realloc (read_buffer, current_alloc)) == NULL) {
+    exit_err ("realloc error");
+  }
+
+  read_buffer = new_buffer;
+
+  return read_buffer;
+}
 
 /* Forward declaration of refuse_all_incr () */
 static void
@@ -1118,17 +1729,12 @@ handle_selection_request (XEvent event, unsigned char * sel)
  * SelectionClear event is received for the specified selection.
  */
 static void
-set_selection (Atom selection, pthread_mutex_t* mutex, unsigned char * sel)
+set_selection (Atom selection, unsigned char * sel)
 {
   XEvent event;
   IncrTrack * it;
 
   if (own_selection (selection) == False) return;
-
-  if ( strlen( (char*)sel ) == 0 )
-  {
-     return;
-  }
 
   for (;;) {
     /* Flush before unblocking signals so we send replies before exiting */
@@ -1136,25 +1742,19 @@ set_selection (Atom selection, pthread_mutex_t* mutex, unsigned char * sel)
     unblock_exit_sigs ();
     XNextEvent (display, &event);
     block_exit_sigs ();
-    pthread_mutex_lock( mutex );
 
     switch (event.type) {
     case SelectionClear:
-      if (event.xselectionclear.selection == selection)
-      {
-         pthread_mutex_unlock( mutex );
-         return;
-      }
+      if (event.xselectionclear.selection == selection) return;
       break;
     case SelectionRequest:
       if (event.xselectionrequest.selection != selection) break;
 
-      if (!handle_selection_request (event, sel))
-      {
-         pthread_mutex_unlock( mutex );
-         return;
-      }
-
+      if (do_follow)
+        sel = read_input (sel, True);
+      
+      if (!handle_selection_request (event, sel)) return;
+      
       break;
     case PropertyNotify:
       if (event.xproperty.state != PropertyDelete) break;
@@ -1169,28 +1769,391 @@ set_selection (Atom selection, pthread_mutex_t* mutex, unsigned char * sel)
     default:
       break;
     }
-
-    pthread_mutex_unlock( mutex );
   }
 }
 
-int xopen_display()
+/*
+ * set_selection__daemon (selection, sel)
+ *
+ * Creates a daemon process to handle selection requests for the
+ * specified selection 'selection', to respond with selection text 'sel'.
+ * If 'sel' is an empty string (NULL or "") then no daemon process is
+ * created and the specified selection is cleared instead.
+ */
+static void
+set_selection__daemon (Atom selection, unsigned char * sel)
 {
-  return (XOpenDisplay(NULL)!=NULL);
+  if (empty_string (sel) && !do_follow) {
+    clear_selection (selection);
+    return;
+  }
+
+  become_daemon ();
+
+  set_selection (selection, sel);
 }
 
-void xclip( pthread_mutex_t* mutex, const char* text )
+/*
+ * set_selection_pair (sel_p, sel_s)
+ *
+ * Handles SelectionClear and SelectionRequest events for both the
+ * primary and secondary selections. Returns once SelectionClear events
+ * have been received for both selections. Responds to SelectionRequest
+ * events for the primary selection with text 'sel_p' and for the
+ * secondary selection with text 'sel_s'.
+ */
+static void
+set_selection_pair (unsigned char * sel_p, unsigned char * sel_s)
 {
+  XEvent event;
+  IncrTrack * it;
+  
+  if (sel_p) {
+    if (own_selection (XA_PRIMARY) == False)
+      free_string (sel_p);
+  } else {
+    clear_selection (XA_PRIMARY);
+  }
+
+  if (sel_s) {
+    if (own_selection (XA_SECONDARY) == False)
+      free_string (sel_s);
+  } else {
+    clear_selection (XA_SECONDARY);
+  }
+
+  for (;;) {
+    /* Flush before unblocking signals so we send replies before exiting */
+    XFlush (display);
+    unblock_exit_sigs ();
+    XNextEvent (display, &event);
+    block_exit_sigs ();
+
+    switch (event.type) {
+    case SelectionClear:
+      if (event.xselectionclear.selection == XA_PRIMARY) {
+        free_string (sel_p);
+        if (sel_s == NULL) return;
+      } else if (event.xselectionclear.selection == XA_SECONDARY) {
+        free_string (sel_s);
+        if (sel_p == NULL) return;
+      }
+      break;
+    case SelectionRequest:
+      if (event.xselectionrequest.selection == XA_PRIMARY) {
+        if (!handle_selection_request (event, sel_p)) {
+          free_string (sel_p);
+          if (sel_s == NULL) return;
+        }
+      } else if (event.xselectionrequest.selection == XA_SECONDARY) {
+        if (!handle_selection_request (event, sel_s)) {
+          free_string (sel_s);
+          if (sel_p == NULL) return;
+        }
+      }
+      break;
+    case PropertyNotify:
+      if (event.xproperty.state != PropertyDelete) break;
+
+      it = find_incrtrack (event.xproperty.atom);
+
+      if (it != NULL) {
+        continue_incr (it);
+      }
+      break;
+    default:
+      break;
+    }
+  }
+}
+
+/*
+ * set_selection_pair__daemon (sel_p, sel_s)
+ *
+ * Creates a daemon process to handle selection requests for both the
+ * primary and secondary selections with texts 'sel_p' and 'sel_s'
+ * respectively.
+ *
+ * If both 'sel_p' and 'sel_s' are empty strings (NULL or "") then no
+ * daemon process is created, and both selections are cleared instead.
+ */
+static void
+set_selection_pair__daemon (unsigned char * sel_p, unsigned char * sel_s)
+{
+  if (empty_string (sel_p) && empty_string (sel_s)) {
+    clear_selection (XA_PRIMARY);
+    clear_selection (XA_SECONDARY);
+    return;
+  }
+
+  become_daemon ();
+
+  set_selection_pair (sel_p, sel_s);
+}
+
+/*
+ * keep_selections ()
+ *
+ * Takes ownership of both the primary and secondary selections. The current
+ * selection texts are retrieved and a new daemon process is created to
+ * handle both selections unmodified.
+ */
+static void
+keep_selections (void)
+{
+  unsigned char * text1, * text2;
+
+  text1 = get_selection_text (XA_PRIMARY);
+  text2 = get_selection_text (XA_SECONDARY);
+
+  set_selection_pair__daemon (text1, text2);
+}
+
+/*
+ * exchange_selections ()
+ *
+ * Exchanges the primary and secondary selections. The current selection
+ * texts are retrieved and a new daemon process is created to handle both
+ * selections with their texts exchanged.
+ */
+static void
+exchange_selections (void)
+{
+  unsigned char * text1, * text2;
+
+  text1 = get_selection_text (XA_PRIMARY);
+  text2 = get_selection_text (XA_SECONDARY);
+
+  set_selection_pair__daemon (text2, text1);
+}
+
+/*
+ * free_saved_argv ()
+ *
+ * atexit function for freeing argv, after it has been relocated to the
+ * heap.
+ */
+static void
+free_saved_argv (void)
+{
+  int i;
+
+  for (i=0; i < saved_argc; i++) {
+    free (saved_argv[i]);
+  }
+  free (saved_argv);
+}
+
+/*
+ * expand_argv (&argc, &argv)
+ *
+ * Explodes single letter options so that the argument parser can see
+ * all of them. Relocates argv and all arguments to the heap.
+ */
+static void 
+expand_argv(int * argc, char **argv[])
+{
+  int i, new_i, arglen, new_argc = *argc;
+  char ** new_argv;
+  char * arg;
+ 
+  /* Calculate new argc */
+  for (i = 0; i < *argc; i++) {
+    arglen = strlen((*argv)[i]);
+    /* An option we need to expand? */
+    if ((arglen > 2) && (*argv)[i][0] == '-' && (*argv)[i][1] != '-')
+      new_argc += arglen-2;
+  }
+
+  /* Allocate new_argv */
+  new_argv = xs_malloc (new_argc * sizeof(char *));
+
+  /* Copy args into new argv */
+  for (i = 0, new_i = 0; i < *argc; i++) {
+    arglen = strlen((*argv)[i]);
+   
+    /* An option we need to expand? */
+    if ((arglen > 2)
+	&& (*argv)[i][0] == '-' && (*argv)[i][1] != '-') {
+      /* Make each letter a new argument. */
+
+      char * c = ((*argv)[i] + 1);
+     
+      while (*c != '\0') {
+	arg = xs_malloc(sizeof(char) * 3);
+	arg[0] = '-';
+	arg[1] = *c;
+	arg[2] = '\0';
+        new_argv[new_i++] = arg;
+        c++;
+      }
+    } else {
+      /* Simply copy the argument pointer to new_argv */
+      new_argv[new_i++] = _xs_strdup ((*argv)[i]);
+    }
+  }
+
+  /* Set the expected return values */
+  *argc = new_argc;
+  *argv = new_argv;
+
+  /* Save the new argc, argv values and free them on exit */
+  saved_argc = new_argc;
+  saved_argv = new_argv;
+  atexit (free_saved_argv);
+}
+
+/*
+ * main (argc, argv)
+ * =================
+ *
+ * Parse user options and set behaviour.
+ *
+ * By default the current selection is output and not modified if both
+ * standard input and standard output are terminals (ttys). Otherwise,
+ * the current selection is output if standard output is not a terminal
+ * (tty), and the selection is set from standard input if standard input
+ * is not a terminal (tty). If any input or output options are given then
+ * the program behaves only in the requested mode.
+ *
+ * If both input and output is required then the previous selection is
+ * output before being replaced by the contents of standard input.
+ */
+int
+main(int argc, char *argv[])
+{
+  Bool show_version = False;
+  Bool show_help = False;
+  Bool do_append = False, do_clear = False;
+  Bool do_keep = False, do_exchange = False;
+  Bool do_input = False, do_output = False;
+  Bool force_input = False, force_output = False;
+  Bool want_clipboard = False, do_delete = False;
   Window root;
   Atom selection = XA_PRIMARY, test_atom;
   int black;
   int i, s=0;
   unsigned char * old_sel = NULL, * new_sel = NULL;
+  char * display_name = NULL;
+  long timeout_ms = 0L;
 
-  display = XOpenDisplay (NULL);
+  progname = argv[0];
+
+  /* Specify default behaviour based on input and output file types */
+  if (isatty(0) && isatty(1)) {
+    /* Solo invocation; display the selection and exit */
+    do_input = False; do_output = True;
+  } else {
+    /* Use only what is not attached to the tty */
+    /* Gives expected behaviour with *basic* usage of "xsel < foo", "xsel > foo", etc. */
+    do_input = !isatty(0); do_output = !isatty(1);
+  }
+  /* NOTE:
+   * Checking stdin/stdout for being a tty is NOT reliable to tell what the user wants.
+   * This is because child processes inherit the file descriptors of their parents;
+   * an xsel called in a script that is e.g. daemonized (not attached to a tty), or called
+   * with a redirection or in a pipeline will have non-tty file descriptors on default.
+   * The redirection/piping issue also applies to "grouped" or "compound" commands
+   * in the shell (functions, subshells, curly-brace blocks, conditionals, loops, etc.).
+   * In all these cases, the user *must* set the mode of operation explicitly.
+   */
+
+#define OPT(s) (strcmp (argv[i], (s)) == 0)
+
+  /* Expand argv array before parsing to uncombine arguments. */
+  expand_argv(&argc, &argv);
+
+  /* Parse options; modify behaviour according to user-specified options */
+  for (i=1; i < argc; i++) {
+    if (OPT("--help") || OPT("-h")) {
+      show_help = True;
+    } else if (OPT("--version")) {
+      show_version = True;
+    } else if (OPT("--verbose") || OPT("-v")) {
+      debug_level++;
+    } else if (OPT("--append") || OPT("-a")) {
+      force_input = True;
+      do_output = False;
+      do_append = True;
+    } else if (OPT("--input") || OPT("-i")) {
+      force_input = True;
+      do_output = False;
+    } else if (OPT("--clear") || OPT("-c")) {
+      do_output = False;
+      do_clear = True;
+    } else if (OPT("--output") || OPT("-o")) {
+      do_input = False;
+      force_output = True;
+    } else if (OPT("--follow") || OPT("-f")) {
+      force_input = True;
+      do_output = False;
+      do_follow = True;
+    } else if (OPT("--zeroflush") || OPT("-z")) {
+      force_input = True;
+      do_output = False;
+      do_follow = True;
+      do_zeroflush = True;
+    } else if (OPT("--primary") || OPT("-p")) {
+      selection = XA_PRIMARY;
+    } else if (OPT("--secondary") || OPT("-s")) {
+      selection = XA_SECONDARY;
+    } else if (OPT("--clipboard") || OPT("-b")) {
+      want_clipboard = True;
+    } else if (OPT("--keep") || OPT("-k")) {
+      do_keep = True;
+    } else if (OPT("--exchange") || OPT("-x")) {
+      do_exchange = True;
+    } else if (OPT("--display")) {
+      i++; if (i >= argc) goto usage_err;
+      display_name = argv[i];
+    } else if (OPT("--selectionTimeout") || OPT("-t")) {
+      i++; if (i >= argc) goto usage_err;
+      timeout_ms = strtol(argv[i], (char **)NULL, 10);
+      if (timeout_ms < 0) timeout_ms = 0;
+    } else if (OPT("--nodetach") || OPT("-n")) {
+      no_daemon = True;
+    } else if (OPT("--delete") || OPT("-d")) {
+      do_output = False;
+      do_delete = True;
+    } else if (OPT("--logfile") || OPT("-l")) {
+      i++; if (i >= argc) goto usage_err;
+      _xs_strncpy (logfile, argv[i], MAXFNAME);
+    } else {
+      goto usage_err;
+    }
+  }
+
+  if (show_version) {
+    printf ("xsel version " VERSION " by " AUTHOR "\n");
+  }
+
+  if (show_help) {
+    usage ();
+  }
+
+  if (show_version || show_help) {
+    exit (0);
+  }
+
+  if (fstat (0, &in_statbuf) == -1) {
+    exit_err ("fstat error on stdin");
+  }
+  if (fstat (1, &out_statbuf) == -1) {
+    exit_err ("fstat error on stdout");
+  }
+
+  if (S_ISDIR(in_statbuf.st_mode)) {
+    exit_err ("-: Is a directory\n");
+  }
+  if (S_ISDIR(out_statbuf.st_mode)) {
+    exit_err ("stdout: Is a directory\n");
+  }
+
+  timeout = timeout_ms * 1000;
+
+  display = XOpenDisplay (display_name);
   if (display==NULL) {
-    //exit_err ("Can't open display\n");
-    return;
+    exit_err ("Can't open display: %s\n", display_name);
   }
   root = XDefaultRootWindow (display);
   
@@ -1283,8 +2246,60 @@ void xclip( pthread_mutex_t* mutex, const char* text )
   sigaddset (&exit_sigs, SIGINT);
   sigaddset (&exit_sigs, SIGTERM);
 
+  /* handle selection keeping and exit if so */
+  if (do_keep) {
+    keep_selections ();
+    _exit (0);
+  }
+
+  /* handle selection exchange and exit if so */
+  if (do_exchange) {
+    exchange_selections ();
+    _exit (0);
+  }
+
   /* Find the "CLIPBOARD" selection if required */
-  selection = XInternAtom (display, "CLIPBOARD", False);
-  set_selection (selection, mutex, (unsigned char*)text);
-  print_debug (D_INFO, "exit xclip()");
+  if (want_clipboard) {
+    selection = XInternAtom (display, "CLIPBOARD", False);
+  }
+
+  /* handle output modes */
+  if (do_output || force_output) {
+    /* Get the current selection */
+    old_sel = get_selection_text (selection);
+    if (old_sel)
+      {
+         printf ("%s", old_sel);
+         if (!do_append && *old_sel != '\0' && isatty(1) &&
+             old_sel[xs_strlen (old_sel) - 1] != '\n')
+           {
+             fflush (stdout);
+             fprintf (stderr, "\n\\ No newline at end of selection\n");
+           }
+      }
+  }
+
+  /* handle input and clear modes */
+  if (do_delete) {
+    get_selection (selection, delete_atom);
+  } else if (do_clear) {
+    clear_selection (selection);
+  }
+  else if (do_input || force_input) {
+    if (do_output || force_output) fflush (stdout);
+    if (do_append) {
+      if (!old_sel) old_sel = get_selection_text (selection);
+      new_sel = copy_sel (old_sel);
+    }
+    new_sel = initialise_read (new_sel);
+    if(!do_follow)
+      new_sel = read_input (new_sel, False);
+    set_selection__daemon (selection, new_sel);
+  }
+  
+  exit (0);
+
+usage_err:
+  usage ();
+  exit (0);
 }

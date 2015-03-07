@@ -30,8 +30,6 @@
 #include <thread>
 #include <utility>
 
-#include <xselection.h>
-
 #include "types.hpp"
 #include "sesame/Entry.hpp"
 #include "sesame/commands/EntryTask.hpp"
