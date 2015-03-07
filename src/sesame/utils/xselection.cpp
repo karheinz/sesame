@@ -28,7 +28,7 @@
 #include <mutex>
 #include <thread>
 
-#include "xselection.h"
+#include "xsel.hpp"
 #include "sesame/utils/xselection.hpp"
 
 
@@ -55,12 +55,13 @@ namespace
          lock.unlock();
       }
 
-      mutex.lock();
-      currentSelection.resize( 0 );
-      currentSelectionPtr = const_cast<char*>( &zero );
-      mutex.unlock();
+      {
+         std::lock_guard<std::mutex> g( mutex );
+         currentSelection.resize( 0 );
+         currentSelectionPtr = const_cast<char*>( &zero );
+      }
 
-      xclip( mutex.native_handle(), currentSelectionPtr );
+      xclip( &mutex, currentSelectionPtr );
    }
 }
 
@@ -83,42 +84,44 @@ void xselect( const String& selection )
    xclipTimerThread = std::thread( &xclear );
 
    // Select.
-   mutex.lock();
-   currentSelection = selection;
-   currentSelectionPtr = const_cast<char*>( currentSelection.c_str() );
-   mutex.unlock();
+   {
+      std::lock_guard<std::mutex> g( mutex );
+      currentSelection = selection;
+      currentSelectionPtr = const_cast<char*>( currentSelection.c_str() );
+   }
    if ( xclipThread1.joinable() )
    {
-      xclipThread2 = std::thread( &xclip, mutex.native_handle(), currentSelectionPtr );
+      xclipThread2 = std::thread( &xclip, &mutex, currentSelectionPtr );
       xclipThread1.join();
    }
    else if ( xclipThread2.joinable() )
    {
-      xclipThread1 = std::thread( &xclip, mutex.native_handle(), currentSelectionPtr );
+      xclipThread1 = std::thread( &xclip, &mutex, currentSelectionPtr );
       xclipThread2.join();
    }
    else
    {
-      xclipThread1 = std::thread( &xclip, mutex.native_handle(), currentSelectionPtr );
+      xclipThread1 = std::thread( &xclip, &mutex, currentSelectionPtr );
    }
 }
 
 void xdeselect()
 {
-   mutex.lock();
-   currentSelection.resize( 0 );
-   currentSelectionPtr = const_cast<char*>( &zero );
-   mutex.unlock();
+   {
+      std::lock_guard<std::mutex> g( mutex );
+      currentSelection.resize( 0 );
+      currentSelectionPtr = const_cast<char*>( &zero );
+   }
 
    if ( xclipThread1.joinable() )
    {
-      xclipThread2 = std::thread( &xclip, mutex.native_handle(), currentSelectionPtr );
+      xclipThread2 = std::thread( &xclip, &mutex, currentSelectionPtr );
       xclipThread1.join();
       xclipThread2.join();
    }
    else if ( xclipThread2.joinable() )
    {
-      xclipThread1 = std::thread( &xclip, mutex.native_handle(), currentSelectionPtr );
+      xclipThread1 = std::thread( &xclip, &mutex, currentSelectionPtr );
       xclipThread1.join();
       xclipThread2.join();
    }

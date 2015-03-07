@@ -1,1 +1,1 @@
-ADD_LIBRARY( xsel STATIC xsel.c )
+ADD_LIBRARY( xsel STATIC xsel.cpp )
