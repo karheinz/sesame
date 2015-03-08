@@ -1,0 +1,6 @@
+CMAKE_MINIMUM_REQUIRED( VERSION 2.8 )
+SET( CFLAGS "-Wall" )
+SET( SOURCES "bloom.c;./sha/sha.c;./cast/cast.c;rnd.c;pronpass.c;randpass.c;restrict.c;errors.c;apg.c;getopt.c;convert.c" )
+ADD_EXECUTABLE( apg ${SOURCES} )
+TARGET_LINK_LIBRARIES( apg crypt m )
+SET_PROPERTY( TARGET apg APPEND PROPERTY COMPILE_DEFINITIONS "CRYPTED_PASS=APG_USE_CRYPT;USE_SHA=APG_DONOTUSE_SHA" )
