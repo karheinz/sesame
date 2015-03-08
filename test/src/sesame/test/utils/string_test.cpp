@@ -62,6 +62,10 @@ TEST( StringUtilitiesTest, Strip )
    String s7( "\n" );
    normalized = utils::normalize( s7 );
    ASSERT_EQ( "", normalized );
+
+   String s8( " \t a \t " );
+   normalized = utils::strip( s8 );
+   ASSERT_EQ( "a", normalized );
 }
 
 TEST( StringUtilitiesTest, Split )
@@ -82,6 +86,19 @@ TEST( StringUtilitiesTest, Split )
    splitted = utils::split( toSplit3 );
    ASSERT_EQ( String( "left right " ), splitted.first );
    ASSERT_EQ( String(), splitted.second );
+}
+
+TEST( StringUtilitiesTest, Tokenize )
+{
+   String line( "\ta b c d   e   \t   f " );
+   const Vector<String> tokens( utils::tokenize( line ) );
+   ASSERT_EQ( 6, tokens.size() );
+   ASSERT_EQ( String( "a" ), tokens[ 0 ] );
+   ASSERT_EQ( String( "b" ), tokens[ 1 ] );
+   ASSERT_EQ( String( "c" ), tokens[ 2 ] );
+   ASSERT_EQ( String( "d" ), tokens[ 3 ] );
+   ASSERT_EQ( String( "e" ), tokens[ 4 ] );
+   ASSERT_EQ( String( "f" ), tokens[ 5 ] );
 }
 
 } }

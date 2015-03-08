@@ -34,7 +34,7 @@ namespace
 {
    void stripIfEmpty( String& string )
    {
-      if ( string.find_first_not_of( " \n" ) == String::npos )
+      if ( string.find_first_not_of( " \t\n" ) == String::npos )
       {
          string = "";
       }
@@ -43,13 +43,33 @@ namespace
 
 namespace sesame { namespace utils {
 
+const Vector<String> tokenize( const String& string )
+{
+   StringStream stream;
+   stream << string;
+   Vector<String> result;
+
+   while ( stream.good() )
+   {
+      String tmp;
+      std::getline( stream, tmp, ' ' );
+      tmp = strip( tmp );
+      if ( ! tmp.empty() )
+      {
+         result.push_back( tmp );
+      }
+   }
+
+   return result;
+}
+
 String lstrip( const String& string )
 {
    String tmp( string );
    String::size_type hit;
 
-   hit = tmp.find_first_not_of( " " );
-   if ( hit > 0 )
+   hit = tmp.find_first_not_of( " \t" );
+   if ( hit != String::npos )
    {
       tmp.erase( 0, hit );
    }
@@ -63,7 +83,7 @@ String rstrip( const String& string )
    String tmp( string );
    String::size_type hit;
 
-   hit = tmp.find_last_not_of( " \n" );
+   hit = tmp.find_last_not_of( " \t\n" );
    if ( hit != String::npos && ( hit + 1 ) < tmp.size() )
    {
       tmp.erase( hit + 1 );

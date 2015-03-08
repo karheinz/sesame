@@ -28,9 +28,12 @@
 
 #include <types.hpp>
 #include <utility>
+#include <vector>
 
 
 namespace sesame { namespace utils {
+
+const Vector<String> tokenize( const String& string );
 
 String lstrip( const String& string );
 
