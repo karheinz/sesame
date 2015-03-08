@@ -35,11 +35,8 @@
 #if !defined(WIN32) && !defined(_WIN32) && !defined(__WIN32) && !defined(__WIN32__)
 #include <strings.h>
 #endif
-#include <cstring>
-#include <ctime>
-#include <string>
-#include <utility>
-#include <vector>
+#include <string.h>
+#include <time.h>
 
 #ifndef APG_USE_SHA
 #define APG_VERSION "2.2.3 (PRNG: X9.17/CAST)"
@@ -106,13 +103,11 @@ void checkopt(char *opt);
 int construct_mode(char *str_mode, struct pass_m * mde);
 
 /*
-** apg()
+** main()
 */
-std::vector<std::pair<std::string,std::string>>
-apg (int argc, char *argv[])
+int
+main (int argc, char *argv[])
 {
- std::vector<std::pair<std::string,std::string>> result;
-
  int i = 0;
  int restrict_res = 0;
  
@@ -275,13 +270,13 @@ apg (int argc, char *argv[])
 #ifndef CLISERV
      case 'h': /* print help */
       print_help ();
-      return result;
+      return (0);
 #endif /* CLISERV */
      case 'v': /* print version */
       printf ("APG (Automated Password Generator)");
       printf ("\nversion %s", APG_VERSION);
       printf ("\nCopyright (c) 1999, 2000, 2001, 2002, 2003 Adel I. Mirzazhanov\n");
-      return result;
+      return (0);
      default: /* print help end exit */
 #ifndef CLISERV
       print_help ();
@@ -555,7 +550,7 @@ apg (int argc, char *argv[])
  close (0);
  closelog();
 #endif /* CLISERV */
- return result;
+ return(0);
 } /* end of main */
 
 #ifndef CLISERV
@@ -576,7 +571,7 @@ get_user_seq (void)
  char * seq;
  UINT32 prom[2] = { 0L, 0L };
  UINT32 sdres = 0L;
- printf ("\nPlease enter some random data (only first %lu are significant)\n", (UINT32)sizeof(prom));
+ printf ("\nPlease enter some random data (only first %d are significant)\n", sizeof(prom));
  seq = (char *)getpass("(eg. your old password):>");
  if (strlen(seq) < sizeof(prom))
   (void)memcpy((void *)&prom[0], (void *)seq, (int)strlen(seq));
