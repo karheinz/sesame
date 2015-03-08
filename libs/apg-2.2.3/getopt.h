@@ -33,6 +33,7 @@
 extern char *	apg_optarg;		/* global argument pointer */
 extern int	apg_optind;		/* global argv index */
 
+extern void apg_getopt_reset();
 extern int apg_getopt(int argc,char *argv[],const char *optstring);
 
 #endif /* APG_GETOPT_H */

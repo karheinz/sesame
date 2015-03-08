@@ -39,6 +39,14 @@ badopt(const char *mess,int ch)
 	return ('?');
 }
 
+void
+apg_getopt_reset()
+{
+   apg_optind = 0;
+   apg_opterr = 1;
+   scan = NULL;
+}
+
 int
 apg_getopt(int argc,char *argv[],const char *optstring)
 {

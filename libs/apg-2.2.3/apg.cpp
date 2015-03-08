@@ -242,6 +242,10 @@ apg (int argc, char *argv[])
       exit (-1);
     }
   }
+
+ // Prepare for next run.
+ apg_getopt_reset();
+
  if (pass_mode_present != TRUE)
     mode.pass = S_SS | S_NB | S_CL | S_SL;
  if (exclude_list_present == TRUE)
