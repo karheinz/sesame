@@ -180,7 +180,7 @@ symb2name(char * syllable, char * h_syllable)
  struct ssymb_names
   {
    char symbol;
-   char *name;
+   const char *name;
   };
  static struct ssymb_names ssn[42] =
   {
@@ -262,7 +262,7 @@ spell_word(char * word, char * spelled_word)
  struct char_spell
   {
    char symbol;
-   char *name;
+   const char *name;
   };
  static struct char_spell cs[94] =
   {
