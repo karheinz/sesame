@@ -27,10 +27,12 @@
 ** SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
+#include <cstdlib>
+#include <stdexcept>
+#include <sstream>
 #include <unistd.h>
-#include <stdlib.h>
 #include "errs.h"
 
 #ifdef CLISERV
@@ -50,12 +52,14 @@
 void
 err_sys(const char *string)
 {
-
+   /*
 #ifndef CLISERV
  perror(string);
 #else
  syslog (LOG_DEBUG, "%s: %s",string, (char *)strerror(errno));
 #endif
+*/
+   throw std::runtime_error( string );
 }
 
 /*
@@ -71,7 +75,7 @@ err_sys(const char *string)
 void
 err_sys_fatal(const char *string)
 {
-
+/*
 #ifndef CLISERV
  perror(string);
 #else
@@ -80,6 +84,8 @@ err_sys_fatal(const char *string)
  close(0);
 #endif
  exit (-1);
+ */
+  throw std::runtime_error( string );
 }
 
 /*
@@ -95,6 +101,7 @@ err_sys_fatal(const char *string)
 void
 err_app(const char *string, const char * err)
 {
+   /*
 #ifndef CLISERV
  fprintf (stderr, "%s: ", string);
  fprintf (stderr, "%s\n", err);
@@ -102,6 +109,10 @@ err_app(const char *string, const char * err)
 #else
  syslog (LOG_DEBUG, "%s: %s",string, err);
 #endif
+*/
+  std::stringstream s;
+  s << string << ", " << err;
+  throw std::runtime_error( s.str() );
 }
 
 /*
@@ -117,7 +128,7 @@ err_app(const char *string, const char * err)
 void
 err_app_fatal(const char *string, const char *err)
 {
-
+/*
 #ifndef CLISERV
  fprintf (stderr, "%s: ", string);
  fprintf (stderr, "%s\n", err);
@@ -128,4 +139,8 @@ err_app_fatal(const char *string, const char *err)
  close(0);
 #endif
  exit (-1);
+*/
+  std::stringstream s;
+  s << string << ", " << err;
+  throw std::runtime_error( s.str() );
 }

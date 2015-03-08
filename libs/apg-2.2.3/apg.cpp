@@ -37,6 +37,7 @@
 #endif
 #include <cstring>
 #include <ctime>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -236,10 +237,9 @@ apg (int argc, char *argv[])
       printf ("APG (Automated Password Generator)");
       printf ("\nversion %s", APG_VERSION);
       printf ("\nCopyright (c) 1999, 2000, 2001, 2002, 2003 Adel I. Mirzazhanov\n");
-      return result;
+      break;
      default: /* print help end exit */
-      print_help ();
-      exit (-1);
+      throw std::runtime_error( "apg syntax error" );
     }
   }
 
@@ -316,22 +316,28 @@ apg (int argc, char *argv[])
         switch (restrict_res)
 	  {
 	  case 0:
-            fprintf (stdout, "%s", pass_string);
+         result.push_back( std::make_pair<std::string,std::string>( pass_string, "" ) );
+            //fprintf (stdout, "%s", pass_string);
             if (hyph_req_present == TRUE)
-	      fprintf (stdout, " (%s)", hyph_pass_string);
+               result.back().second.append( " (" ).append( hyph_pass_string ).append( ")" );
+	      //fprintf (stdout, " (%s)", hyph_pass_string);
 #ifdef APG_USE_CRYPT
             if (show_crypt_text == TRUE)
-	      fprintf (stdout, " %s", crypt_string);
+               result.back().second.append( " (" ).append( crypt_string ).append( ")" );
+	      //fprintf (stdout, " %s", crypt_string);
 #endif /* APG_USE_CRYPT */
 	    if (spell_present == TRUE)
 	     {
 	      spell_pass_string = spell_word(pass_string, spell_pass_string);
-	      fprintf (stdout, (" %s"), spell_pass_string);
+         result.back().second.append( " (" ).append( spell_pass_string ).append( ")" );
+	      //fprintf (stdout, (" %s"), spell_pass_string);
 	      free((void*)spell_pass_string);
 	     }
+       /*
 	    if ( delimiter_flag_present == FALSE )
 	       fprintf (stdout, "\n");
 	    fflush (stdout);
+       */
 	    i++;
 	    break;
 	  case 1:
@@ -347,22 +353,28 @@ apg (int argc, char *argv[])
      *******************************************/
      else
        {
-        fprintf (stdout, "%s", pass_string);
+        result.push_back( std::make_pair<std::string,std::string>( pass_string, "" ) );
+        //fprintf (stdout, "%s", pass_string);
         if (hyph_req_present == TRUE)
-	  fprintf (stdout, " (%s)", hyph_pass_string);
+           result.back().second.append( " (" ).append( hyph_pass_string ).append( ")" );
+	  //fprintf (stdout, " (%s)", hyph_pass_string);
 #ifdef APG_USE_CRYPT
         if (show_crypt_text == TRUE)
-	  fprintf (stdout, " %s", crypt_string);
+           result.back().second.append( " (" ).append( crypt_string ).append( ")" );
+	  //fprintf (stdout, " %s", crypt_string);
 #endif /* APG_USE_CRYPT */
 	if (spell_present == TRUE)
 	 {
 	  spell_pass_string = spell_word(pass_string, spell_pass_string);
-	  fprintf (stdout, (" %s"), spell_pass_string);
+     result.back().second.append( " (" ).append( spell_pass_string ).append( ")" );
+	  //fprintf (stdout, (" %s"), spell_pass_string);
 	  free((void*)spell_pass_string);
 	 }
-        if ( delimiter_flag_present == FALSE )
+   /*
+      if ( delimiter_flag_present == FALSE )
 	   fprintf (stdout, "\n");
 	fflush (stdout);
+   */
 	i++;
        }
     }
@@ -409,19 +421,24 @@ apg (int argc, char *argv[])
 	  case 0:
 #ifdef APG_USE_CRYPT
             if (show_crypt_text==TRUE)
-	      fprintf (stdout, "%s %s", pass_string, crypt_string);
+         result.push_back( std::make_pair<std::string,std::string>( pass_string, std::string( " (" ).append( crypt_string ).append( ")" ) ) );
+	      //fprintf (stdout, "%s %s", pass_string, crypt_string);
 	    else
 #endif /* APG_USE_CRYPT */
-	      fprintf (stdout, "%s", pass_string);
+         result.push_back( std::make_pair<std::string,std::string>( pass_string, "" ) );
+	      //fprintf (stdout, "%s", pass_string);
 	    if (spell_present == TRUE)
 	     {
 	      spell_pass_string = spell_word(pass_string, spell_pass_string);
-	      fprintf (stdout, (" %s"), spell_pass_string);
+         result.back().second.append( " (" ).append( spell_pass_string ).append( ")" );
+	      //fprintf (stdout, (" %s"), spell_pass_string);
 	      free((void*)spell_pass_string);
 	     }
+       /*
 	    if ( delimiter_flag_present == FALSE )
 	       fprintf (stdout, "\n");
 	    fflush (stdout);
+       */
 	    i++;
 	    break;
 	  case 1:
@@ -439,19 +456,24 @@ apg (int argc, char *argv[])
        {
 #ifdef APG_USE_CRYPT
         if (show_crypt_text==TRUE)
-          fprintf (stdout, "%s %s", pass_string, crypt_string);
+         result.push_back( std::make_pair<std::string,std::string>( pass_string, std::string( " (" ).append( crypt_string ).append( ")" ) ) );
+          //fprintf (stdout, "%s %s", pass_string, crypt_string);
 	else
 #endif /* APG_USE_CRYPT */
-          fprintf (stdout, "%s", pass_string);
+         result.push_back( std::make_pair<std::string,std::string>( pass_string, "" ) );
+          //fprintf (stdout, "%s", pass_string);
 	if (spell_present == TRUE)
 	 {
 	  spell_pass_string = spell_word(pass_string, spell_pass_string);
-	  fprintf (stdout, (" %s"), spell_pass_string);
+         result.back().second.append( " (" ).append( spell_pass_string ).append( ")" );
+	  //fprintf (stdout, (" %s"), spell_pass_string);
 	  free((void*)spell_pass_string);
 	 }
+   /*
 	if ( delimiter_flag_present == FALSE )
 	   fprintf (stdout, "\n");
 	fflush (stdout);
+   */
 	i++;
        }
     } /* end of if (algorithm == 1) */
