@@ -27,6 +27,12 @@ SET( LIBXSEL_DIR "libs/xsel-1.2.0" )
 SET( LIBXSEL_INCLUDE_DIR "${LIBXSEL_DIR}/include" )
 ADD_SUBDIRECTORY( ${LIBXSEL_DIR} )
 
+# apg lib
+SET( LIBAPG "apg" )
+SET( LIBAPG_DIR "libs/apg-2.2.3" )
+SET( LIBAPG_INCLUDE_DIR "${LIBAPG_DIR}/include" )
+ADD_SUBDIRECTORY( ${LIBAPG_DIR} )
+
 # libs/scrypt
 SET( LIBSCRYPT "scrypt" )
 SET( LIBSCRYPT_DIR "libs/scrypt-1.1.6" )

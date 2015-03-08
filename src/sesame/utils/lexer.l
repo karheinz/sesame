@@ -58,6 +58,7 @@ NL  (\r?\n)
 %%
 
 <INITIAL>{CH}+                            { BEGIN( START_COND ); yyless( 0 ); }
+<START_COND>apg                           { BEGIN( CMD_COND ); return APG; }
 <START_COND>edit-mode                     { BEGIN( CMD_COND ); return TECLA_EDIT_MODE; }
 <START_COND>help                          { BEGIN( CMD_COND ); return HELP; }
 <START_COND>new                           { BEGIN( CMD_COND ); return NEW; }

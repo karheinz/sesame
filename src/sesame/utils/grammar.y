@@ -35,11 +35,13 @@
 #include <iostream>
 #include "types.hpp"
 #include "sesame/commands/ICommand.hpp"
+#include "sesame/commands/ApgTask.hpp"
 #include "sesame/commands/InstanceTask.hpp"
 #include "sesame/commands/EntryTask.hpp"
 #include "sesame/utils/ParseResult.hpp"
 
 using sesame::commands::ICommand;
+using sesame::commands::ApgTask;
 using sesame::commands::EntryTask;
 using sesame::commands::InstanceTask;
 }
@@ -251,6 +253,22 @@ cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE DELETE_PASSWORD_OR_KEY
 
     parseResult->setCommand(
         std::shared_ptr<ICommand>( new EntryTask( EntryTask::DELETE_PASSWORD_OR_KEY, ID, POS ) ) );
+}
+cmd_line ::= APG(A) NEWLINE.
+{
+    parseResult->addToken( A );
+
+    parseResult->setCommand(
+        std::shared_ptr<ICommand>( new ApgTask( Vector<String>() ) ) );
+}
+cmd_line ::= APG(A) WHITESPACE arguments NEWLINE.
+{
+    parseResult->addToken( A );
+
+    Vector<String> tokens( parseResult->getArgumentTokens() );
+    tokens.insert( tokens.begin(), parseResult->getCommandToken() );
+    parseResult->setCommand(
+        std::shared_ptr<ICommand>( new ApgTask( tokens ) ) );
 }
 cmd_line ::= WRITE.                    { parseResult->setCompleteCommand(); }
 cmd_line ::= WRITE WHITESPACE.         { parseResult->setCompleteFile(); }
