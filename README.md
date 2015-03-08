@@ -34,9 +34,11 @@ What you can do so far is:
 * add, update and delete attributes, passwords and keys
 * export passwords and keys
 
-What is missing?
+What is missing/planned?
 
 * signal handler for clean shutdown (on SIGTERM etc.)
+* generating passwords
+* export container into jpeg image
 * ...
 
 
@@ -79,6 +81,8 @@ Used libraries
   - http://www.zlib.net
 * googletest
   - http://code.google.com/p/googletest/
+* apg (modified)
+  - http://www.adel.nursat.kz/apg/
 * xsel (modified)
   - http://www.vergenet.net/~conrad/software/xsel/
 

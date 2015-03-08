@@ -26,12 +26,16 @@
 #include <iomanip>
 #include <iostream>
 #include <utility>
+#include <vector>
 
 #include <apg.hpp>
 
 #include "types.hpp"
 #include "sesame/commands/ApgTask.hpp"
 #include "sesame/utils/string.hpp"
+
+extern std::vector<std::pair<std::string,std::string>> apgCache;
+
 
 namespace sesame { namespace commands {
 
@@ -51,7 +55,19 @@ void ApgTask::run( std::shared_ptr<Instance>& instance )
    }
    args[ count++ ] = nullptr;
 
-   apg( m_Tokens.size(), args );
+   apgCache.clear();
+   apgCache = apg( m_Tokens.size(), args );
+
+   count = 1;
+   for ( auto tuple : apgCache )
+   {
+      std::cout << "#" << count++ << " " << tuple.first;
+      if ( ! tuple.second.empty() )
+      {
+         std::cout << " " << tuple.second;
+      }
+      std::cout << std::endl;
+   }
 }
 
 } }

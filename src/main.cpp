@@ -27,6 +27,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include <libtecla.h>
 
@@ -40,6 +41,8 @@
 #include "sesame/utils/Parser.hpp"
 #include "sesame/utils/ParseResult.hpp"
 #include "sesame/utils/TeclaReader.hpp"
+
+std::vector<std::pair<std::string,std::string>> apgCache;
 
 using sesame::commands::InstanceTask;
 
