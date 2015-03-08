@@ -72,14 +72,6 @@
 #undef APG_USE_CRYPT
 #endif /* __CYGWIN__ */
 
-#ifdef CLISERV
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <syslog.h>
-#define MAXSOCKADDDR 128
-#endif /* CLISERV */
-
 #include "owntypes.h"
 #include "pronpass.h"
 #include "randpass.h"
@@ -94,12 +86,10 @@
         unsigned int pass;	         /* password generation mode        */
         unsigned int filter;	         /* password generation mode        */
 	};
-#ifndef CLISERV
 UINT32 get_user_seq (void);
 UINT32 com_line_user_seq (char * seq);
 char *crypt_passstring (const char *p);
 void print_help (void);
-#endif /* CLISERV */
 
 int main (int argc, char *argv[]);
 void checkopt(char *opt);
@@ -144,7 +134,6 @@ apg (int argc, char *argv[])
  UINT32 user_defined_seed = 0L;          /* user defined random seed        */
  int user_defined_seed_present = FALSE;  /* user defined random seed flag   */
  char *str_mode;                         /* string mode pointer             */
-#ifndef CLISERV
  char *com_line_seq;
  char *spell_pass_string;
  int spell_present = FALSE;              /* spell password mode flag        */
@@ -153,45 +142,15 @@ apg (int argc, char *argv[])
  char *crypt_string;
  unsigned int show_crypt_text = FALSE;   /* display crypt(3)'d text flag    */
 #endif /* APG_USE_CRYPT */
-#endif /* CLISERV */
-#ifdef CLISERV
-#if defined(sgi) || defined(__APPLE__) || defined(__QNX__) /* Thanks to Andrew J. Caird */
- typedef unsigned int socklen_t;
-#endif
- socklen_t len;
- struct sockaddr_in *cliaddr;
- char delim[2]={0x0d,0x0a};
- char *out_pass;
- char *peer_ip_unknown = "UNKNOWN";
- char *peer_ip;
-
- openlog(argv[0], LOG_PID, LOG_DAEMON);
- cliaddr = (struct sockaddr_in *)calloc(1,MAXSOCKADDDR);
- len = MAXSOCKADDDR;
- if( getpeername(0, (struct sockaddr *)cliaddr, &len) != 0)
-  {
-   err_sys("getpeername");
-   peer_ip = peer_ip_unknown;
-  }
- else
-  {
-   peer_ip = inet_ntoa(cliaddr->sin_addr);
-  }
- syslog (LOG_INFO, "password generation request from %s.%d\n", peer_ip, htons(cliaddr->sin_port));
-#endif /* CLISERV */
 
  /*
  ** Analize options
  */
-#ifndef CLISERV
 #ifdef APG_USE_CRYPT
  while ((option = apg_getopt (argc, argv, "M:E:a:r:b:p:sdc:n:m:x:htvylq")) != -1)
 #else /* APG_USE_CRYPT */
  while ((option = apg_getopt (argc, argv, "M:E:a:r:b:p:sdc:n:m:x:htvlq")) != -1)
 #endif /* APG_USE_CRYPT */
-#else /* CLISERV */
- while ((option = apg_getopt (argc, argv, "M:E:a:r:b:p:n:m:x:vt")) != -1)
-#endif /* CLISERV */
   {
    switch (option)
     {
@@ -230,7 +189,6 @@ apg (int argc, char *argv[])
       min_substr_len = atoi (apg_optarg);
       paranoid_bloom_restrict_present = TRUE;
       break;
-#ifndef CLISERV
      case 'l':
       spell_present = TRUE;
       break;
@@ -256,7 +214,6 @@ apg (int argc, char *argv[])
       show_crypt_text = TRUE;
       break;                                                                  
 #endif /* APG_USE_CRYPT */
-#endif /* CLISERV */
      case 'n': /* number of password specification */
       checkopt(apg_optarg);
       number_of_pass = atoi (apg_optarg);
@@ -272,20 +229,16 @@ apg (int argc, char *argv[])
      case 't': /* request to print hyphenated password */
       hyph_req_present = TRUE;
       break;
-#ifndef CLISERV
      case 'h': /* print help */
       print_help ();
       return result;
-#endif /* CLISERV */
      case 'v': /* print version */
       printf ("APG (Automated Password Generator)");
       printf ("\nversion %s", APG_VERSION);
       printf ("\nCopyright (c) 1999, 2000, 2001, 2002, 2003 Adel I. Mirzazhanov\n");
       return result;
      default: /* print help end exit */
-#ifndef CLISERV
       print_help ();
-#endif /* CLISERV */
       exit (-1);
     }
   }
@@ -310,17 +263,11 @@ apg (int argc, char *argv[])
  if ( (pass_string = (char *)calloc (1, (size_t)(max_pass_length + 1)))==NULL ||
       (hyph_pass_string = (char *)calloc (1, (size_t)(max_pass_length*18)))==NULL)
       err_sys_fatal("calloc");
-#ifndef CLISERV
 #ifdef APG_USE_CRYPT
  if (show_crypt_text == TRUE)
    if ((crypt_string = (char *)calloc (1, 255))==NULL)      
       err_sys_fatal("calloc");
 #endif /* APG_USE_CRYPT */
-#endif /* CLISERV */
-#ifdef CLISERV
- if ( (out_pass = (char *)calloc(1, (size_t)(max_pass_length*19 + 4))) == NULL)
-      err_sys_fatal("calloc");
-#endif /* CLISERV */
  /*
  ** generate required amount of passwords using specified algorithm
  ** and check for restrictions if specified with command line parameters
@@ -332,13 +279,11 @@ apg (int argc, char *argv[])
      if (gen_pron_pass(pass_string, hyph_pass_string,
                        min_pass_length, max_pass_length, mode.pass) == -1)
         err_app_fatal("apg","wrong password length parameter");
-#ifndef CLISERV
 #ifdef APG_USE_CRYPT
      if (show_crypt_text == TRUE)
          (void) memcpy ((void *)crypt_string,
 	                (void *)crypt_passstring (pass_string), 255);
 #endif /* APG_USE_CRYPT */
-#endif /* CLISERV */
      /***************************************
      ** ALGORITHM = 0 RESTRICTIONS = PRESENT
      ****************************************/
@@ -367,7 +312,6 @@ apg (int argc, char *argv[])
         switch (restrict_res)
 	  {
 	  case 0:
-#ifndef CLISERV
             fprintf (stdout, "%s", pass_string);
             if (hyph_req_present == TRUE)
 	      fprintf (stdout, " (%s)", hyph_pass_string);
@@ -384,14 +328,6 @@ apg (int argc, char *argv[])
 	    if ( delimiter_flag_present == FALSE )
 	       fprintf (stdout, "\n");
 	    fflush (stdout);
-#else /* CLISERV */
-            if (hyph_req_present == TRUE)
-             snprintf(out_pass, max_pass_length*19 + 4, "%s (%s)", pass_string, hyph_pass_string);
-	    else
-             snprintf(out_pass, max_pass_length*19 + 4, "%s", pass_string);	    
-	    write (0, (void*) out_pass, strlen(out_pass));
-	    write (0, (void*)&delim[0],2);
-#endif /* CLISERV */
 	    i++;
 	    break;
 	  case 1:
@@ -407,7 +343,6 @@ apg (int argc, char *argv[])
      *******************************************/
      else
        {
-#ifndef CLISERV
         fprintf (stdout, "%s", pass_string);
         if (hyph_req_present == TRUE)
 	  fprintf (stdout, " (%s)", hyph_pass_string);
@@ -424,14 +359,6 @@ apg (int argc, char *argv[])
         if ( delimiter_flag_present == FALSE )
 	   fprintf (stdout, "\n");
 	fflush (stdout);
-#else /* CLISERV */
-        if (hyph_req_present == TRUE)
-         snprintf(out_pass, max_pass_length*19 + 4, "%s (%s)", pass_string, hyph_pass_string);
-	else
-         snprintf(out_pass, max_pass_length*19 + 4, "%s", pass_string);	    
-	write (0, (void*) out_pass, strlen(out_pass));
-	write (0, (void*)&delim[0],2);
-#endif /* CLISERV */
 	i++;
        }
     }
@@ -443,13 +370,11 @@ apg (int argc, char *argv[])
      if (gen_rand_pass(pass_string, min_pass_length,
                        max_pass_length, mode.pass) == -1)
         err_app_fatal("apg","wrong password length parameter");
-#ifndef CLISERV
 #ifdef APG_USE_CRYPT
      if (show_crypt_text == TRUE)
          (void)memcpy ((void *)crypt_string,
 	               (void *)crypt_passstring(pass_string), 255);
 #endif /* APG_USE_CRYPT */
-#endif /* CLISERV */
      /***************************************
      ** ALGORITHM = 1 RESTRICTIONS = PRESENT
      ****************************************/
@@ -478,7 +403,6 @@ apg (int argc, char *argv[])
         switch (restrict_res)
 	  {
 	  case 0:
-#ifndef CLISERV
 #ifdef APG_USE_CRYPT
             if (show_crypt_text==TRUE)
 	      fprintf (stdout, "%s %s", pass_string, crypt_string);
@@ -494,10 +418,6 @@ apg (int argc, char *argv[])
 	    if ( delimiter_flag_present == FALSE )
 	       fprintf (stdout, "\n");
 	    fflush (stdout);
-#else /* CLISERV */
-	    write (0, (void*)pass_string, strlen(pass_string));
-	    write (0, (void*)&delim[0],2);
-#endif /* CLISERV */
 	    i++;
 	    break;
 	  case 1:
@@ -513,7 +433,6 @@ apg (int argc, char *argv[])
      ****************************************/
      else
        {
-#ifndef CLISERV
 #ifdef APG_USE_CRYPT
         if (show_crypt_text==TRUE)
           fprintf (stdout, "%s %s", pass_string, crypt_string);
@@ -529,10 +448,6 @@ apg (int argc, char *argv[])
 	if ( delimiter_flag_present == FALSE )
 	   fprintf (stdout, "\n");
 	fflush (stdout);
-#else /* CLISERV */
-	write (0, (void*)pass_string, strlen(pass_string));
-	write (0, (void*)&delim[0],2);
-#endif /* CLISERV */
 	i++;
        }
     } /* end of if (algorithm == 1) */
@@ -543,18 +458,10 @@ apg (int argc, char *argv[])
   } /* end of while (i <= number_of_pass) */
  free((void*)pass_string);
  free((void*)hyph_pass_string);
-#ifndef CLISERV
 #ifdef APG_USE_CRYPT
  if (show_crypt_text==TRUE)
     free((void*)crypt_string);
 #endif /* APG_USE_CRYPT */
-#endif /* CLISERV */
-#ifdef CLISERV
- free ((void *)out_pass);
- free ((void *)cliaddr);
- close (0);
- closelog();
-#endif /* CLISERV */
  return result;
 } /* end of main */
 
