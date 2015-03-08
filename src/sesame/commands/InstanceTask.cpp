@@ -34,6 +34,9 @@
 #include "sesame/utils/string.hpp"
 #include "sesame/utils/Reader.hpp"
 
+extern std::vector<std::pair<std::string,std::string>> apgCache;
+
+
 namespace sesame { namespace commands {
 
 InstanceTask::InstanceTask( const Type taskType, const String& path ) :
@@ -227,6 +230,8 @@ void InstanceTask::run( std::shared_ptr<Instance>& instance )
       }
       case CLOSE:
       {
+         apgCache.resize( 0 );
+
          if ( instance && instance->isDirty() )
          {
             utils::Reader reader( 1024 );
