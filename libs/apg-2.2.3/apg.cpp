@@ -138,7 +138,7 @@ apg (int argc, char *argv[])
  char *com_line_seq;
  char *spell_pass_string;
  int spell_present = FALSE;              /* spell password mode flag        */
- unsigned int delimiter_flag_present = FALSE;
+ //unsigned int delimiter_flag_present = FALSE;
 #ifdef APG_USE_CRYPT
  char *crypt_string;
  unsigned int show_crypt_text = FALSE;   /* display crypt(3)'d text flag    */
@@ -204,9 +204,9 @@ apg (int argc, char *argv[])
       user_defined_seed = com_line_user_seq (com_line_seq);
       user_defined_seed_present = TRUE;
       break;
-     case 'd': /* no delimiters option */
-      delimiter_flag_present = TRUE;
-      break;
+     //case 'd': /* no delimiters option */
+     // delimiter_flag_present = TRUE;
+     // break;
      case 'q': /* quiet mode */
       quiet_present = TRUE;
       break;
@@ -619,7 +619,7 @@ char * crypt_passstring (const char *p)
 void
 checkopt(char *opt)
 {
- int i;
+ unsigned int i;
 
  for(i=0; i < strlen(opt);i++)
   if(opt[i] != '0' && opt[i] != '1' && opt[i] != '2' && opt[i] != '3' &&
