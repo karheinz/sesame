@@ -223,28 +223,28 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
             {
                std::cout << utils::empty() << utils::corner( 1 );
             }
-            std::cout << "[#" << k++ << "] " << date.first << ": ";
             if ( date.second.getType() == Data::TEXT )
             {
+               std::cout << "[#" << k++ << "][P] " << date.first << ": ";
                if ( date.second.isPlaintextAvailable() )
                {
                   std::cout << date.second.getPlaintext<String>();
                }
                else
                {
-                  std::cout << "<encrypted text>";
+                  std::cout << "***";
                }
             }
             else
             {
+               std::cout << "[#" << k++ << "][K] " << date.first << ": ";
                if ( date.second.isPlaintextAvailable() )
                {
-                  std::cout << "binary data (" <<
-                     date.second.getPlaintext<Vector<uint8_t>>().size() << " bytes)";
+                  std::cout << date.second.getPlaintext<Vector<uint8_t>>().size() << "B";
                }
                else
                {
-                  std::cout << "<encrypted binary data>";
+                  std::cout << "***";
                }
             }
 
@@ -287,9 +287,14 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          Entry entry( instance->findEntry( m_Id ) );
 
          utils::Reader reader( 1024 );
-         String name( reader.readLine( "Name: " ) );
+         StringStream namePrompt;
+         namePrompt << "Name (" << entry.getName() << "): ";
+         String name( reader.readLine( namePrompt.str() ) );
          name = utils::strip( name );
-         entry.setName( name );
+         if ( ! name.empty() )
+         {
+            entry.setName( name );
+         }
 
          if ( ! instance->updateEntry( entry ) )
          {
@@ -343,14 +348,21 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          const std::pair<String,String> attribute( getElemAtPos( attributes, m_Pos ) );
 
          utils::Reader reader( 1024 );
-         //std::cin.write( attribute.first );
-         String name( reader.readLine( "Name: " ) );
+         StringStream namePrompt;
+         namePrompt << "Name (" << attribute.first << "): ";
+         String name( reader.readLine( namePrompt.str() ) );
          name = utils::strip( name );
-         //std::cin.write( attribute.second );
-         String value( reader.readLine( "Value: " ) );
+         StringStream valuePrompt;
+         valuePrompt << "Value (" << attribute.second << "): ";
+         String value( reader.readLine( valuePrompt.str() ) );
          value = utils::strip( value );
 
-         if ( ! entry.updateAttribute( attribute.first, name, value ) )
+         if ( ! entry.updateAttribute(
+                  attribute.first,
+                  name.empty() ? attribute.first : name,
+                  value.empty() ? attribute.second : value
+                  )
+            )
          {
             throw std::runtime_error( "failed to update attribute" );
          }
@@ -427,25 +439,46 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          const std::pair<String,Data> labeledDate( getElemAtPos( labeledData, m_Pos ) );
 
          utils::Reader reader( 1024 );
-         String label( reader.readLine( "Label: " ) );
+         StringStream labelPrompt;
+         labelPrompt << "Label (" << labeledDate.first << "): ";
+         String label( reader.readLine( labelPrompt.str() ) );
          label = utils::strip( label );
 
          if ( labeledDate.second.getType() == Data::TEXT )
          {
-            String password( reader.readLine( "Password: " ) );
+            StringStream passwordPrompt;
+            if ( labeledDate.second.isPlaintextAvailable() )
+            {
+               passwordPrompt << "Password (" << labeledDate.second.getPlaintext<String>() << "): ";
+            }
+            else
+            {
+               passwordPrompt << "Password (***): ";
+            }
+            String password( reader.readLine( passwordPrompt.str() ) );
             password = utils::strip( password );
             password = preProcessPassword( password );
 
-            if ( ! entry.updateLabeledData( labeledDate.first, label, Data( password ) ) )
+            if ( ! entry.updateLabeledData(
+                     labeledDate.first,
+                     label.empty() ? labeledDate.first : label,
+                     password.empty() ? labeledDate.second : Data( password )
+                     )
+               )
             {
                throw std::runtime_error( "failed to update password" );
             }
          }
          else
          {
-            const Vector<uint8_t> data( askForInputFileAndRead() );
+            const Vector<uint8_t> data( askForInputFileAndRead( &( labeledDate.second ) ) );
 
-            if ( ! entry.updateLabeledData( labeledDate.first, label, Data( data ) ) )
+            if ( ! entry.updateLabeledData(
+                     labeledDate.first,
+                     label.empty() ? labeledDate.first : label,
+                     data.empty() ? labeledDate.second : Data( data )
+                     )
+               )
             {
                throw std::runtime_error( "failed to update key" );
             }
@@ -513,6 +546,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
                throw std::runtime_error( "failed to open file" );
             }
 
+            decryptData( instance, labeledDate.second );
             Vector<uint8_t> key( labeledDate.second.getPlaintext<Vector<uint8_t>>() );
             if ( ! key.empty() )
             {
@@ -529,16 +563,40 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
    }
 }
 
-const Vector<uint8_t> EntryTask::askForInputFileAndRead()
+const Vector<uint8_t> EntryTask::askForInputFileAndRead( const Data* date )
 {
+   Vector<uint8_t> data;
    utils::TeclaReader reader( 1024 );
    reader.addCompletion( cpl_file_completions, nullptr );
-   String path( reader.readLine( "File: " ) );
+
+   StringStream filePrompt;
+   filePrompt << "File ";
+   if ( date )
+   {
+      if ( date->isPlaintextAvailable() )
+      {
+         filePrompt << "(" << date->getPlaintext<Vector<uint8_t>>().size() << "B)";
+      }
+      else
+      {
+         filePrompt << "(***)";
+      }
+   }
+   filePrompt << ": ";
+
+   String path( reader.readLine( filePrompt.str() ) );
    path = utils::strip( path );
 
    if ( path.empty() )
    {
-      throw std::runtime_error( "missing filename" );
+      if ( ! date )
+      {
+         throw std::runtime_error( "missing filename" );
+      }
+      else
+      {
+         return data;
+      }
    }
    else if ( ! utils::isFile( path.c_str() ) )
    {
@@ -552,7 +610,6 @@ const Vector<uint8_t> EntryTask::askForInputFileAndRead()
    {
       throw std::runtime_error( "failed to open file" );
    }
-   Vector<uint8_t> data;
    data.resize( utils::getFileSize( path ) );
 
    if ( data.empty() )

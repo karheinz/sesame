@@ -99,9 +99,11 @@ class EntryTask : public ICommand
       /**
        * Asks for input file and reads binary content.
        *
+       * @param date pointer to existing date
+       *
        * @return path to input file
        */
-      const Vector<uint8_t> askForInputFileAndRead();
+      const Vector<uint8_t> askForInputFileAndRead( const Data* date = nullptr );
 
 
       /** task type */
