@@ -48,16 +48,15 @@ ApgTask::ApgTask( const Vector<String>& tokens ) :
 
 void ApgTask::run( std::shared_ptr<Instance>& instance )
 {
-   char* args[ m_Tokens.size() + 1 ];
+   Vector<char*> args( m_Tokens.size() + 1, nullptr );
    std::size_t count( 0 );
    for ( auto token : m_Tokens )
    {
       args[ count++ ] = const_cast<char*>( token.c_str() );
    }
-   args[ count++ ] = nullptr;
 
    apgCache.clear();
-   apgCache = apg( m_Tokens.size(), args );
+   apgCache = apg( m_Tokens.size(), args.data() );
 
    if ( ! apgCache.empty() )
    {
