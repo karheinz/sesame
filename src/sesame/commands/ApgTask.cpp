@@ -32,6 +32,7 @@
 
 #include "types.hpp"
 #include "sesame/commands/ApgTask.hpp"
+#include "sesame/utils/lines.hpp"
 #include "sesame/utils/string.hpp"
 
 extern std::vector<std::pair<std::string,std::string>> apgCache;
@@ -58,15 +59,34 @@ void ApgTask::run( std::shared_ptr<Instance>& instance )
    apgCache.clear();
    apgCache = apg( m_Tokens.size(), args );
 
-   count = 1;
-   for ( auto tuple : apgCache )
+   if ( ! apgCache.empty() )
    {
-      std::cout << "#" << count++ << " " << tuple.first;
-      if ( ! tuple.second.empty() )
+      std::size_t maxLength( 0 );
+      for ( auto tuple : apgCache )
       {
-         std::cout << " " << tuple.second;
+         maxLength = std::max( maxLength, tuple.first.size() );
       }
-      std::cout << std::endl;
+
+      std::cout << "Generated passwords:" << std::endl;
+      count = 1;
+      for ( auto tuple : apgCache )
+      {
+         if ( count < apgCache.size() )
+         {
+            std::cout << utils::branch();
+         }
+         else
+         {
+            std::cout << utils::corner();
+         }
+
+         std::cout << "[#" << count++ << "] " << std::setw( maxLength ) << tuple.first;
+         if ( ! tuple.second.empty() )
+         {
+            std::cout << tuple.second;
+         }
+         std::cout << std::endl;
+      }
    }
 }
 

@@ -42,6 +42,9 @@
 #include "sesame/utils/Reader.hpp"
 #include "sesame/utils/TeclaReader.hpp"
 
+extern std::vector<std::pair<std::string,std::string>> apgCache;
+
+
 namespace sesame { namespace commands {
 
 namespace {
@@ -99,6 +102,32 @@ namespace {
       }
 
       return v[ p - 1 ];
+   }
+
+   String preProcessPassword( const String& password )
+   {
+      String result( password );
+
+      // Reference to apgCache?
+      if ( password.size() > 1 &&
+           password.find( "#" ) == 0 &&
+           password.substr( 1 ).find_first_not_of( "0123456789" ) == String::npos
+         )
+      {
+         std::size_t index;
+         StringStream num;
+         num << password.substr( 1 );
+         num >> index;
+
+         if ( index < 1 || index > apgCache.size() )
+         {
+            throw std::runtime_error( "generated password does not exist" );
+         }
+
+         result = apgCache[ index - 1 ].first.c_str();
+      }
+
+      return result;
    }
 }
 
@@ -341,6 +370,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          label = utils::strip( label );
          String password( reader.readLine( "Password: " ) );
          password = utils::strip( password );
+         password = preProcessPassword( password );
 
          if ( ! entry.addLabeledData( label, Data( password ) ) )
          {
@@ -404,6 +434,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          {
             String password( reader.readLine( "Password: " ) );
             password = utils::strip( password );
+            password = preProcessPassword( password );
 
             if ( ! entry.updateLabeledData( labeledDate.first, label, Data( password ) ) )
             {
