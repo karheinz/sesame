@@ -150,9 +150,9 @@ apg (int argc, char *argv[])
  ** Analize options
  */
 #ifdef APG_USE_CRYPT
- while ((option = apg_getopt (argc, argv, "M:E:a:r:b:p:sdc:n:m:x:htvylq")) != -1)
+ while ((option = apg_getopt (argc, argv, "M:E:a:r:b:p:sdc:n:m:x:hTvylq")) != -1)
 #else /* APG_USE_CRYPT */
- while ((option = apg_getopt (argc, argv, "M:E:a:r:b:p:sdc:n:m:x:htvlq")) != -1)
+ while ((option = apg_getopt (argc, argv, "M:E:a:r:b:p:sdc:n:m:x:hTvlq")) != -1)
 #endif /* APG_USE_CRYPT */
   {
    switch (option)
@@ -160,17 +160,23 @@ apg (int argc, char *argv[])
      case 'M': /* mode parameter */
       str_mode = apg_optarg;
       if( (construct_mode(str_mode,&mode)) == -1)
+      {
+         apg_getopt_reset();  /* prepare for next run */
          err_app_fatal("construct_mode","wrong parameter");
+      }
       pass_mode_present = TRUE;
       if(mode.filter != 0)
-        {
+      {
          filter_restrict_present = TRUE;
-	 restrictions_present = TRUE;
-	}
+	      restrictions_present = TRUE;
+	   }
       break;
      case 'E': /* exclude char */
       if(set_exclude_list(apg_optarg)==-1)
+      {
+         apg_getopt_reset();  /* prepare for next run */
          err_app_fatal("set_exclude_list","string is too long (max. 93 characters)");
+      }
       exclude_list_present = TRUE;
       break;
      case 'a': /* algorithm specification */
@@ -229,17 +235,19 @@ apg (int argc, char *argv[])
       checkopt(apg_optarg);
       max_pass_length = (USHORT) atoi (apg_optarg);
       break;
-     case 't': /* request to print hyphenated password */
-      hyph_req_present = TRUE;
+     case 'T': /* request to print hyphenated password */
+      hyph_req_present = FALSE;
       break;
      case 'h': /* print help */
       print_help ();
+      apg_getopt_reset();  /* prepare for next run */
       return result;
      case 'v': /* print version */
       printf ("APG (Automated Password Generator)");
-      printf ("\nversion %s", APG_VERSION);
+      printf ("\nVersion %s", APG_VERSION);
       printf ("\nCopyright (c) 1999, 2000, 2001, 2002, 2003 Adel I. Mirzazhanov\n");
-      break;
+      apg_getopt_reset();  /* prepare for next run */
+      return result;
      default: /* print help end exit */
       throw std::runtime_error( "apg syntax error" );
     }
@@ -565,38 +573,44 @@ com_line_user_seq (char * seq)
 void
 print_help (void)
 {
- printf ("\napg   Automated Password Generator\n");
- printf ("        Copyright (c) Adel I. Mirzazhanov\n");
- printf ("\napg   [-a algorithm] [-r file] \n");
- printf ("      [-M mode] [-E char_string] [-n num_of_pass] [-m min_pass_len]\n");
- printf ("      [-x max_pass_len] [-c cl_seed] [-d] [-s] [-h] [-y] [-q]\n");
- printf ("\n-M mode         new style password modes\n");
- printf ("-E char_string  exclude characters from password generation process\n");
- printf ("-r file         apply dictionary check against file\n");
- printf ("-b filter_file  apply bloom filter check against filter_file\n");
- printf ("                (filter_file should be created with apgbfm(1) utility)\n");
- printf ("-p substr_len   paranoid modifier for bloom filter check\n");
- printf ("-a algorithm    choose algorithm\n");
- printf ("                 1 - random password generation according to\n");
- printf ("                     password modes\n");
- printf ("                 0 - pronounceable password generation\n");
- printf ("-n num_of_pass  generate num_of_pass passwords\n");
- printf ("-m min_pass_len minimum password length\n");
- printf ("-x max_pass_len maximum password length\n");
-#if !defined(WIN32) && !defined(_WIN32) && !defined(__WIN32) && !defined(__WIN32__)
- printf ("-s              ask user for a random seed for password\n");
- printf ("                generation\n");
-#endif /* WIN32 */
- printf ("-c cl_seed      use cl_seed as a random seed for password\n");
- printf ("-d              do NOT use any delimiters between generated passwords\n");
- printf ("-l              spell generated password\n");
- printf ("-t              print pronunciation for generated pronounceable password\n");
+ printf ("APG (Automated Password Generator)");
+ printf ("\nVersion %s", APG_VERSION);
+ printf ("\nCopyright (c) 1999, 2000, 2001, 2002, 2003 Adel I. Mirzazhanov\n");
+ //printf ("apg   Automated Password Generator\n");
+ //printf ("        Copyright (c) Adel I. Mirzazhanov\n");
+ printf ("\napg [-a algorithm] [-M mode] [-E char_string]\n");
+ printf ("    [-r file] [-b filter_file] [-p substr_len]\n");
+ printf ("    [-n num_of_pass] [-m min_pass_len] [-x max_pass_len]\n");
 #ifdef APG_USE_CRYPT
- printf ("-y              print crypted passwords\n");
+ printf ("    [-c cl_seed] [-s] [-q] [-t] [-l] [-y] [-v] [-h] \n");
+#else
+ printf ("    [-c cl_seed] [-s] [-q] [-t] [-l] [-v] [-h]\n");
+#endif
+ printf ("\n-a algorithm      choose algorithm\n");
+ printf ("                    1 - random password generation according to\n");
+ printf ("                        password modes\n");
+ printf ("                    0 - pronounceable password generation\n");
+ printf ("-M mode           new style password modes\n");
+ printf ("-E char_string    exclude characters from password generation process\n");
+ printf ("-r file           apply dictionary check against file\n");
+ printf ("-b filter_file    apply bloom filter check against filter_file\n");
+ printf ("                  (filter_file should be created with apgbfm(1) utility)\n");
+ printf ("-p substr_len     paranoid modifier for bloom filter check\n");
+ printf ("-n num_of_pass    generate num_of_pass passwords\n");
+ printf ("-m min_pass_len   minimum password length\n");
+ printf ("-x max_pass_len   maximum password length\n");
+ printf ("-c cl_seed        use cl_seed as a random seed for password\n");
+#if !defined(WIN32) && !defined(_WIN32) && !defined(__WIN32) && !defined(__WIN32__)
+ printf ("-s                ask user for a random seed for password generation\n");
+#endif /* WIN32 */
+ printf ("-q                quiet mode (do not print warnings)\n");
+ printf ("-T                suppress pronunciation for generated pronounceable password\n");
+ printf ("-l                spell generated password\n");
+#ifdef APG_USE_CRYPT
+ printf ("-y                print crypted passwords\n");
 #endif /* APG_USE_CRYPT */
- printf ("-q              quiet mode (do not print warnings)\n");
- printf ("-h              print this help screen\n");
- printf ("-v              print version information\n");
+ printf ("-v                print version information\n");
+ printf ("-h                print this help screen\n");
 }
 
 #ifdef APG_USE_CRYPT
