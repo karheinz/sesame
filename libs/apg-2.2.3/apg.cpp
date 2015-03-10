@@ -57,9 +57,9 @@
 #endif
 
 #define MAX_MODE_LENGTH   4
-#define DEFAULT_MIN_PASS_LEN 8
-#define DEFAULT_MAX_PASS_LEN 10
-#define DEFAULT_NUM_OF_PASS 6
+#define DEFAULT_MIN_PASS_LEN 12
+#define DEFAULT_MAX_PASS_LEN 16
+#define DEFAULT_NUM_OF_PASS 9
 
 #ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE
@@ -96,6 +96,8 @@ int main (int argc, char *argv[]);
 void checkopt(char *opt);
 int construct_mode(char *str_mode, struct pass_m * mde);
 
+const char* DEFAULT_MODE = "SNCL";
+
 /*
 ** apg()
 */
@@ -122,7 +124,7 @@ apg (int argc, char *argv[])
  int filter_restrict_present = FALSE;    /* filter restrictions flag        */
  int exclude_list_present = FALSE;       /* exclude list present            */
  int quiet_present = FALSE;              /* quiet mode flag                 */
- int hyph_req_present = FALSE;           /* Request to print hyphenated password              */
+ int hyph_req_present = TRUE;            /* Request to print hyphenated password              */
  char *restrictions_file;                /* dictionary file name            */
  char *plain_restrictions_file;          /* dictionary file name            */
  struct pass_m mode;
@@ -247,7 +249,16 @@ apg (int argc, char *argv[])
  apg_getopt_reset();
 
  if (pass_mode_present != TRUE)
-    mode.pass = S_SS | S_NB | S_CL | S_SL;
+ {
+   if( (construct_mode(const_cast<char*>( DEFAULT_MODE ),&mode)) == -1)
+         err_app_fatal("construct_mode","wrong parameter");
+   pass_mode_present = TRUE;
+   if(mode.filter != 0)
+   {
+     filter_restrict_present = TRUE;
+	  restrictions_present = TRUE;
+   }
+ }
  if (exclude_list_present == TRUE)
     mode.pass = mode.pass | S_RS;
  if( (tme = time(NULL)) == ( (time_t)-1))
@@ -343,7 +354,7 @@ apg (int argc, char *argv[])
 	  case 1:
 	    break;
 	  case -1:
-	    err_sys_fatal ("check_pass");
+	    err_sys_fatal ("error while checking password quality");
 	  default:
 	    break;
 	  } /* switch */
@@ -444,7 +455,7 @@ apg (int argc, char *argv[])
 	  case 1:
 	    break;
 	  case -1:
-	    err_sys_fatal ("check_pass");
+	    err_sys_fatal ("error while checking password quality");
 	  default:
 	    break;
 	  } /* switch */
@@ -509,7 +520,7 @@ get_user_seq (void)
  char * seq;
  UINT32 prom[2] = { 0L, 0L };
  UINT32 sdres = 0L;
- printf ("\nPlease enter some random data (only first %lu are significant)\n", (UINT32)sizeof(prom));
+ printf ("Please enter some random data (only first %lu are significant)\n", (UINT32)sizeof(prom));
  seq = (char *)getpass("(eg. your old password):>");
  if (strlen(seq) < sizeof(prom))
   (void)memcpy((void *)&prom[0], (void *)seq, (int)strlen(seq));
