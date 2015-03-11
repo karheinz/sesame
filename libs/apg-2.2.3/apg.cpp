@@ -57,8 +57,8 @@
 #endif
 
 #define MAX_MODE_LENGTH   4
-#define DEFAULT_MIN_PASS_LEN 12
-#define DEFAULT_MAX_PASS_LEN 16
+#define DEFAULT_MIN_PASS_LEN 16
+#define DEFAULT_MAX_PASS_LEN 24
 #define DEFAULT_NUM_OF_PASS 9
 
 #ifndef _XOPEN_SOURCE
@@ -116,7 +116,7 @@ apg (int argc, char *argv[])
  
  int option = 0;                         /* programm option                 */
 
- int algorithm = 0;                      /* algorithm for generation        */
+ int algorithm = 1;                      /* algorithm for generation        */
  int restrictions_present = FALSE;       /* restrictions flag               */
  int plain_restrictions_present = FALSE; /* dictionary restrictions_flag    */
  int bloom_restrict_present = FALSE;     /* bloom filter restrictions flag  */
@@ -124,7 +124,7 @@ apg (int argc, char *argv[])
  int filter_restrict_present = FALSE;    /* filter restrictions flag        */
  int exclude_list_present = FALSE;       /* exclude list present            */
  int quiet_present = FALSE;              /* quiet mode flag                 */
- int hyph_req_present = TRUE;            /* Request to print hyphenated password              */
+ int hyph_req_present = FALSE;            /* Request to print hyphenated password              */
  char *restrictions_file;                /* dictionary file name            */
  char *plain_restrictions_file;          /* dictionary file name            */
  struct pass_m mode;
@@ -150,9 +150,9 @@ apg (int argc, char *argv[])
  ** Analize options
  */
 #ifdef APG_USE_CRYPT
- while ((option = apg_getopt (argc, argv, "M:E:a:r:b:p:sdc:n:m:x:hTvylq")) != -1)
+ while ((option = apg_getopt (argc, argv, "M:E:a:r:b:p:sdc:n:m:x:htvylq")) != -1)
 #else /* APG_USE_CRYPT */
- while ((option = apg_getopt (argc, argv, "M:E:a:r:b:p:sdc:n:m:x:hTvlq")) != -1)
+ while ((option = apg_getopt (argc, argv, "M:E:a:r:b:p:sdc:n:m:x:htvlq")) != -1)
 #endif /* APG_USE_CRYPT */
   {
    switch (option)
@@ -235,8 +235,8 @@ apg (int argc, char *argv[])
       checkopt(apg_optarg);
       max_pass_length = (USHORT) atoi (apg_optarg);
       break;
-     case 'T': /* request to print hyphenated password */
-      hyph_req_present = FALSE;
+     case 't': /* request to print hyphenated password */
+      hyph_req_present = TRUE;
       break;
      case 'h': /* print help */
       print_help ();
@@ -604,7 +604,7 @@ print_help (void)
  printf ("-s                ask user for a random seed for password generation\n");
 #endif /* WIN32 */
  printf ("-q                quiet mode (do not print warnings)\n");
- printf ("-T                suppress pronunciation for generated pronounceable password\n");
+ printf ("-t                print pronunciation for generated pronounceable password\n");
  printf ("-l                spell generated password\n");
 #ifdef APG_USE_CRYPT
  printf ("-y                print crypted passwords\n");
