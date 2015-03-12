@@ -43,8 +43,10 @@ namespace sesame
       unpack( stream, majorVersion );
       Protocol protocol;
       unpack( stream, protocol );
-      Map<String,Vector<uint8_t>> params;
-      unpack( stream, params );
+      Map<String,Vector<uint8_t>> params1;
+      unpack( stream, params1 );
+      Map<String,Vector<uint8_t>> params2;
+      unpack( stream, params2 );
       Vector<uint8_t> ciphertext;
       unpack( stream, ciphertext );
       Vector<uint8_t> hmac;
@@ -55,24 +57,25 @@ namespace sesame
 
    Instance::Instance() :
       m_Id( std::random_device()() ),
-      m_DecryptAllByDefault( false ),
       m_Protocol( PROTOCOL_UNKNOWN )
    {
    }
 
    Instance::Instance(
       const Protocol protocol,
-      const Map<String,Vector<uint8_t>>& params,
-      const bool decryptAllByDefault
+      const Map<String,Vector<uint8_t>>& params1,
+      const Map<String,Vector<uint8_t>>& params2
       ) :
       m_Id( std::random_device()() ),
-      m_DecryptAllByDefault( decryptAllByDefault ),
       m_Protocol( protocol ),
-      m_Params( params )
+      m_Params1( params1 ),
+      m_Params2( params2 )
    {
       throwIfProtocolIsUnknown( m_Protocol );
 
-      if ( ! getCryptoMachine().getKeyDerivationParams( m_Params ) )
+      if ( ! getCryptoMachine().getKeyDerivationParams( m_Params1 ) ||
+           ! getCryptoMachine().getKeyDerivationParams( m_Params2 )
+         )
       {
          throw std::runtime_error( "failed to get key derivation params" );
       }
@@ -85,7 +88,8 @@ namespace sesame
       uint32_t majorVersion;
       unpack( stream, majorVersion );
       unpack( stream, m_Protocol );
-      unpack( stream, m_Params );
+      unpack( stream, m_Params1 );
+      unpack( stream, m_Params2 );
       Vector<uint8_t> ciphertext;
       unpack( stream, ciphertext );
       std::streamsize hmacCheck( stream.tellg() );
@@ -116,12 +120,12 @@ namespace sesame
       {
          stream.seekg( end, std::ios_base::beg );
       }
+
       Vector<uint8_t> calculatedDigest;
       if ( ! getCryptoMachine().calcDigest( data, calculatedDigest ) )
       {
          throw std::runtime_error( "failed to calculate digest" );
       }
-
       if ( calculatedDigest != digest )
       {
          throw std::runtime_error( "integrity check failed" );
@@ -135,14 +139,15 @@ namespace sesame
       throwIfProtocolIsUnknown( m_Protocol );
 
       // Calc key.
-      Vector<uint8_t> key;
-      if ( ! getCryptoMachine().deriveKey( utils::toUtf8( password ), m_Params, key ) )
+      Vector<uint8_t> key1;
+      if ( ! getCryptoMachine().deriveKey( utils::toUtf8( password ), m_Params1, key1 ) )
       {
          throw std::runtime_error( "key derivation failed" );
       }
+
       // Authenticity check.
       Vector<uint8_t> calculatedHmac;
-      if ( ! getCryptoMachine().calcHmac( data.data(), hmacCheck, key, calculatedHmac ) )
+      if ( ! getCryptoMachine().calcHmac( data.data(), hmacCheck, key1, calculatedHmac ) )
       {
          throw std::runtime_error( "failed to calculate HMAC" );
       }
@@ -153,7 +158,7 @@ namespace sesame
 
       // Decrypt ciphertext.
       Vector<uint8_t> plaintext;
-      if ( ! getCryptoMachine().decrypt( ciphertext, key, plaintext ) )
+      if ( ! getCryptoMachine().decrypt( ciphertext, key1, plaintext ) )
       {
          throw std::runtime_error( "decryption failed" );
       }
@@ -168,7 +173,11 @@ namespace sesame
       {
          throw std::runtime_error( "unexpected protocol" );
       }
-      if ( instance.m_Params != m_Params )
+      if ( instance.m_Params1 != m_Params1 )
+      {
+         throw std::runtime_error( "unexpected derivation params" );
+      }
+      if ( instance.m_Params2 != m_Params2 )
       {
          throw std::runtime_error( "unexpected derivation params" );
       }
@@ -182,26 +191,20 @@ namespace sesame
          }
       }
 
-      // Decrypt data?
-      if ( instance.getDecryptAllByDefault() )
-      {
-         instance.decryptEntries( key );
-      }
-
       instance.recalcInitialDigest();
 
       // Now replace current instance with deserialized.
       *this = instance;
    }
 
-   bool Instance::getDecryptAllByDefault() const
-   {
-      return m_DecryptAllByDefault;
-   }
-
    bool Instance::isNew() const
    {
-      return m_Hmac.empty();
+      return m_Hmac1.empty();
+   }
+
+   bool Instance::isNewKey( const Key type ) const
+   {
+      return ( type == Key::FIRST ? m_Hmac1.empty() : m_Hmac2.empty() );
    }
 
    Protocol Instance::getProtocol() const
@@ -306,7 +309,7 @@ namespace sesame
    {
       Vector<uint8_t> key;
 
-      if ( ! getCryptoMachine().deriveKey( utils::toUtf8( password ), m_Params, key ) )
+      if ( ! getCryptoMachine().deriveKey( utils::toUtf8( password ), m_Params2, key ) )
       {
          throw std::runtime_error( "key derivation failed" );
       }
@@ -335,7 +338,7 @@ namespace sesame
    {
       Vector<uint8_t> key;
 
-      if ( ! getCryptoMachine().deriveKey( utils::toUtf8( password ), m_Params, key ) )
+      if ( ! getCryptoMachine().deriveKey( utils::toUtf8( password ), m_Params2, key ) )
       {
          throw std::runtime_error( "key derivation failed" );
       }
@@ -345,7 +348,7 @@ namespace sesame
 
    void Instance::decryptData( Data& data, const Vector<uint8_t>& key )
    {
-      if ( ! isKeyValid( key ) )
+      if ( ! isKeyValid( key, Key::SECOND ) )
       {
          throw std::runtime_error( "key is invalid" );
       }
@@ -446,19 +449,19 @@ namespace sesame
       }
    }
 
-   void Instance::useKey( const Vector<uint8_t>& key ) const
+   void Instance::useKey( const Vector<uint8_t>& key, const Key type ) const
    {
-      calcHmac( m_Id, key, m_Hmac );
+      calcHmac( m_Id, key, type == Key::FIRST ? m_Hmac1 : m_Hmac2 );
    }
 
-   bool Instance::isKeyValid( const Vector<uint8_t>& key ) const
+   bool Instance::isKeyValid( const Vector<uint8_t>& key, const Key type ) const
    {
       bool success( false );
 
       // No key used so far? Use passed key.
-      if ( isNew() )
+      if ( isNewKey( type ) )
       {
-         useKey( key );
+         useKey( key, type );
          success = true;
       }
 
@@ -467,7 +470,7 @@ namespace sesame
       {
          Vector<uint8_t> calculatedHmac;
          calcHmac( m_Id, key, calculatedHmac );
-         if ( calculatedHmac == m_Hmac )
+         if ( calculatedHmac == ( type == Key::FIRST ? m_Hmac1 : m_Hmac2 ) )
          {
             success = true;
          }
@@ -478,7 +481,7 @@ namespace sesame
 
    void Instance::encryptEntry( Entry& entry, const Vector<uint8_t>& key )
    {
-      if ( ! isKeyValid( key ) )
+      if ( ! isKeyValid( key, Key::SECOND ) )
       {
          throw std::runtime_error( "key is invalid" );
       }
@@ -615,21 +618,34 @@ namespace sesame
       const String& password
       )
    {
-      Vector<uint8_t> key;
-
-      if ( ! getCryptoMachine().deriveKey( utils::toUtf8( password ), m_Params, key ) )
+      // 1. Derive and check first key.
+      Vector<uint8_t> key1;
+      if ( ! getCryptoMachine().deriveKey( utils::toUtf8( password ), m_Params1, key1 ) )
       {
          throw std::runtime_error( "key derivation failed" );
       }
 
-      // 1. Check key.
-      if ( ! isKeyValid( key ) )
+      if ( ! isKeyValid( key1, Key::FIRST ) )
       {
          throw std::runtime_error( "key is invalid" );
       }
 
-      // 2. Encrypt all entries.
-      encryptEntries( key );
+      // 2. Encrypt all entries with second key.
+      if ( isDirty() )
+      {
+         Vector<uint8_t> key2;
+         if ( ! getCryptoMachine().deriveKey( utils::toUtf8( password ), m_Params2, key2 ) )
+         {
+            throw std::runtime_error( "key derivation failed" );
+         }
+
+         if ( ! isKeyValid( key2, Key::SECOND ) )
+         {
+            throw std::runtime_error( "key is invalid" );
+         }
+
+         encryptEntries( key2 );
+      }
 
       // 3. Pack and write meta data.
       StringStream data;
@@ -641,7 +657,10 @@ namespace sesame
       pack( data, static_cast<int32_t>( m_Protocol ) );
 
       // derivation params
-      pack( data, m_Params );
+      pack( data, m_Params1 );
+
+      // derivation params
+      pack( data, m_Params2 );
 
       // 4. Serialize and encrypt.
       Vector<uint8_t> ciphertext;
@@ -653,7 +672,7 @@ namespace sesame
             readIntoVector( tmp, serialized );
          }
 
-         if ( ! getCryptoMachine().encrypt( serialized, key, ciphertext ) )
+         if ( ! getCryptoMachine().encrypt( serialized, key1, ciphertext ) )
          {
             throw std::runtime_error( "encryption failed" );
          }
@@ -666,7 +685,7 @@ namespace sesame
          Vector<uint8_t> serialized;
          readIntoVector( data, serialized );
 
-         if ( ! getCryptoMachine().calcHmac( serialized, key, hmac ) )
+         if ( ! getCryptoMachine().calcHmac( serialized, key1, hmac ) )
          {
             throw std::runtime_error( "failed to calculate HMAC" );
          }

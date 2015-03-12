@@ -68,63 +68,40 @@ void InstanceTask::run( std::shared_ptr<Instance>& instance )
       case NEW:
       {
          utils::Reader reader( 1024 );
-
          String choice;
-         choice = reader.readLine( "Should all data be decrypted when opening sesame? [y/N]  " );
-         choice = utils::strip( utils::toUtf8( choice ) );
-
-         bool decryptAllByDefault;
-         if ( choice.empty() )
-         {
-         }
-         else if ( choice == u8"y" || choice == u8"Y" )
-         {
-            decryptAllByDefault = true;
-         }
-         else if ( choice == u8"n" || choice == u8"N" )
-         {
-            decryptAllByDefault = false;
-         }
-         else
-         {
-            throw std::runtime_error( "invalid choice" );
-         }
-
-         std::cout << "How much memory should be used for password based key derivation:" << std::endl;
-         choice = reader.readLine( "[1] 128MiB, [2] 256MiB, [3] 512MiB or [4] 1024MiB?  " );
-         choice = utils::strip( utils::toUtf8( choice ) );
-
          uint32_t ldN;
-         if ( choice == u8"1" )
-         {
-            ldN = 17;
-         }
-         else if ( choice == u8"2" )
-         {
-            ldN = 18;
-         }
-         else if ( choice == u8"3" )
-         {
-            ldN = 19;
-         }
-         else if ( choice == u8"4" )
-         {
-            ldN = 20;
-         }
-         else
-         {
-            throw std::runtime_error( "invalid choice" );
-         }
 
-         Map<String,Vector<uint8_t>> params;
+         std::cout << "First you have to specify how much memory should be used for\n";
+         std::cout << "derivation of the key used for encryption of the container:" << std::endl;
+         choice = reader.readLine( "[1] 512MiB, [2] 1024MiB or [3] 2048MiB?  " );
+         choice = utils::strip( utils::toUtf8( choice ) );
+         if ( choice == u8"1" ) { ldN = 19; }
+         else if ( choice == u8"2" ) { ldN = 20; }
+         else if ( choice == u8"3" ) { ldN = 21; }
+         else { throw std::runtime_error( "invalid choice" ); }
+         Map<String,Vector<uint8_t>> params1;
          {
             Vector<uint8_t> ldNVector;
             packV( ldNVector, ldN );
-            params[ utils::fromUtf8( u8"ldN" ) ] = ldNVector;
+            params1[ utils::fromUtf8( u8"ldN" ) ] = ldNVector;
          }
 
+         std::cout << "Second you have to specify how much memory should be used for\n";
+         std::cout << "derivation of the key used for encryption of the embedded secrets:" << std::endl;
+         choice = reader.readLine( "[1] 32MiB, [2] 64MiB or [3] 128MiB?  " );
+         choice = utils::strip( utils::toUtf8( choice ) );
+         if ( choice == u8"1" ) { ldN = 15; }
+         else if ( choice == u8"2" ) { ldN = 16; }
+         else if ( choice == u8"3" ) { ldN = 17; }
+         else { throw std::runtime_error( "invalid choice" ); }
+         Map<String,Vector<uint8_t>> params2;
+         {
+            Vector<uint8_t> ldNVector;
+            packV( ldNVector, ldN );
+            params1[ utils::fromUtf8( u8"ldN" ) ] = ldNVector;
+         }
 
-         instance.reset( new Instance( PROTOCOL_SCRYPT_AES_CBC_SHA_V1, params, decryptAllByDefault ) );
+         instance.reset( new Instance( PROTOCOL_SCRYPT_AES_CBC_SHA_V1, params1, params2 ) );
          break;
       }
       case OPEN:

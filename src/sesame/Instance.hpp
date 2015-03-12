@@ -49,6 +49,16 @@ namespace sesame
     */
    class Instance
    {
+      private:
+         /**
+          * Key types.
+          */
+         enum class Key
+         {
+            FIRST,   /* outer */
+            SECOND   /* inner */
+         };
+
       public:
          /**
           * Parses data read from stream.
@@ -61,16 +71,15 @@ namespace sesame
           * Creates an empty instance.
           *
           * @param protocol the protocol to use
-          * @param params the params to use for key derivation
-          * @param decryptAllByDefault <tt>true</tt> if data
-          *    should be decrypted when opening sesame
+          * @param params1 the params to use for key1 derivation
+          * @param params2 the params to use for key2 derivation
           *
           * @throw std::runtime_error if protocol is unknown
           */
          explicit Instance(
             const Protocol protocol,
-            const Map<String,Vector<uint8_t>>& params = Map<String,Vector<uint8_t>>(),
-            const bool decryptAllByDefault = false
+            const Map<String,Vector<uint8_t>>& params1 = Map<String,Vector<uint8_t>>(),
+            const Map<String,Vector<uint8_t>>& params2 = Map<String,Vector<uint8_t>>()
             );
 
          /**
@@ -85,13 +94,6 @@ namespace sesame
 
          /** Destructor. */
          virtual ~Instance() = default;
-
-         /**
-          * Returns <tt>true</tt> if data is decrypted when opening sesame.
-          *
-          * @return <tt>true</tt> if data is decrypted when opening sesame
-          */
-         bool getDecryptAllByDefault() const;
 
          /**
           * Returns <tt>true</tt> if the container is new,
@@ -255,6 +257,16 @@ namespace sesame
          Instance& operator=( const Instance& other ) = default;
 
          /**
+          * Returns <tt>true</tt> if the container is new,
+          * wasn't encrypted before.
+          *
+          * @param type type of the key
+          *
+          * @return <tt>true</tt> if the container is new
+          */
+         bool isNewKey( const Key type ) const;
+
+         /**
           * Calculates digest of container (used to detect changes).
           *
           * @return digest of container
@@ -276,10 +288,11 @@ namespace sesame
           * Recalculates HMAC of id to be able to check key later.
           *
           * @param key the key to use
+          * @param type type of the key
           *
           * @throw std::runtime_error on failure
           */
-         void useKey( const Vector<uint8_t>& key ) const;
+         void useKey( const Vector<uint8_t>& key, const Key type ) const;
 
          /**
           * Returns <tt>true</tt> if the passed key is valid.
@@ -287,10 +300,11 @@ namespace sesame
           * HMAC of id is calculated using the passed key.
           *
           * @param key the key to check
+          * @param type type of the key
           *
           * @return <tt>true</tt> if the key is valid, otherwise <tt>false</tt>
           */
-         bool isKeyValid( const Vector<uint8_t>& key ) const;
+         bool isKeyValid( const Vector<uint8_t>& key, const Key type ) const;
 
          /**
           * Encrypts an entry.
@@ -363,22 +377,24 @@ namespace sesame
          static Map<Protocol,std::shared_ptr<crypto::IMachine>> machines;
          /** unique id of the instance */
          uint32_t m_Id;
-         /** HMAC of id, used to check password */
-         mutable Vector<uint8_t> m_Hmac;
+         /** HMAC of id, used to check password (build with first key) */
+         mutable Vector<uint8_t> m_Hmac1;
+         /** HMAC of id, used to check password (build with second key) */
+         mutable Vector<uint8_t> m_Hmac2;
          /** initial digest of container */
          Vector<uint8_t> m_InitialDigest;
-         /** decrypt all data when opening sesame */
-         bool m_DecryptAllByDefault;
          /** the protocol to use */
          Protocol m_Protocol;
-         /** the key derivation params to use */
-         Map<String,Vector<uint8_t>> m_Params;
+         /** the key derivation params to use (for first key) */
+         Map<String,Vector<uint8_t>> m_Params1;
+         /** the key derivation params to use (for second key) */
+         Map<String,Vector<uint8_t>> m_Params2;
          /** the covered entries */
          Set<Entry> m_Entries;
 
       // (de)serialization
       public:
-         MSGPACK_DEFINE( m_Id, m_Hmac, m_DecryptAllByDefault, m_Protocol, m_Params, m_Entries )
+         MSGPACK_DEFINE( m_Id, m_Hmac1, m_Hmac2, m_Protocol, m_Params1, m_Params2, m_Entries )
 
 
       friend Instance msgpack::object::as<Instance>() const;

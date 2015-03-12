@@ -175,14 +175,20 @@ TEST( InstanceTest, DeSerialization )
 {
    utils::setLocale();
 
-   Map<String,Vector<uint8_t>> params;
+   Map<String,Vector<uint8_t>> params1;
    {
       Vector<uint8_t> ldN;
       packV( ldN, 10U );
-      params[ utils::fromUtf8( u8"ldN" ) ] = ldN;
+      params1[ utils::fromUtf8( u8"ldN" ) ] = ldN;
    }
-   Instance instance( PROTOCOL_SCRYPT_AES_CBC_SHA_V1, params );
-   ASSERT_FALSE( instance.getDecryptAllByDefault() );
+   Map<String,Vector<uint8_t>> params2;
+   {
+      Vector<uint8_t> ldN;
+      packV( ldN, 8U );
+      params2[ utils::fromUtf8( u8"ldN" ) ] = ldN;
+   }
+
+   Instance instance( PROTOCOL_SCRYPT_AES_CBC_SHA_V1, params1, params2 );
    ASSERT_EQ( PROTOCOL_SCRYPT_AES_CBC_SHA_V1, instance.getProtocol() );
 
    Entry e1( "Example Entry 1" );
@@ -237,14 +243,20 @@ TEST( InstanceTest, LabeledData )
 {
    utils::setLocale();
 
-   Map<String,Vector<uint8_t>> params;
+   Map<String,Vector<uint8_t>> params1;
    {
       Vector<uint8_t> ldN;
       packV( ldN, 10U );
-      params[ utils::fromUtf8( u8"ldN" ) ] = ldN;
+      params1[ utils::fromUtf8( u8"ldN" ) ] = ldN;
    }
-   Instance instance( PROTOCOL_SCRYPT_AES_CBC_SHA_V1, params );
-   ASSERT_FALSE( instance.getDecryptAllByDefault() );
+   Map<String,Vector<uint8_t>> params2;
+   {
+      Vector<uint8_t> ldN;
+      packV( ldN, 8U );
+      params2[ utils::fromUtf8( u8"ldN" ) ] = ldN;
+   }
+
+   Instance instance( PROTOCOL_SCRYPT_AES_CBC_SHA_V1, params1, params2 );
    ASSERT_EQ( PROTOCOL_SCRYPT_AES_CBC_SHA_V1, instance.getProtocol() );
 
    Entry e1( "Example Entry 1" );
