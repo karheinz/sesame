@@ -25,6 +25,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
@@ -48,6 +49,11 @@ ApgTask::ApgTask( const Vector<String>& tokens ) :
 
 void ApgTask::run( std::shared_ptr<Instance>& instance )
 {
+   if ( ! instance )
+   {
+      throw std::runtime_error( "no instance open" );
+   }
+
    Vector<char*> args( m_Tokens.size() + 1, nullptr );
    std::size_t count( 0 );
    for ( auto token : m_Tokens )
