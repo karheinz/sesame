@@ -33,12 +33,13 @@ What you can do so far is:
 * list, show, add, update and delete entries
 * add, update and delete attributes, passwords and keys
 * export passwords and keys
+* generating passwords
 
 What is missing/planned?
 
 * signal handler for clean shutdown (on SIGTERM etc.)
-* generating passwords
 * export container into jpeg image
+* man page and documentation
 * ...
 
 
