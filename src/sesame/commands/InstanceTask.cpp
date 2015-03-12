@@ -88,17 +88,17 @@ void InstanceTask::run( std::shared_ptr<Instance>& instance )
 
          std::cout << "Second you have to specify how much memory should be used for\n";
          std::cout << "derivation of the key used for encryption of the embedded secrets:" << std::endl;
-         choice = reader.readLine( "[1] 32MiB, [2] 64MiB or [3] 128MiB?  " );
+         choice = reader.readLine( "[1] 64MiB, [2] 128MiB or [3] 256MiB?  " );
          choice = utils::strip( utils::toUtf8( choice ) );
-         if ( choice == u8"1" ) { ldN = 15; }
-         else if ( choice == u8"2" ) { ldN = 16; }
-         else if ( choice == u8"3" ) { ldN = 17; }
+         if ( choice == u8"1" ) { ldN = 16; }
+         else if ( choice == u8"2" ) { ldN = 17; }
+         else if ( choice == u8"3" ) { ldN = 18; }
          else { throw std::runtime_error( "invalid choice" ); }
          Map<String,Vector<uint8_t>> params2;
          {
             Vector<uint8_t> ldNVector;
             packV( ldNVector, ldN );
-            params1[ utils::fromUtf8( u8"ldN" ) ] = ldNVector;
+            params2[ utils::fromUtf8( u8"ldN" ) ] = ldNVector;
          }
 
          instance.reset( new Instance( PROTOCOL_SCRYPT_AES_CBC_SHA_V1, params1, params2 ) );
