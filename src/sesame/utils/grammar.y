@@ -36,13 +36,15 @@
 #include "types.hpp"
 #include "sesame/commands/ICommand.hpp"
 #include "sesame/commands/ApgTask.hpp"
-#include "sesame/commands/InstanceTask.hpp"
 #include "sesame/commands/EntryTask.hpp"
+#include "sesame/commands/HelpTask.hpp"
+#include "sesame/commands/InstanceTask.hpp"
 #include "sesame/utils/ParseResult.hpp"
 
 using sesame::commands::ICommand;
 using sesame::commands::ApgTask;
 using sesame::commands::EntryTask;
+using sesame::commands::HelpTask;
 using sesame::commands::InstanceTask;
 }
 %token_type{ char* }
@@ -65,6 +67,9 @@ cmd_line ::= NEWLINE.
 cmd_line ::= HELP(C) NEWLINE.
 {
     parseResult->addToken( C );
+
+    parseResult->setCommand(
+        std::shared_ptr<ICommand>( new HelpTask( HelpTask::HELP ) ) );
 }
 cmd_line ::= NEW(C) NEWLINE.
 {

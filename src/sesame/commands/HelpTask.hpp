@@ -23,33 +23,52 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-#ifndef SESAME_VERSION_HPP
-#define SESAME_VERSION_HPP
+#ifndef SESAME_COMMANDS_HELP_HPP
+#define SESAME_COMMANDS_HELP_HPP
 
-#include <cstdint>
+#include "types.hpp"
+#include "sesame/version.hpp"
+#include "sesame/commands/ICommand.hpp"
 
 
-namespace sesame {
+namespace sesame { namespace commands {
 
-const uint32_t VERSION_MAJOR = 0;
-const uint32_t VERSION_MINOR = 0;
-const uint32_t VERSION_BUGFIX = 0;
-
-namespace
+class HelpTask : public ICommand
 {
-   static const String getVersionString()
-   {
-      StringStream s;
-      s << "Sesame ";
-      s << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_BUGFIX;
-      s << " - Copyright (c), 2015 Karsten Heinze";
+   public:
+      /** Available task types. */
+      enum Type
+      {
+         HELP,
+         USAGE
+      };
 
-      return s.str();
-   }
-}
+      /**
+       * Ctor for help task.
+       *
+       * @param taskType the task type
+       */
+      HelpTask( const Type type );
 
-static const String VERSION_STRING( getVersionString() );
+      /**
+       * Dtor.
+       */
+      virtual ~HelpTask() = default;
 
-}
+      /**
+       * Runs the command.
+       *
+       * @param instance the instance to run command on (can be <tt>nullptr</tt>)
+       *
+       * @throw std::runtime_error on failure
+       */
+      virtual void run( std::shared_ptr<Instance>& instance );
+
+   private:
+      /** the type of the task */
+      Type m_Type;
+};
+
+} }
 
 #endif
