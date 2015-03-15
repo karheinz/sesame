@@ -52,14 +52,14 @@ void InstanceTask::run( std::shared_ptr<Instance>& instance )
    {
       if ( ! instance )
       {
-         throw std::runtime_error( "open sesame first" );
+         throw std::runtime_error( "open container first" );
       }
    }
    else
    {
       if ( instance )
       {
-         throw std::runtime_error( "close sesame first" );
+         throw std::runtime_error( "close container first" );
       }
    }
 
@@ -102,6 +102,8 @@ void InstanceTask::run( std::shared_ptr<Instance>& instance )
          }
 
          instance.reset( new Instance( PROTOCOL_SCRYPT_AES_CBC_SHA_V1, params1, params2 ) );
+         std::cout << "Created new container #" <<
+            instance->getIdAsHexString() << "." << std::endl;
          break;
       }
       case OPEN:
@@ -121,7 +123,7 @@ void InstanceTask::run( std::shared_ptr<Instance>& instance )
          std::ifstream file( m_Path.c_str(), std::ios_base::in | std::ios_base::binary );
          if ( ! file.good() )
          {
-            throw std::runtime_error( "failed to open sesame" );
+            throw std::runtime_error( "failed to open container" );
          }
 
          Instance::parse( file );
@@ -134,7 +136,7 @@ void InstanceTask::run( std::shared_ptr<Instance>& instance )
          file.clear();
          file.seekg( 0, std::ios_base::beg );
          instance.reset( new Instance( file, password ) );
-
+         std::cout << "Opened container #" << instance->getIdAsHexString() << "." << std::endl;
          break;
       }
       case WRITE:
@@ -192,6 +194,8 @@ void InstanceTask::run( std::shared_ptr<Instance>& instance )
          {
             instance->write( file, password );
             instance->recalcInitialDigest();
+            std::cout << "Wrote container #" << instance->getIdAsHexString() <<
+               " to " << m_Path << std::endl;
          }
          catch ( std::runtime_error& )
          {
@@ -202,7 +206,6 @@ void InstanceTask::run( std::shared_ptr<Instance>& instance )
             }
             throw;
          }
-
          break;
       }
       case CLOSE:
@@ -212,13 +215,14 @@ void InstanceTask::run( std::shared_ptr<Instance>& instance )
          if ( instance && instance->isDirty() )
          {
             utils::Reader reader( 1024 );
-            String choice( reader.readLine( "Sesame was modified, quit anyway?  [y/N]  " ) );
+            String choice( reader.readLine( "Container was modified, quit anyway?  [y/N]  " ) );
             choice = utils::strip( utils::toUtf8( choice ) );
             if ( choice != u8"y" && choice != u8"Y" )
             {
                break;
             }
          }
+         std::cout << "Closed container #" << instance->getIdAsHexString() << "." << std::endl;
          instance.reset();
          break;
       }

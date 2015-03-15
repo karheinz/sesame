@@ -217,6 +217,13 @@ namespace sesame
       return m_Id;
    }
 
+   String Instance::getIdAsHexString() const
+   {
+      StringStream s;
+      s << std::hex << std::setw( 8 ) << std::setfill( '0' ) << m_Id;
+      return s.str();
+   }
+
    Set<Entry> Instance::getEntries( const Set<String>& tags ) const
    {
       if ( tags.empty() )

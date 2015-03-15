@@ -49,10 +49,10 @@ void HelpTask::run( std::shared_ptr<Instance>& instance )
          if ( ! instance )
          {
             std::cout << sesame::VERSION_STRING;
-            std::cout << "\n\nAvailable commands:";
+            std::cout << "\n\nCurrently available commands:";
 
-            std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "clear" << ESC_SEQ_RESET;
-            std::cout << "\n" << std::setw( 14 ) << " " << "clears the screen";
+            std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "help" << ESC_SEQ_RESET;
+            std::cout << "\n" << std::setw( 14 ) << " " << "prints this message";
 
             std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "edit-mode" << ESC_SEQ_RESET;
             std::cout << " (" << ESC_SEQ_BOLD << "emacs" << ESC_SEQ_RESET << "|";
@@ -61,8 +61,11 @@ void HelpTask::run( std::shared_ptr<Instance>& instance )
             std::cout << ESC_SEQ_BOLD << "emacs" << ESC_SEQ_RESET << " or ";
             std::cout << ESC_SEQ_BOLD << "vi" << ESC_SEQ_RESET;
 
-            std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "help" << ESC_SEQ_RESET;
-            std::cout << "\n" << std::setw( 14 ) << " " << "prints this message";
+            std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "clear" << ESC_SEQ_RESET;
+            std::cout << "\n" << std::setw( 14 ) << " " << "clears the screen";
+
+            std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "quit" << ESC_SEQ_RESET;
+            std::cout << "\n" << std::setw( 14 ) << " " << "quits sesame";
 
             std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "new" << ESC_SEQ_RESET;
             std::cout << "\n" << std::setw( 14 ) << " " << "creates a new empty container";
@@ -72,22 +75,25 @@ void HelpTask::run( std::shared_ptr<Instance>& instance )
             std::cout << "\n" << std::setw( 14 ) << " " << "opens an existing container stored in ";
             std::cout << ESC_SEQ_ULINE << "FILE" << ESC_SEQ_RESET;
 
-            std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "quit" << ESC_SEQ_RESET;
-            std::cout << "\n" << std::setw( 14 ) << " " << "quits sesame";
-
             std::cout << "\n" << std::endl;
          }
          else
          {
             std::cout << sesame::VERSION_STRING;
-            std::cout << "\n\nAvailable commands:";
+            std::cout << "\n\nCurrently available commands:";
+
+            std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "help" << ESC_SEQ_RESET;
+            std::cout << "\n" << std::setw( 14 ) << " " << "prints this message";
+
+            std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "edit-mode" << ESC_SEQ_RESET;
+            std::cout << " (" << ESC_SEQ_BOLD << "emacs" << ESC_SEQ_RESET << "|";
+            std::cout << ESC_SEQ_BOLD << "vi" << ESC_SEQ_RESET << ")";
+            std::cout << "\n" << std::setw( 14 ) << " " << "sets editing mode to either ";
+            std::cout << ESC_SEQ_BOLD << "emacs" << ESC_SEQ_RESET << " or ";
+            std::cout << ESC_SEQ_BOLD << "vi" << ESC_SEQ_RESET;
+
             std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "clear" << ESC_SEQ_RESET;
             std::cout << "\n" << std::setw( 14 ) << " " << "clears the screen";
-
-            std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "apg" << ESC_SEQ_RESET;
-            std::cout << " [" << ESC_SEQ_ULINE << "OPTION" << ESC_SEQ_RESET << "...]";
-            std::cout << "\n" << std::setw( 14 ) << " " << "runs (a) (p)assword (g)enerator, ";
-            std::cout << "use " << ESC_SEQ_BOLD << "-h" << ESC_SEQ_RESET << " for help";
 
             std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "write " << ESC_SEQ_RESET;
             std::cout << ESC_SEQ_ULINE << "FILE" << ESC_SEQ_RESET;
@@ -96,6 +102,14 @@ void HelpTask::run( std::shared_ptr<Instance>& instance )
 
             std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "close" << ESC_SEQ_RESET;
             std::cout << "\n" << std::setw( 14 ) << " " << "closes the current container";
+
+            std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "quit" << ESC_SEQ_RESET;
+            std::cout << "\n" << std::setw( 14 ) << " " << "quits sesame";
+
+            std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "apg" << ESC_SEQ_RESET;
+            std::cout << " [" << ESC_SEQ_ULINE << "OPTION" << ESC_SEQ_RESET << "...]";
+            std::cout << "\n" << std::setw( 14 ) << " " << "runs (a) (p)assword (g)enerator, ";
+            std::cout << "use " << ESC_SEQ_BOLD << "-h" << ESC_SEQ_RESET << " for help";
 
             std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "list" << ESC_SEQ_RESET;
             std::cout << "\n" << std::setw( 14 ) << " " << "lists entries of the container";
@@ -157,19 +171,6 @@ void HelpTask::run( std::shared_ptr<Instance>& instance )
             std::cout << "exports key with ";
             std::cout << ESC_SEQ_ULINE << "ID" << ESC_SEQ_RESET << " of the specified ";
             std::cout << ESC_SEQ_ULINE << "ENTRY" << ESC_SEQ_RESET << " to file";
-
-            std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "edit-mode" << ESC_SEQ_RESET;
-            std::cout << " (" << ESC_SEQ_BOLD << "emacs" << ESC_SEQ_RESET << "|";
-            std::cout << ESC_SEQ_BOLD << "vi" << ESC_SEQ_RESET << ")";
-            std::cout << "\n" << std::setw( 14 ) << " " << "sets editing mode to either ";
-            std::cout << ESC_SEQ_BOLD << "emacs" << ESC_SEQ_RESET << " or ";
-            std::cout << ESC_SEQ_BOLD << "vi" << ESC_SEQ_RESET;
-
-            std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "help" << ESC_SEQ_RESET;
-            std::cout << "\n" << std::setw( 14 ) << " " << "prints this message";
-
-            std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "quit" << ESC_SEQ_RESET;
-            std::cout << "\n" << std::setw( 14 ) << " " << "quits sesame";
 
             std::cout << "\n" << std::endl;
          }

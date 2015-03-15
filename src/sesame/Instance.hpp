@@ -127,6 +127,13 @@ namespace sesame
          uint32_t getId();
 
          /**
+          * Returns id as hex string.
+          *
+          * @return id as hex string
+          */
+         String getIdAsHexString() const;
+
+         /**
           * Returns all entries of the container with specified tags applied.
           *
           * @param tags tags to use as filter

@@ -257,6 +257,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          Entry entry( instance->findEntry( m_Id ) );
          decryptEntry( instance, entry );
          instance->updateEntry( entry );
+         std::cout << "Decrypted entry #" << entry.getIdAsHexString() << "." << std::endl;
          break;
       }
       case ADD:
@@ -268,6 +269,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          {
             throw std::runtime_error( "failed to add entry" );
          }
+         std::cout << "Added entry #" << entry.getIdAsHexString() << "." << std::endl;
          break;
       }
       case DELETE:
@@ -277,9 +279,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          {
             throw std::runtime_error( "failed to delete entry" );
          }
-
-         std::cout << "deleted entry #" << entry.getIdAsHexString() << std::endl;
-
+         std::cout << "Deleted entry #" << entry.getIdAsHexString() << "." << std::endl;
          break;
       }
       case UPDATE:
@@ -295,12 +295,11 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          {
             entry.setName( name );
          }
-
          if ( ! instance->updateEntry( entry ) )
          {
             throw std::runtime_error( "failed to update entry" );
          }
-
+         std::cout << "Updated entry #" << entry.getIdAsHexString() << "." << std::endl;
          break;
       }
       case ADD_ATTRIBUTE:
@@ -321,7 +320,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          {
             throw std::runtime_error( "failed to update entry" );
          }
-
+         std::cout << "Added attribute to entry #" << entry.getIdAsHexString() << "." << std::endl;
          break;
       }
       case DELETE_ATTRIBUTE:
@@ -338,7 +337,8 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          {
             throw std::runtime_error( "failed to update entry" );
          }
-
+         std::cout << "Deleted attribute " << m_Pos << " from entry #" <<
+            entry.getIdAsHexString() << "." << std::endl;
          break;
       }
       case UPDATE_ATTRIBUTE:
@@ -370,7 +370,8 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          {
             throw std::runtime_error( "failed to update entry" );
          }
-
+         std::cout << "Updated attribute " << m_Pos << " of entry #" <<
+            entry.getIdAsHexString() << "." << std::endl;
          break;
       }
       case ADD_PASSWORD:
@@ -392,7 +393,8 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          {
             throw std::runtime_error( "failed to update entry" );
          }
-
+         std::cout << "Added password to entry #" <<
+            entry.getIdAsHexString() << "." << std::endl;
          break;
       }
       case ADD_KEY:
@@ -412,7 +414,8 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          {
             throw std::runtime_error( "failed to update entry" );
          }
-
+         std::cout << "Added key to entry #" <<
+            entry.getIdAsHexString() << "." << std::endl;
          break;
       }
       case DELETE_PASSWORD_OR_KEY:
@@ -429,7 +432,16 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          {
             throw std::runtime_error( "failed to update entry" );
          }
-
+         if ( labeledDate.second.getType() == Data::TEXT )
+         {
+            std::cout << "Deleted password " << m_Pos << " from entry #"
+               << entry.getIdAsHexString() << "." << std::endl;
+         }
+         else
+         {
+            std::cout << "Deleted key " << m_Pos << " from entry #" <<
+               entry.getIdAsHexString() << "." << std::endl;
+         }
          break;
       }
       case UPDATE_PASSWORD_OR_KEY:
@@ -489,6 +501,17 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
             throw std::runtime_error( "failed to update entry" );
          }
 
+         if ( labeledDate.second.getType() == Data::TEXT )
+         {
+            std::cout << "Updated password " << m_Pos << " of entry #" <<
+               entry.getIdAsHexString() << "." << std::endl;
+         }
+         else
+         {
+            std::cout << "Updated key " << m_Pos << " of entry #" <<
+               entry.getIdAsHexString() << "." << std::endl;
+         }
+
          break;
       }
       case EXPORT_PASSWORD_OR_KEY:
@@ -501,6 +524,8 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          {
             decryptData( instance, labeledDate.second );
             utils::xselect( labeledDate.second.getPlaintext<String>() );
+            std::cout << "Exported password " << m_Pos << " of entry #" <<
+               entry.getIdAsHexString() << "." << std::endl;
          }
          else
          {
@@ -552,6 +577,8 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
             {
                file.write( reinterpret_cast<char*>( key.data() ), key.size() );
             }
+            std::cout << "Exported key " << m_Pos << " of entry #" <<
+               entry.getIdAsHexString() << "." << std::endl;
          }
 
          break;

@@ -90,8 +90,11 @@ void ApgTask::run( std::shared_ptr<Instance>& instance )
          {
             std::cout << tuple.second;
          }
-         std::cout << std::endl;
+         std::cout << "\n";
       }
+
+      std::cout << "\nYou can reference a password by entering ";
+      std::cout << "\nits id in the password dialog." << std::endl;
    }
 }
 
