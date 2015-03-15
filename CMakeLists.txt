@@ -59,6 +59,23 @@ SET( LIBMSGPACK_INCLUDE_DIR "${LIBMSGPACK_DIR}/src" )
 ADD_SUBDIRECTORY( ${LIBMSGPACK_DIR} )
 ADD_DEPENDENCIES( msgpack gtest gtest_main )
 
+# libs/libjpeg-turbo
+SET( LIBJPEGTURBO "libjpeg.a" )
+SET( LIBJPEGTURBO_DIR "libs/libjpeg-turbo-1.4.0" )
+SET( LIBJPEGTURBO_INCLUDE_DIR "${LIBJPEGTURBO_DIR}" )
+SET_PROPERTY( DIRECTORY APPEND PROPERTY LINK_DIRECTORIES "${CMAKE_BINARY_DIR}/${LIBJPEGTURBO_DIR}/.libs" )
+ADD_CUSTOM_TARGET(
+    genlibjpegturbodir
+    mkdir -p "${CMAKE_BINARY_DIR}/${LIBJPEGTURBO_DIR}"
+    )
+ADD_CUSTOM_TARGET(
+    libjpegturbo
+    ${CMAKE_SOURCE_DIR}/${LIBJPEGTURBO_DIR}/configure
+    COMMAND make
+    DEPENDS genlibjpegturbodir
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/${LIBJPEGTURBO_DIR}"
+    )
+
 # where to place generated sources
 SET( GEN_SOURCE_DIR "${CMAKE_BINARY_DIR}/gen" )
 
