@@ -76,3 +76,14 @@ ADD_EXECUTABLE( ScryptAesCbcShaV1MachineAesAvsTest src/sesame/test/crypto/Scrypt
 TARGET_LINK_LIBRARIES( ScryptAesCbcShaV1MachineAesAvsTest ${LIBSSL} ${LIBCRYPTO} ${LIBSCRYPT} ${LIBGTEST} ${LIBGTEST_MAIN} ${LIBMSGPACK} )
 ADD_DEPENDENCIES( tests ScryptAesCbcShaV1MachineAesAvsTest )
 ADD_TEST( RunScryptAesCbcShaV1MachineAesAvsTest ScryptAesCbcShaV1MachineAesAvsTest )
+
+ADD_EXECUTABLE( F4Test src/sesame/test/crypto/F4Test.cpp
+   ${SESAME_SOURCE_DIR}/utils/filesystem.cpp
+   ${SESAME_SOURCE_DIR}/utils/string.cpp
+   ${SESAME_SOURCE_DIR}/utils/Transcoder.cpp
+   ${SESAME_SOURCE_DIR}/crypto/F4.cpp
+   $<TARGET_OBJECTS:${JPEGTRANF4}>
+   )
+TARGET_LINK_LIBRARIES( F4Test ${LIBGTEST} ${LIBGTEST_MAIN} ${LIBJPEGTURBO} )
+ADD_DEPENDENCIES( tests F4Test )
+ADD_TEST( RunF4Test F4Test )
