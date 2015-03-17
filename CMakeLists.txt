@@ -4,8 +4,17 @@ ENABLE_TESTING()
 
 SET( CMAKE_CXX_FLAGS "-std=c++11 -Wall -Wno-deprecated-declarations" )
 
+# nasm (netwide assembler)
+FIND_PROGRAM( BINNASM "nasm" )
+IF( "${BINNASM}" STREQUAL "BINNASM-NOTFOUND" )
+    MESSAGE( FATAL_ERROR "nasm not found" )
+ENDIF()
+
 # flex for lexer
 FIND_PROGRAM( BINFLEX "flex" )
+IF( "${BINFLEX}" STREQUAL "BINFLEX-NOTFOUND" )
+    MESSAGE( FATAL_ERROR "flex not found" )
+ENDIF()
 FIND_LIBRARY( LIBFLEX "fl" )
 
 # threads
