@@ -23,8 +23,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-#include <iomanip>
-#include <iostream>
+#include <cstring>
 #include "gtest/gtest.h"
 #include "types.hpp"
 #include "sesame/crypto/F4.hpp"
@@ -34,19 +33,24 @@ namespace sesame { namespace test { namespace crypto {
 
 TEST( F4Test, BasicUsage )
 {
-   String s( "Hello, world!" );
-   Vector<char> data( s.begin(), s.end() );
+   String s1( "Hello, world!" );
+   Vector<char> data( s1.begin(), s1.end() );
    data.push_back( '\0' );
    
-   sesame::crypto::F4 algo( "/home/kheinze/my.jpg" );
+   sesame::crypto::F4 algo;
+   String in( F4_TEST_IMAGE );
+   String out( algo.calcOutFileName( in ) );
 
-   String file( algo.embed( data ) );
+   algo.embed( in, out, data );
 
    Vector<char> result;
-   sesame::crypto::F4 algo2( file );
-   algo2.extract( result );
+   algo.extract( out, result );
 
-   std::cout << result.data() << std::endl;
+   std::size_t length( strnlen( result.data(), result.size() ) );
+   ASSERT_EQ( s1.size(), length );
+   ASSERT_TRUE( length < result.size() );
+   String s2( result.data(), result.data() + length );
+   ASSERT_EQ( s1, s2 );
 }
 
 

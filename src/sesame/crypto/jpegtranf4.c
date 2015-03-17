@@ -166,13 +166,6 @@ int f4_embed_message(
   unsigned int mbits = ( length ) * 8;
   unsigned int mbit = 0;
 
-  //printf( "mbits: %d\n", mbits );
-
-  int count_zero_coeffs = 0;
-  int count_coeffs = 0;
-  int count_rows = 0;
-  int count_blocks = 0;
-
   // Variables used while evaluating coefficients.
   JDIMENSION rows_to_read;
   JDIMENSION rows_read;
@@ -193,13 +186,6 @@ int f4_embed_message(
      rows_to_read = ( *coef_arrays )->rows_in_array;
      rows_read = 0;
 
-     //printf( "rows: %d\n", ( *coef_arrays )->rows_in_array );
-     //printf( "blocks per row: %d\n", ( *coef_arrays )->blocksperrow );
-     //printf( "cur start row: %d\n", ( *coef_arrays )->cur_start_row );
-     //printf( "first undef row: %d\n", ( *coef_arrays )->first_undef_row );
-     //printf( "rows in mem: %d\n", ( *coef_arrays )->rows_in_mem );
-     //printf( "maxaccess: %d\n", ( *coef_arrays )->maxaccess );
-     
      while ( rows_to_read > 0 )
      {
         // Determine number of rows allowed to read at once.
@@ -220,18 +206,14 @@ int f4_embed_message(
         // Iterate.
         for ( row = 0; row < rows; ++row )
         {
-            ++count_rows;
             blockrow = blockarray[ row ];
             blocks = ( *coef_arrays )->blocksperrow;
 
             for ( block = 0; block < blocks; ++block ) 
             {
-               ++count_blocks;
                // Ignore last coefficient.
                for ( coeff = 0; coeff < ( coeffs - 1 ); ++coeff )
                {
-                  ++count_coeffs;
-
                   bit = data[ mbit / 8 ] >> ( 7 - ( mbit % 8 ) );
                   bit &= 1;
 
@@ -240,10 +222,6 @@ int f4_embed_message(
                   // Ignore zero values.
                   if ( value == 0 )
                   {
-                     //if ( mbit < mbits )
-                     //   printf( "value %08d, nothing embedded\n", value );
-
-                     ++count_zero_coeffs;
                      continue;
                   }
                   // Go on if there is nothing left to embed.
@@ -267,32 +245,16 @@ int f4_embed_message(
                   }
 
                   blockrow[ block ][ coeff ] = value;
-                  if ( value == 0 )
+                  if ( value != 0 )
                   {
-                     //printf( "value %08d, nothing embedded\n", value );
-                  }
-                  else
-                  {
-                     //printf( "value %08d, embedded %d\n", value, bit );
                      ++mbit;
                   }
                }
             }
         }
-
-        //printf( "count rows: %d\n", count_rows );
      }
-
-     //printf( "rows read: %d\n", rows_read );
-
      ++coef_arrays;
   }
-
-  //printf( "count_coeffs: %d\n", count_coeffs );
-  //printf( "count_zero_coeffs: %d\n", count_zero_coeffs );
-  //printf( "count_nonzero_coeffs: %d\n", count_coeffs - count_zero_coeffs );
-  //printf( "count_rows:   %d\n", count_rows );
-  //printf( "count_blocks: %d\n", count_blocks );
 
   // All data embedded?
   return ( mbit == mbits );
@@ -325,7 +287,7 @@ f4_embed( const char *filename_in, const char* filename_out, const char* data, c
   if (setjmp(jsrcerr.setjmp_buffer))
   {
     jpeg_destroy_decompress(&srcinfo);
-    return 0;  // false
+    return 1;
   }
   jpeg_create_decompress(&srcinfo);
 
@@ -336,7 +298,7 @@ f4_embed( const char *filename_in, const char* filename_out, const char* data, c
   {
     jpeg_destroy_decompress(&srcinfo);
     jpeg_destroy_compress(&dstinfo);
-    return 0;  // false
+    return 2;
   }
   jpeg_create_compress(&dstinfo);
 
@@ -346,10 +308,9 @@ f4_embed( const char *filename_in, const char* filename_out, const char* data, c
 
   /* Open the input file. */
   if ((fp = fopen(filename_in, READ_BINARY)) == NULL) {
-    fprintf(stderr, "can't open %s for reading\n", filename_in);
     jpeg_destroy_decompress(&srcinfo);
     jpeg_destroy_compress(&dstinfo);
-    return 0;  // false
+    return 3;
   }
 
   /* Specify data source for decompression */
@@ -376,7 +337,7 @@ f4_embed( const char *filename_in, const char* filename_out, const char* data, c
   {
     jpeg_destroy_decompress(&srcinfo);
     jpeg_destroy_compress(&dstinfo);
-    return 0;  // false
+    return 4;
   }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -395,10 +356,9 @@ f4_embed( const char *filename_in, const char* filename_out, const char* data, c
   /* Open the output file. */
   if ((fp = fopen(filename_out, WRITE_BINARY)) == NULL)
   {
-    fprintf(stderr, "can't open %s for writing\n", filename_out);
     jpeg_destroy_decompress(&srcinfo);
     jpeg_destroy_compress(&dstinfo);
-    return 0;  // false
+    return 5;
   }
 
   /* Specify data destination for compression */
@@ -420,7 +380,7 @@ f4_embed( const char *filename_in, const char* filename_out, const char* data, c
   fclose(fp);
 
   /* All done. */
-  return 1;  // true
+  return 0;
 }
 
 /*
@@ -446,7 +406,7 @@ f4_extract( const char *filename, char* data, const size_t length )
   if (setjmp(jsrcerr.setjmp_buffer))
   {
     jpeg_destroy_decompress(&srcinfo);
-    return 0;  // false
+    return 1;
   }
   jpeg_create_decompress(&srcinfo);
 
@@ -455,9 +415,8 @@ f4_extract( const char *filename, char* data, const size_t length )
 
   /* Open the input file. */
   if ((fp = fopen(filename, READ_BINARY)) == NULL) {
-    fprintf(stderr, "can't open %s for reading\n", filename);
     jpeg_destroy_decompress(&srcinfo);
-    return 0;  // false
+    return 2;
   }
 
   /* Specify data source for decompression */
@@ -471,7 +430,7 @@ f4_extract( const char *filename, char* data, const size_t length )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-  int rc = f4_extract_message( (j_common_ptr)&srcinfo, src_coef_arrays, data, length );
+  int success = f4_extract_message( (j_common_ptr)&srcinfo, src_coef_arrays, data, length );
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -482,5 +441,5 @@ f4_extract( const char *filename, char* data, const size_t length )
   fclose(fp);
 
   /* All done. */
-  return rc;
+  return ( success ? 0 : 3 );
 }

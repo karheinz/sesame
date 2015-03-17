@@ -7,26 +7,64 @@
 
 namespace sesame { namespace crypto {
 
-F4::F4( const String& pathToFile ) :
-   m_PathToFile( pathToFile )
-{
-}
-
-const String F4::embed( const Vector<char>& data ) const
+void F4::embed(
+   const String& fileNameIn,
+   const String& fileNameOut,
+   const Vector<char>& data
+   )
+   const
 {
    if ( data.size() == 0 )
    {
       throw std::runtime_error( "nothing to embed" );
    }
 
-   auto index( m_PathToFile.find_last_of( "." ) );
-   auto indexDelim( m_PathToFile.find_last_of( "/" ) );
+   if ( f4_embed( fileNameIn.c_str(), fileNameOut.c_str(), data.data(), data.size() ) != 0 )
+   {
+      if ( utils::isFile( fileNameOut ) )
+      {
+         utils::removeFile( fileNameOut );
+      }
+
+      throw std::runtime_error( "failed to embed data" );
+   }
+}
+
+void F4::extract(
+   const String& fileNameIn,
+   Vector<char>& data
+   )
+   const
+{
+   // We expect max 20% of the image as data.
+   data.resize( utils::getFileSize( fileNameIn ) / 5 );
+
+   if ( data.size() == 0 )
+   {
+      throw std::runtime_error( "failed to extract data" );
+   }
+
+   if ( f4_extract( fileNameIn.c_str(), data.data(), data.size() ) != 0 )
+   {
+      throw std::runtime_error( "failed to extract data" );
+   }
+}
+
+const String F4::calcOutFileName(
+   const String& fileNameIn,
+   const String& delimiter
+   )
+   const
+{
+   auto index( fileNameIn.find_last_of( "." ) );
+   auto indexDelim( fileNameIn.find_last_of( delimiter ) );
+
    if ( index != String::npos && indexDelim != String::npos && indexDelim > index )
    {
       index = String::npos;
    }
 
-   String pathToFile;
+   String fileNameOut;
    uint32_t count( 1 );
    do
    {
@@ -34,50 +72,23 @@ const String F4::embed( const Vector<char>& data ) const
 
       if ( index == String::npos )
       {
-         s << m_PathToFile << "." << count++ << ".jpeg";
+         s << fileNameIn << "." << count++ << ".jpeg";
       }
       else
       {
-         s << m_PathToFile.substr( 0, index );
+         s << fileNameIn.substr( 0, index );
          s << "." << count++;
-         if ( ( index + 1 ) < m_PathToFile.size() )
+         if ( ( index + 1 ) < fileNameIn.size() )
          {
-            s << "." << m_PathToFile.substr( index + 1 );
+            s << "." << fileNameIn.substr( index + 1 );
          }
       }
 
-      pathToFile = s.str();
+      fileNameOut = s.str();
    }
-   while ( utils::exists( pathToFile ) );
+   while ( utils::exists( fileNameOut ) );
 
-
-   if ( ! f4_embed( m_PathToFile.c_str(), pathToFile.c_str(), data.data(), data.size() ) )
-   {
-      if ( utils::isFile( pathToFile ) )
-      {
-         utils::removeFile( pathToFile );
-      }
-
-      throw std::runtime_error( "failed to embed data" );
-   }
-
-   return pathToFile;
-}
-
-void F4::extract( Vector<char>& data ) const
-{
-   // We expect max 20% of the image as data.
-   data.resize( utils::getFileSize( m_PathToFile ) / 5 );
-
-   if ( data.size() == 0 )
-   {
-      throw std::runtime_error( "failed to extract data" );
-   }
-
-   if ( ! f4_extract( m_PathToFile.c_str(), data.data(), data.size() ) )
-   {
-      throw std::runtime_error( "failed to extract data" );
-   }
+   return fileNameOut;
 }
 
 } }

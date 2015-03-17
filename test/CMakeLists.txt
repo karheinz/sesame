@@ -77,11 +77,25 @@ TARGET_LINK_LIBRARIES( ScryptAesCbcShaV1MachineAesAvsTest ${LIBSSL} ${LIBCRYPTO}
 ADD_DEPENDENCIES( tests ScryptAesCbcShaV1MachineAesAvsTest )
 ADD_TEST( RunScryptAesCbcShaV1MachineAesAvsTest ScryptAesCbcShaV1MachineAesAvsTest )
 
+ADD_CUSTOM_TARGET(
+    gentestdir
+    mkdir -p "${CMAKE_CURRENT_BINARY_DIR}"
+    )
+ADD_CUSTOM_COMMAND(
+    OUTPUT
+    "${CMAKE_CURRENT_BINARY_DIR}/tux_by_Gabriel_dos_Santos.jpg"
+    COMMAND cp
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/sesame/test/crypto/tux_by_Gabriel_dos_Santos.jpg"
+        "${CMAKE_CURRENT_BINARY_DIR}/"
+    DEPENDS gentestdir
+    )
+ADD_DEFINITIONS( -DF4_TEST_IMAGE="${CMAKE_CURRENT_BINARY_DIR}/tux_by_Gabriel_dos_Santos.jpg" )
 ADD_EXECUTABLE( F4Test src/sesame/test/crypto/F4Test.cpp
    ${SESAME_SOURCE_DIR}/utils/filesystem.cpp
    ${SESAME_SOURCE_DIR}/utils/string.cpp
    ${SESAME_SOURCE_DIR}/utils/Transcoder.cpp
    ${SESAME_SOURCE_DIR}/crypto/F4.cpp
+   "${CMAKE_CURRENT_BINARY_DIR}/tux_by_Gabriel_dos_Santos.jpg"
    $<TARGET_OBJECTS:${JPEGTRANF4}>
    )
 TARGET_LINK_LIBRARIES( F4Test ${LIBGTEST} ${LIBGTEST_MAIN} ${LIBJPEGTURBO} )

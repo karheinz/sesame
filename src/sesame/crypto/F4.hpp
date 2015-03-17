@@ -11,16 +11,26 @@ namespace sesame { namespace crypto {
 class F4
 {
    public:
-      F4( const String& fileName );
+      F4() = default;
 
       virtual ~F4() = default;
 
-      const String embed( const Vector<char>& data ) const;
+      void embed(
+         const String& fileNameIn,
+         const String& fileNameOut,
+         const Vector<char>& data
+         ) const;
 
-      void extract( Vector<char>& data ) const;
+      void extract(
+         const String& fileNameIn,
+         Vector<char>& data
+         ) const;
 
-   private:
-      const String m_PathToFile;
+      const String calcOutFileName(
+         const String& fileNameIn,
+         const String& delimiter = "/"
+         ) const;
+
 };
 
 } }
