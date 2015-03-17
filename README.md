@@ -86,6 +86,8 @@ Used libraries
   - http://www.adel.nursat.kz/apg/
 * xsel (modified)
   - http://www.vergenet.net/~conrad/software/xsel/
+* libjpeg-turbo (modified)
+  - http://www.libjpeg-turbo.org/
 
 The sources and - at least - the licenses of the stated libraries
 can be found in the libs directory. The LEMON sources are located
