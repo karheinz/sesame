@@ -98,12 +98,12 @@ void HelpTask::run( std::shared_ptr<Instance>& instance )
             std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "write " << ESC_SEQ_RESET;
             std::cout << ESC_SEQ_ULINE << "FILE" << ESC_SEQ_RESET;
             std::cout << "\n" << std::setw( 14 ) << " " << "writes current container to ";
+            std::cout << ESC_SEQ_ULINE << "FILE" << ESC_SEQ_RESET << " or";
+            std::cout << "\n" << std::setw( 14 ) << " " << "embeds container, if ";
             std::cout << ESC_SEQ_ULINE << "FILE" << ESC_SEQ_RESET;
-            std::cout << "\n or embeds container if ";
-            std::cout << ESC_SEQ_ULINE << "FILE" << ESC_SEQ_RESET;
-            std::cout << " is a jpeg" << std::endl;
+            std::cout << " is a JPEG image" << std::endl;
 
-            std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "close" << ESC_SEQ_RESET;
+            std::cout << "\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "close" << ESC_SEQ_RESET;
             std::cout << "\n" << std::setw( 14 ) << " " << "closes the current container";
 
             std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "quit" << ESC_SEQ_RESET;
