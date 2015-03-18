@@ -26,8 +26,7 @@
 #ifndef SESAME_DEFINITIONS_HPP
 #define SESAME_DEFINITIONS_HPP
 
-#include "msgpack.hpp"
-
+#include "msgpack_fwd.hpp"
 
 namespace sesame
 {
@@ -44,9 +43,17 @@ namespace sesame
        */
       PROTOCOL_SCRYPT_AES_CBC_SHA_V1
    };
+
+   /** The possible plaintext data types. */
+   enum DataType
+   {
+      DATA_BINARY,
+      DATA_TEXT
+   };
 }
 
-// Introduce enum to msgpack.
+// Introduce enums to msgpack.
 MSGPACK_ADD_ENUM( sesame::Protocol )
+MSGPACK_ADD_ENUM( sesame::DataType )
 
 #endif
