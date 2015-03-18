@@ -27,8 +27,6 @@
 #define SESAME_CRYPTO_IMACHINE
 
 #include "types.hpp"
-#include "sesame/packaging.hpp"
-
 
 namespace sesame { namespace crypto {
 

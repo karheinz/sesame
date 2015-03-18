@@ -27,8 +27,7 @@
 #define SESAME_CRYPTO_SCRYPT_AES_CBC_SHA_V1_MACHINE
 
 #include <random>
-#include <openssl/evp.h>
-#include "IMachine.hpp"
+#include "sesame/crypto/IMachine.hpp"
 
 
 namespace sesame { namespace crypto {

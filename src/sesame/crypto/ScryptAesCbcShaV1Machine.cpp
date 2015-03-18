@@ -27,11 +27,11 @@
 #include <cmath>
 #include <memory>
 #include <stdexcept>
+#include <openssl/evp.h>
 #include <openssl/hmac.h>
-#include "msgpack.hpp"
-#include "msgpack/type/String.hpp"
-#include "msgpack/type/Vector.hpp"
-#include "ScryptAesCbcShaV1Machine.hpp"
+#include "sesame/crypto/ScryptAesCbcShaV1Machine.hpp"
+#include "sesame/packaging.hpp"
+#include "sesame/utils/string.hpp"
 
 extern "C"
 {
