@@ -81,7 +81,7 @@ TEST(unpack, int_ret_no_offset_ref)
 
     msgpack::unpacked msg = msgpack::unpack(sbuf.data(), sbuf.size(), referenced);
     EXPECT_EQ(1, msg.get().as<int>());
-    EXPECT_EQ(false, referenced);
+    EXPECT_TRUE(false == referenced);
 }
 
 TEST(unpack, int_ret_offset_ref)
@@ -93,7 +93,7 @@ TEST(unpack, int_ret_offset_ref)
 
     msgpack::unpacked msg = msgpack::unpack(sbuf.data(), sbuf.size(), off, referenced);
     EXPECT_EQ(1, msg.get().as<int>());
-    EXPECT_EQ(false, referenced);
+    EXPECT_TRUE(false == referenced);
     EXPECT_EQ(off, sbuf.size());
 }
 
@@ -132,7 +132,7 @@ TEST(unpack, int_no_offset_ref)
 
     msgpack::unpack(msg, sbuf.data(), sbuf.size(), referenced);
     EXPECT_EQ(1, msg.get().as<int>());
-    EXPECT_EQ(false, referenced);
+    EXPECT_TRUE(false == referenced);
 }
 
 TEST(unpack, int_offset_ref)
@@ -145,7 +145,7 @@ TEST(unpack, int_offset_ref)
 
     msgpack::unpack(msg, sbuf.data(), sbuf.size(), off, referenced);
     EXPECT_EQ(1, msg.get().as<int>());
-    EXPECT_EQ(false, referenced);
+    EXPECT_TRUE(false == referenced);
     EXPECT_EQ(off, sbuf.size());
 }
 
@@ -188,7 +188,7 @@ TEST(unpack, int_pointer_no_off_ref)
     // obsolete
     msgpack::unpack(&msg, sbuf.data(), sbuf.size(), nullptr, &referenced);
     EXPECT_EQ(1, msg.get().as<int>());
-    EXPECT_EQ(false, referenced);
+    EXPECT_TRUE(false == referenced);
 }
 
 TEST(unpack, int_pointer_off_ref)
@@ -203,7 +203,7 @@ TEST(unpack, int_pointer_off_ref)
     msgpack::unpack(&msg, sbuf.data(), sbuf.size(), &off, &referenced);
     EXPECT_EQ(1, msg.get().as<int>());
     EXPECT_EQ(off, sbuf.size());
-    EXPECT_EQ(false, referenced);
+    EXPECT_TRUE(false == referenced);
 }
 
 
@@ -250,7 +250,7 @@ TEST(unpack, int_zone_no_offset_ref)
     msgpack::zone z;
     msgpack::object obj = msgpack::unpack(z, sbuf.data(), sbuf.size(), referenced);
     EXPECT_EQ(1, obj.as<int>());
-    EXPECT_EQ(false, referenced);
+    EXPECT_TRUE(false == referenced);
 }
 
 TEST(unpack, int_zone_offset_ref)
@@ -263,7 +263,7 @@ TEST(unpack, int_zone_offset_ref)
     msgpack::zone z;
     msgpack::object obj = msgpack::unpack(z, sbuf.data(), sbuf.size(), off, referenced);
     EXPECT_EQ(1, obj.as<int>());
-    EXPECT_EQ(false, referenced);
+    EXPECT_TRUE(false == referenced);
     EXPECT_EQ(off, sbuf.size());
 }
 
