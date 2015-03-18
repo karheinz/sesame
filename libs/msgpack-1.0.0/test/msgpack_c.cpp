@@ -366,7 +366,7 @@ TEST(MSGPACKC, simple_buffer_false)
     msgpack_unpack(sbuf.data, sbuf.size, NULL, &z, &obj);
   EXPECT_EQ(MSGPACK_UNPACK_SUCCESS, ret);
   EXPECT_EQ(MSGPACK_OBJECT_BOOLEAN, obj.type);
-  EXPECT_EQ(false, obj.via.boolean);
+  EXPECT_TRUE(false == obj.via.boolean);
   msgpack_zone_destroy(&z);
   msgpack_sbuffer_destroy(&sbuf);
 }
@@ -661,7 +661,7 @@ TEST(MSGPACKC, simple_buffer_array)
       break;
     case 2:
       EXPECT_EQ(MSGPACK_OBJECT_BOOLEAN, o.type);
-      EXPECT_EQ(false, o.via.boolean);
+      EXPECT_TRUE(false == o.via.boolean);
       break;
     case 3:
       EXPECT_EQ(MSGPACK_OBJECT_POSITIVE_INTEGER, o.type);
@@ -709,7 +709,7 @@ TEST(MSGPACKC, simple_buffer_map)
       EXPECT_EQ(MSGPACK_OBJECT_BOOLEAN, key.type);
       EXPECT_EQ(true, key.via.boolean);
       EXPECT_EQ(MSGPACK_OBJECT_BOOLEAN, val.type);
-      EXPECT_EQ(false, val.via.boolean);
+      EXPECT_TRUE(false == val.via.boolean);
       break;
     case 1:
       EXPECT_EQ(MSGPACK_OBJECT_POSITIVE_INTEGER, key.type);
