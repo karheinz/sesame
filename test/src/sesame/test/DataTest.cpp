@@ -26,10 +26,11 @@
 #include <stdexcept>
 #include <string>
 #include "gtest/gtest.h"
-#include "sesame/definitions.hpp"
+
 #include "types.hpp"
+#include "sesame/definitions.hpp"
+#include "sesame/packaging.hpp"
 #include "sesame/Data.hpp"
-#include "msgpack.hpp"
 
 
 namespace sesame { namespace test {
@@ -37,7 +38,7 @@ namespace sesame { namespace test {
 TEST( DataTest, BasicUsage )
 {
    Data d( "Some data!" );
-   ASSERT_EQ( Data::TEXT, d.getType() );
+   ASSERT_EQ( DATA_TEXT, d.getType() );
    ASSERT_TRUE( d.isDirty() );
    ASSERT_TRUE( d.isPlaintextAvailable() );
 
@@ -47,7 +48,7 @@ TEST( DataTest, BasicUsage )
 
    Vector<uint8_t> b1 = { 72U, 101U, 108U, 108U, 111U, 33U };
    d.setPlaintext( b1 );
-   ASSERT_EQ( Data::BINARY, d.getType() );
+   ASSERT_EQ( DATA_BINARY, d.getType() );
    ASSERT_TRUE( d.isDirty() );
    ASSERT_TRUE( d.isPlaintextAvailable() );
    Vector<uint8_t> b2( d.getPlaintext<Vector<uint8_t> >() );
@@ -73,10 +74,10 @@ TEST( DataTest, BasicUsage )
 TEST( DataTest, DeSerialization )
 {
    Data d( "Some data!" );
-   ASSERT_EQ( Data::TEXT, d.getType() );
+   ASSERT_EQ( DATA_TEXT, d.getType() );
    ASSERT_TRUE( d.isPlaintextAvailable() );
    d.setPlaintext( Vector<uint8_t>( 16, 0xff ) );
-   ASSERT_EQ( Data::BINARY, d.getType() );
+   ASSERT_EQ( DATA_BINARY, d.getType() );
 
    // Serialize.
    StringStream s;
@@ -87,7 +88,7 @@ TEST( DataTest, DeSerialization )
    msgpack::unpack( &r, s.str().data(), s.str().size() );
    msgpack::object o( r.get() );
    Data d2( o.as<Data>() );
-   ASSERT_EQ( Data::BINARY, d2.getType() );
+   ASSERT_EQ( DATA_BINARY, d2.getType() );
    ASSERT_FALSE( d2.isPlaintextAvailable() );
 }
 

@@ -26,12 +26,13 @@
 #include <iostream>
 #include <stdexcept>
 #include "gtest/gtest.h"
-#include "msgpack.hpp"
+
 #include "types.hpp"
 #include "sesame/definitions.hpp"
+#include "sesame/packaging.hpp"
+#include "sesame/utils/string.hpp"
 #include "sesame/Data.hpp"
 #include "sesame/Entry.hpp"
-#include "sesame/utils/string.hpp"
 
 
 namespace sesame { namespace test {
