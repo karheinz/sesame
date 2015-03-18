@@ -24,13 +24,13 @@
 
 
 #include <iostream>
-#include "sesame/Data.hpp"
 
+#include "sesame/Data.hpp"
 
 namespace sesame
 {
    Data::Data() :
-      m_Type( TEXT ),
+      m_Type( DATA_TEXT ),
       m_PlaintextAvailable( false ),
       m_Dirty( true )
    {
@@ -38,7 +38,7 @@ namespace sesame
 
    // private
    Data::Data(
-      const Type type,
+      const DataType type,
       const Vector<uint8_t>& ciphertext,
       const Vector<uint8_t>& hmac
       ) :
@@ -51,7 +51,7 @@ namespace sesame
    }
 
    Data::Data( const String& plaintext ) :
-      m_Type( TEXT ),
+      m_Type( DATA_TEXT ),
       m_Plaintext(
          reinterpret_cast<const char*>( &( plaintext.front() ) ),
          reinterpret_cast<const char*>( &( plaintext.back() ) ) + 1
@@ -62,14 +62,14 @@ namespace sesame
    }
 
    Data::Data( const Vector<uint8_t>& plaintext ) :
-      m_Type( BINARY ),
+      m_Type( DATA_BINARY ),
       m_Plaintext( plaintext ),
       m_PlaintextAvailable( true ),
       m_Dirty( true )
    {
    }
 
-   Data::Type Data::getType() const
+   DataType Data::getType() const
    {
       return m_Type;
    }
@@ -77,7 +77,7 @@ namespace sesame
    void Data::setPlaintext( const String& plaintext )
    {
       // Text is stored without trailing zero.
-      m_Type = TEXT;
+      m_Type = DATA_TEXT;
       m_Plaintext = Vector<uint8_t>(
          reinterpret_cast<const uint8_t*>( plaintext.c_str() ),
          reinterpret_cast<const uint8_t*>( plaintext.c_str() ) + plaintext.size()
@@ -90,7 +90,7 @@ namespace sesame
 
    void Data::setPlaintext( const Vector<uint8_t>& plaintext )
    {
-      m_Type = BINARY;
+      m_Type = DATA_BINARY;
       m_Plaintext = plaintext;
       m_Ciphertext.resize( 0 );
       m_Hmac.clear();

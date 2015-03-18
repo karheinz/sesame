@@ -29,10 +29,12 @@
 #include <random>
 #include <stdexcept>
 
-#include "sesame/packaging.hpp"
-#include "sesame/version.hpp"
-#include "sesame/Instance.hpp"
 #include "sesame/crypto/MachineFactory.hpp"
+#include "sesame/definitions.hpp"
+#include "sesame/Instance.hpp"
+#include "sesame/packaging.hpp"
+#include "sesame/utils/string.hpp"
+#include "sesame/version.hpp"
 
 
 namespace sesame
@@ -369,7 +371,7 @@ namespace sesame
          {
             if ( calculatedHmac == data.m_Hmac )
             {
-               if ( data.getType() == Data::TEXT )
+               if ( data.getType() == DATA_TEXT )
                {
                   Vector<uint8_t> buffer;
                   if ( machine.decrypt( data.m_Ciphertext, key, buffer ) )
@@ -500,7 +502,7 @@ namespace sesame
          Data& data( const_cast<Data&>( labeledData.second ) );
          if ( data.isDirty() )
          {
-            if ( data.getType() == Data::TEXT )
+            if ( data.getType() == DATA_TEXT )
             {
                String utf8String( utils::toUtf8( data.getPlaintext<String>() ) );
                if ( ! machine.encrypt(

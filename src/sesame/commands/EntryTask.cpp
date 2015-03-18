@@ -223,7 +223,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
             {
                std::cout << utils::empty() << utils::corner( 1 );
             }
-            if ( date.second.getType() == Data::TEXT )
+            if ( date.second.getType() == DATA_TEXT )
             {
                std::cout << "[#" << k++ << "][P] " << date.first << ": ";
                if ( date.second.isPlaintextAvailable() )
@@ -432,7 +432,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          {
             throw std::runtime_error( "failed to update entry" );
          }
-         if ( labeledDate.second.getType() == Data::TEXT )
+         if ( labeledDate.second.getType() == DATA_TEXT )
          {
             std::cout << "Deleted password " << m_Pos << " from entry #"
                << entry.getIdAsHexString() << "." << std::endl;
@@ -456,7 +456,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          String label( reader.readLine( labelPrompt.str() ) );
          label = utils::strip( label );
 
-         if ( labeledDate.second.getType() == Data::TEXT )
+         if ( labeledDate.second.getType() == DATA_TEXT )
          {
             StringStream passwordPrompt;
             if ( labeledDate.second.isPlaintextAvailable() )
@@ -501,7 +501,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
             throw std::runtime_error( "failed to update entry" );
          }
 
-         if ( labeledDate.second.getType() == Data::TEXT )
+         if ( labeledDate.second.getType() == DATA_TEXT )
          {
             std::cout << "Updated password " << m_Pos << " of entry #" <<
                entry.getIdAsHexString() << "." << std::endl;
@@ -520,7 +520,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          Vector<std::pair<String,Data>> labeledData( toSortedVector( entry.getLabeledData() ) );
          std::pair<String,Data> labeledDate( getElemAtPos( labeledData, m_Pos ) );
 
-         if ( labeledDate.second.getType() == Data::TEXT )
+         if ( labeledDate.second.getType() == DATA_TEXT )
          {
             decryptData( instance, labeledDate.second );
             utils::xselect( labeledDate.second.getPlaintext<String>() );

@@ -29,14 +29,8 @@
 #include <iostream>
 
 #include "types.hpp"
-
-#include "msgpack.hpp"
-#include "msgpack/type/String.hpp"
-#include "msgpack/type/Vector.hpp"
-
 #include "sesame/definitions.hpp"
 #include "sesame/packaging.hpp"
-
 
 namespace sesame
 {
@@ -49,13 +43,6 @@ namespace sesame
    class Data
    {
       public:
-         /** The possible plaintext data types. */
-         enum Type
-         {
-            BINARY,
-            TEXT
-         };
-
          /**
           * Default constructor, required for usage in a map.
           */
@@ -100,7 +87,7 @@ namespace sesame
           *
           * @return the type of the data
           */
-         Type getType() const;
+         DataType getType() const;
 
          /**
           * Sets a new plaintext.
@@ -167,14 +154,14 @@ namespace sesame
           * @param hmac the HMAC about the ciphertext
           */
          Data(
-            const Type type,
+            const DataType type,
             const Vector<uint8_t>& ciphertext,
             const Vector<uint8_t>& hmac
             );
 
 
          /** the type of the plaintext, binary or text */
-         Type m_Type;
+         DataType m_Type;
          /** the plaintext */
          Vector<uint8_t> m_Plaintext;
          /** the ciphertext */
@@ -213,9 +200,6 @@ namespace sesame
    template <>
    String Data::getPlaintext<String>() const;
 }
-
-// Introduce enum to msgpack.
-MSGPACK_ADD_ENUM( sesame::Data::Type )
 
 /**
  * For easy serialization.

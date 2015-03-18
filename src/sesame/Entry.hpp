@@ -29,13 +29,9 @@
 #include <iostream>
 
 #include "types.hpp"
-
-#include "msgpack.hpp"
-#include "msgpack/type/String.hpp"
-#include "msgpack/type/Vector.hpp"
-
-#include "sesame/packaging.hpp"
 #include "sesame/Data.hpp"
+#include "sesame/definitions.hpp"
+#include "sesame/packaging.hpp"
 
 
 namespace sesame

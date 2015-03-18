@@ -30,15 +30,10 @@
 #include <iostream>
 
 #include "types.hpp"
-
-#include "msgpack.hpp"
-#include "msgpack/type/String.hpp"
-#include "msgpack/type/Vector.hpp"
-
-#include "sesame/definitions.hpp"
-#include "sesame/packaging.hpp"
-#include "sesame/Entry.hpp"
 #include "sesame/crypto/IMachine.hpp"
+#include "sesame/definitions.hpp"
+#include "sesame/Entry.hpp"
+#include "sesame/packaging.hpp"
 
 
 namespace sesame
