@@ -95,4 +95,61 @@ bool removeFile( const String& path )
    }
 }
 
+const String getExtension( const String& path, const String& delimiter )
+{
+   auto index( path.find_last_of( "." ) );
+   auto indexDelim( path.find_last_of( delimiter ) );
+
+   if ( index != String::npos && indexDelim != String::npos && indexDelim > index )
+   {
+      index = String::npos;
+   }
+
+   if ( index != String::npos && ( index + 1 ) < path.size() )
+   {
+      return path.substr( index + 1 );
+   }
+   else
+   {
+      return "";
+   }
+}
+
+const String incrementFileName( const String& fileNameIn, const String& delimiter )
+{
+   auto index( fileNameIn.find_last_of( "." ) );
+   auto indexDelim( fileNameIn.find_last_of( delimiter ) );
+
+   if ( index != String::npos && indexDelim != String::npos && indexDelim > index )
+   {
+      index = String::npos;
+   }
+
+   String fileNameOut;
+   uint32_t count( 1 );
+   do
+   {
+      StringStream s;
+
+      if ( index == String::npos )
+      {
+         s << fileNameIn << "." << count++;
+      }
+      else
+      {
+         s << fileNameIn.substr( 0, index );
+         s << "." << count++;
+         if ( ( index + 1 ) < fileNameIn.size() )
+         {
+            s << "." << fileNameIn.substr( index + 1 );
+         }
+      }
+
+      fileNameOut = s.str();
+   }
+   while ( exists( fileNameOut ) );
+
+   return fileNameOut;
+}
+
 } }

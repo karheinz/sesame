@@ -23,6 +23,8 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+#include <algorithm>
+#include <cctype>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -30,6 +32,7 @@
 
 #include "sesame/Instance.hpp"
 #include "sesame/commands/InstanceTask.hpp"
+#include "sesame/crypto/F4.hpp"
 #include "sesame/utils/filesystem.hpp"
 #include "sesame/utils/string.hpp"
 #include "sesame/utils/Reader.hpp"
@@ -120,91 +123,160 @@ void InstanceTask::run( std::shared_ptr<Instance>& instance )
             throw std::runtime_error( s.str().c_str() );
          }
 
-         std::ifstream file( m_Path.c_str(), std::ios_base::in | std::ios_base::binary );
-         if ( ! file.good() )
+         String ext( utils::getExtension( m_Path ) );
+         std::transform( ext.begin(), ext.end(), ext.begin(), ::toupper );
+
+         // No jpeg.
+         if ( "JPEG" != ext && "JPG" != ext )
          {
-            throw std::runtime_error( "failed to open container" );
+            std::ifstream file( m_Path.c_str(), std::ios_base::in | std::ios_base::binary );
+            if ( ! file.good() )
+            {
+               throw std::runtime_error( "failed to open container" );
+            }
+
+            Instance::parse( file );
+
+            // then try to construct
+            utils::Reader reader( 1024 );
+            String password( reader.readLine( "password or phrase: ", true ) );
+            password = utils::strip( password );
+
+            file.clear();
+            file.seekg( 0, std::ios_base::beg );
+            instance.reset( new Instance( file, password ) );
          }
+         // Jpeg.
+         else
+         {
+            StringStream stream;
+            Vector<char> data;
+            crypto::F4 algorithm;
+            algorithm.extract( m_Path, data );
+            String buf( data.data(), data.size() );
+            stream.str( buf );
 
-         Instance::parse( file );
+            Instance::parse( stream );
 
-         // then try to construct
-         utils::Reader reader( 1024 );
-         String password( reader.readLine( "password or phrase: ", true ) );
-         password = utils::strip( password );
+            // then try to construct
+            utils::Reader reader( 1024 );
+            String password( reader.readLine( "password or phrase: ", true ) );
+            password = utils::strip( password );
 
-         file.clear();
-         file.seekg( 0, std::ios_base::beg );
-         instance.reset( new Instance( file, password ) );
+            stream.clear();
+            stream.seekg( 0, std::ios_base::beg );
+
+            instance.reset( new Instance( stream, password ) );
+         }
          std::cout << "Opened container #" << instance->getIdAsHexString() << "." << std::endl;
          break;
       }
       case WRITE:
       {
-         bool alreadyExists( utils::exists( m_Path.c_str() ) );
+         String ext( utils::getExtension( m_Path ) );
+         std::transform( ext.begin(), ext.end(), ext.begin(), ::toupper );
 
-         if ( alreadyExists )
+         // No jpeg.
+         if ( "JPEG" != ext && "JPG" != ext )
          {
-            if ( utils::isFile( m_Path.c_str() ) )
+            bool alreadyExists( utils::exists( m_Path.c_str() ) );
+            if ( alreadyExists )
             {
-               utils::Reader reader( 1024 );
-               String choice( reader.readLine( "Overwrite existing file? [y/N]  " ) );
-               choice = utils::strip( utils::toUtf8( choice ) );
-               if ( choice != u8"y" && choice != u8"Y" )
+               if ( utils::isFile( m_Path.c_str() ) )
                {
-                  break;
+                  utils::Reader reader( 1024 );
+                  String choice( reader.readLine( "Overwrite existing file? [y/N]  " ) );
+                  choice = utils::strip( utils::toUtf8( choice ) );
+                  if ( choice != u8"y" && choice != u8"Y" )
+                  {
+                     break;
+                  }
+               }
+               else
+               {
+                  StringStream s;
+                  s << m_Path << " is no file";
+                  throw std::runtime_error( s.str().c_str() );
                }
             }
-            else
+
+            std::ofstream file(
+               m_Path.c_str(),
+               std::ios_base::out | std::ios_base::trunc | std::ios_base::binary
+               );
+
+            if ( ! file.good() )
             {
-               StringStream s;
-               s << m_Path << " is no file";
-               throw std::runtime_error( s.str().c_str() );
+               throw std::runtime_error( "failed to open file" );
             }
-         }
 
-         std::ofstream file(
-            m_Path.c_str(),
-            std::ios_base::out | std::ios_base::trunc | std::ios_base::binary
-            );
+            utils::Reader reader( 1024 );
+            String password( reader.readLine( "password or phrase: ", true ) );
+            if ( instance->isNew() )
+            {
+               String confirmation( reader.readLine( "please confirm: ", true ) );
+               if ( password != confirmation )
+               {
+                  if ( ! alreadyExists )
+                  {
+                     file.close();
+                     utils::removeFile( m_Path );
+                  }
+                  throw std::runtime_error( "confirmation failed" );
+               }
+            }
 
-         if ( ! file.good() )
-         {
-            throw std::runtime_error( "failed to open file" );
-         }
-
-         utils::Reader reader( 1024 );
-         String password( reader.readLine( "password or phrase: ", true ) );
-         if ( instance->isNew() )
-         {
-            String confirmation( reader.readLine( "please confirm: ", true ) );
-            if ( password != confirmation )
+            password = utils::strip( password );
+            try
+            {
+               instance->write( file, password );
+               instance->recalcInitialDigest();
+               std::cout << "Wrote container #" << instance->getIdAsHexString() <<
+                  " to " << m_Path << std::endl;
+            }
+            catch ( std::runtime_error& )
             {
                if ( ! alreadyExists )
                {
                   file.close();
                   utils::removeFile( m_Path );
                }
-               throw std::runtime_error( "confirmation failed" );
+               throw;
             }
          }
-
-         password = utils::strip( password );
-         try
+         // Jpeg.
+         else
          {
-            instance->write( file, password );
+            if ( ! utils::exists( m_Path.c_str() ) )
+            {
+               throw std::runtime_error( "file not found" );
+            }
+
+            utils::Reader reader( 1024 );
+            String password( reader.readLine( "password or phrase: ", true ) );
+            if ( instance->isNew() )
+            {
+               String confirmation( reader.readLine( "please confirm: ", true ) );
+               if ( password != confirmation )
+               {
+                  throw std::runtime_error( "confirmation failed" );
+               }
+            }
+
+            password = utils::strip( password );
+            Vector<char> dump;
+            {
+               StringStream s;
+               instance->write( s, password );
+               readIntoVector( s, dump );
+            }
+
+            const String fileOut( utils::incrementFileName( m_Path ) );
+            crypto::F4 algorithm;
+            algorithm.embed( m_Path, fileOut, dump );
             instance->recalcInitialDigest();
             std::cout << "Wrote container #" << instance->getIdAsHexString() <<
-               " to " << m_Path << std::endl;
-         }
-         catch ( std::runtime_error& )
-         {
-            if ( ! alreadyExists )
-            {
-               file.close();
-               utils::removeFile( m_Path );
-            }
-            throw;
+               " to " << fileOut << std::endl;
          }
          break;
       }

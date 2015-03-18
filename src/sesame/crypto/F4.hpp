@@ -51,11 +51,6 @@ class F4
          Vector<char>& data
          ) const;
 
-      const String calcOutFileName(
-         const String& fileNameIn,
-         const String& delimiter = "/"
-         ) const;
-
 };
 
 } }

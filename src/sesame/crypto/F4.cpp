@@ -44,14 +44,35 @@ void F4::embed(
       throw std::runtime_error( "nothing to embed" );
    }
 
-   if ( f4_embed( fileNameIn.c_str(), fileNameOut.c_str(), data.data(), data.size() ) != 0 )
+   int rc( f4_embed( fileNameIn.c_str(), fileNameOut.c_str(), data.data(), data.size() ) );
+
+   if ( rc != 0 )
    {
       if ( utils::isFile( fileNameOut ) )
       {
          utils::removeFile( fileNameOut );
       }
 
-      throw std::runtime_error( "failed to embed data" );
+      switch ( rc )
+      {
+         case 1:
+         case 2:
+            throw std::runtime_error( "internal libjpeg-turbo error" );
+         case 3:
+         {
+            StringStream s;
+            s << "failed to open " << fileNameIn;
+            throw std::runtime_error( s.str().c_str() );
+         }
+         case 5:
+         {
+            StringStream s;
+            s << "failed to open " << fileNameOut;
+            throw std::runtime_error( s.str().c_str() );
+         }
+         default:
+            throw std::runtime_error( "failed to embed data" );
+      }
    }
 }
 
@@ -69,51 +90,24 @@ void F4::extract(
       throw std::runtime_error( "failed to extract data" );
    }
 
-   if ( f4_extract( fileNameIn.c_str(), data.data(), data.size() ) != 0 )
+   int rc( f4_extract( fileNameIn.c_str(), data.data(), data.size() ) );
+
+   if ( rc != 0 )
    {
-      throw std::runtime_error( "failed to extract data" );
-   }
-}
-
-const String F4::calcOutFileName(
-   const String& fileNameIn,
-   const String& delimiter
-   )
-   const
-{
-   auto index( fileNameIn.find_last_of( "." ) );
-   auto indexDelim( fileNameIn.find_last_of( delimiter ) );
-
-   if ( index != String::npos && indexDelim != String::npos && indexDelim > index )
-   {
-      index = String::npos;
-   }
-
-   String fileNameOut;
-   uint32_t count( 1 );
-   do
-   {
-      StringStream s;
-
-      if ( index == String::npos )
+      switch ( rc )
       {
-         s << fileNameIn << "." << count++ << ".jpeg";
-      }
-      else
-      {
-         s << fileNameIn.substr( 0, index );
-         s << "." << count++;
-         if ( ( index + 1 ) < fileNameIn.size() )
+         case 1:
+            throw std::runtime_error( "internal libjpeg-turbo error" );
+         case 2:
          {
-            s << "." << fileNameIn.substr( index + 1 );
+            StringStream s;
+            s << "failed to open " << fileNameIn;
+            throw std::runtime_error( s.str().c_str() );
          }
+         default:
+            throw std::runtime_error( "failed to extract data" );
       }
-
-      fileNameOut = s.str();
    }
-   while ( utils::exists( fileNameOut ) );
-
-   return fileNameOut;
 }
 
 } }

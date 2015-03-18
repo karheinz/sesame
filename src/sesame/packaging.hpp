@@ -120,6 +120,22 @@ std::istream& unpack( std::istream& i, T& e )
  * @param i the stream to read from
  * @param v the vector to write to
  */
+inline void readIntoVector( std::istream& i, Vector<char>& v )
+{
+   i.seekg( 0, std::ios_base::end );
+   std::streamsize size( i.tellg() );
+   i.seekg( 0, std::ios_base::beg );
+
+   v.resize( size );
+   i.read( v.data(), size );
+}
+
+/**
+ * Reads content from stream into vector.
+ *
+ * @param i the stream to read from
+ * @param v the vector to write to
+ */
 inline void readIntoVector( std::istream& i, Vector<uint8_t>& v )
 {
    i.seekg( 0, std::ios_base::end );

@@ -29,6 +29,23 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * Takes image in <tt>filename_in</tt>, embeds <tt>data</tt> and
+ * writes result to <tt>filename_out</tt>.
+ *
+ * @param filename_in source image
+ * @param filename_out target image
+ * @param data data to embed
+ * @param length length of data to embed
+ *
+ * @return 0 => success,
+ *         1 => internal error,
+ *         2 => internal error,
+ *         3 => couldn't open filename_in,
+ *         4 => embedding failed,
+ *         5 => couldn't open filename_out
+ */
 int f4_embed(
    const char *filename_in,
    const char* filename_out,
@@ -36,11 +53,26 @@ int f4_embed(
    const size_t length
    );
 
+/**
+ * Extracts data out of <tt>filename_in</tt> and writes
+ * it to <tt>data</tt>.
+ *
+ * @param filename_in source image
+ * @param filename_out target image
+ * @param data data to embed
+ * @param length length of data to embed
+ *
+ * @return 0 => success,
+ *         1 => internal error,
+ *         2 => couldn't open filename_in,
+ *         3 => extracting failed
+ */
 int f4_extract(
    const char *filename,
    char* data,
    const size_t length
    );
+
 #ifdef __cplusplus
 }
 #endif

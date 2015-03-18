@@ -35,6 +35,8 @@ bool exists( const String& path );
 bool isFile( const String& path );
 std::size_t getFileSize( const String& path );
 bool removeFile( const String& path );
+const String getExtension( const String& path, const String& delimiter = "/" );
+const String incrementFileName( const String& fileNameIn, const String& delimiter = "/" );
 
 } }
 

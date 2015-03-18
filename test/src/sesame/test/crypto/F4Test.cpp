@@ -27,6 +27,7 @@
 #include "gtest/gtest.h"
 #include "types.hpp"
 #include "sesame/crypto/F4.hpp"
+#include "sesame/utils/filesystem.hpp"
 
 
 namespace sesame { namespace test { namespace crypto {
@@ -37,10 +38,10 @@ TEST( F4Test, BasicUsage )
    Vector<char> data( s1.begin(), s1.end() );
    data.push_back( '\0' );
    
-   sesame::crypto::F4 algo;
    String in( F4_TEST_IMAGE );
-   String out( algo.calcOutFileName( in ) );
+   String out( sesame::utils::incrementFileName( in ) );
 
+   sesame::crypto::F4 algo;
    algo.embed( in, out, data );
 
    Vector<char> result;
