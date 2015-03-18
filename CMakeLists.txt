@@ -2,7 +2,7 @@ CMAKE_MINIMUM_REQUIRED( VERSION 2.8.0 )
 
 ENABLE_TESTING()
 
-SET( CMAKE_CXX_FLAGS "-std=c++11 -Wall -Wno-deprecated-declarations" )
+SET( CMAKE_CXX_FLAGS "-std=c++11 -Wall" )
 
 # nasm (netwide assembler)
 FIND_PROGRAM( BINNASM "nasm" )
