@@ -597,16 +597,16 @@ const Vector<uint8_t> EntryTask::askForInputFileAndRead( const Data* date )
    reader.addCompletion( cpl_file_completions, nullptr );
 
    StringStream filePrompt;
-   filePrompt << "File ";
+   filePrompt << "File";
    if ( date )
    {
       if ( date->isPlaintextAvailable() )
       {
-         filePrompt << "(" << date->getPlaintext<Vector<uint8_t>>().size() << "B)";
+         filePrompt << " (" << date->getPlaintext<Vector<uint8_t>>().size() << "B)";
       }
       else
       {
-         filePrompt << "(***)";
+         filePrompt << " (***)";
       }
    }
    filePrompt << ": ";
