@@ -22,38 +22,43 @@
 #include "msgpack/versioning.hpp"
 #include "msgpack/object_fwd.hpp"
 #include "msgpack/adaptor/check_container_size.hpp"
+#include "sesame/utils/string.hpp"
 
 namespace msgpack {
 
 MSGPACK_API_VERSION_NAMESPACE(v1) {
 
-inline msgpack::object const& operator>> (msgpack::object const& o, String& v)
+inline msgpack::object const& operator>> (msgpack::object const& o, String& s)
 {
     switch (o.type) {
     case msgpack::type::BIN:
-        v.assign(o.via.bin.ptr, o.via.bin.size);
+        s.assign(o.via.bin.ptr, o.via.bin.size);
         break;
     case msgpack::type::STR:
-        v.assign(o.via.str.ptr, o.via.str.size);
+        s.assign(o.via.str.ptr, o.via.str.size);
         break;
     default:
         throw msgpack::type_error();
         break;
     }
+
+    s = sesame::utils::fromUtf8( s );
     return o;
 }
 
 template <typename Stream>
-inline msgpack::packer<Stream>& operator<< (msgpack::packer<Stream>& o, const String& v)
+inline msgpack::packer<Stream>& operator<< (msgpack::packer<Stream>& o, const String& s)
 {
+    String v( sesame::utils::toUtf8( s ) );
     uint32_t size = checked_get_container_size(v.size());
     o.pack_str(size);
     o.pack_str_body(v.data(), size);
     return o;
 }
 
-inline void operator<< (msgpack::object::with_zone& o, const String& v)
+inline void operator<< (msgpack::object::with_zone& o, const String& s)
 {
+    String v( sesame::utils::toUtf8( s ) );
     uint32_t size = checked_get_container_size(v.size());
     o.type = msgpack::type::STR;
     char* ptr = static_cast<char*>(o.zone.allocate_align(size));
@@ -62,8 +67,9 @@ inline void operator<< (msgpack::object::with_zone& o, const String& v)
     std::memcpy(ptr, v.data(), v.size());
 }
 
-inline void operator<< (msgpack::object& o, const String& v)
+inline void operator<< (msgpack::object& o, const String& s)
 {
+    String v( sesame::utils::toUtf8( s ) );
     uint32_t size = checked_get_container_size(v.size());
     o.type = msgpack::type::STR;
     o.via.str.ptr = v.data();
