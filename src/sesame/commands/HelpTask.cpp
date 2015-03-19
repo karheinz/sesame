@@ -35,8 +35,9 @@ using sesame::utils::ESC_SEQ_ULINE;
 
 namespace sesame { namespace commands {
 
-HelpTask::HelpTask( const Type type ) :
-   m_Type( type )
+HelpTask::HelpTask( const Type type, const String& program ) :
+   m_Type( type ),
+   m_Program( program )
 {
 }
 
@@ -101,9 +102,9 @@ void HelpTask::run( std::shared_ptr<Instance>& instance )
             std::cout << ESC_SEQ_ULINE << "FILE" << ESC_SEQ_RESET << " or";
             std::cout << "\n" << std::setw( 14 ) << " " << "embeds container, if ";
             std::cout << ESC_SEQ_ULINE << "FILE" << ESC_SEQ_RESET;
-            std::cout << " is a JPEG image" << std::endl;
+            std::cout << " is a JPEG image";
 
-            std::cout << "\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "close" << ESC_SEQ_RESET;
+            std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "close" << ESC_SEQ_RESET;
             std::cout << "\n" << std::setw( 14 ) << " " << "closes the current container";
 
             std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "quit" << ESC_SEQ_RESET;
@@ -182,6 +183,14 @@ void HelpTask::run( std::shared_ptr<Instance>& instance )
       }
       case USAGE:
       {
+         std::cout << sesame::VERSION_STRING;
+
+         std::cout << "\n\n" << "Usage:";
+         std::cout << "\n\n" << std::setw( 7 ) << " ";
+         std::cout << ESC_SEQ_BOLD << m_Program << ESC_SEQ_RESET;
+         std::cout << " [" << ESC_SEQ_ULINE << "FILE" << ESC_SEQ_RESET << "]";
+         std::cout << "\n" << std::endl;
+
          break;
       }
       default:

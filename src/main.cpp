@@ -33,6 +33,7 @@
 
 #include "types.hpp"
 #include "sesame/Instance.hpp"
+#include "sesame/commands/HelpTask.hpp"
 #include "sesame/commands/InstanceTask.hpp"
 #include "sesame/utils/completion.hpp"
 #include "sesame/utils/filesystem.hpp"
@@ -42,12 +43,13 @@
 #include "sesame/utils/ParseResult.hpp"
 #include "sesame/utils/TeclaReader.hpp"
 
-std::vector<std::pair<std::string,std::string>> apgCache;
-
+using sesame::commands::HelpTask;
 using sesame::commands::InstanceTask;
 
 String buildPrompt( std::shared_ptr<sesame::Instance>& instance );
-String usage( const char* command );
+
+std::vector<std::pair<std::string,std::string>> apgCache;
+
 
 int main( int argc, char** argv)
 {
@@ -60,7 +62,8 @@ int main( int argc, char** argv)
    // File passed?
    if ( argc > 2 )
    {
-      std::cout << usage( argv[ 0 ] ) << std::endl;
+      HelpTask task( HelpTask::USAGE, argv[ 0 ] );
+      task.run( instance );
       return 1;
    }
    else if ( argc == 2 )
@@ -209,11 +212,4 @@ String buildPrompt( std::shared_ptr<sesame::Instance>& instance )
    }
 
    return prompt;
-}
-
-String usage( const char* command )
-{
-   StringStream s;
-   s << "usage: " << command << " [FILE]";
-   return s.str();
 }

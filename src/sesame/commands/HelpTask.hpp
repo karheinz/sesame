@@ -47,8 +47,9 @@ class HelpTask : public ICommand
        * Ctor for help task.
        *
        * @param taskType the task type
+       * @param program the name of the program
        */
-      HelpTask( const Type type );
+      HelpTask( const Type type, const String& program = "sesame" );
 
       /**
        * Dtor.
@@ -66,7 +67,9 @@ class HelpTask : public ICommand
 
    private:
       /** the type of the task */
-      Type m_Type;
+      const Type m_Type;
+      /** the name of the program, default sesame */
+      const String m_Program;
 };
 
 } }
