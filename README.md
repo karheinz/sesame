@@ -46,9 +46,9 @@ What is missing/planned?
 Installation
 ------------
 
-1. Install the required libraries:
+1. Install the required programs and libraries:
 ```
-   # apt-get install flex libfl-dev openssl libtecla1-dev libx11-dev
+   # apt-get install flex libfl-dev nasm openssl libtecla1-dev libx11-dev
 ```
 
 2. Build sesame and run tests.
