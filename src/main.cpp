@@ -59,6 +59,9 @@ int main( int argc, char** argv)
    // Start.
    std::shared_ptr<sesame::Instance> instance;
 
+   // Print version info.
+   std::cout << sesame::VERSION_STRING << "\n" << std::endl;
+
    // File passed?
    if ( argc > 2 )
    {

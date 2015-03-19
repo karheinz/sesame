@@ -27,7 +27,6 @@
 #include <iostream>
 #include "sesame/commands/HelpTask.hpp"
 #include "sesame/utils/colors.hpp"
-#include "sesame/version.hpp"
 
 using sesame::utils::ESC_SEQ_RESET;
 using sesame::utils::ESC_SEQ_BOLD;
@@ -49,8 +48,7 @@ void HelpTask::run( std::shared_ptr<Instance>& instance )
       {
          if ( ! instance )
          {
-            std::cout << sesame::VERSION_STRING;
-            std::cout << "\n\nCurrently available commands:";
+            std::cout << "Currently available commands:";
 
             std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "help" << ESC_SEQ_RESET;
             std::cout << "\n" << std::setw( 14 ) << " " << "prints this message";
@@ -80,8 +78,7 @@ void HelpTask::run( std::shared_ptr<Instance>& instance )
          }
          else
          {
-            std::cout << sesame::VERSION_STRING;
-            std::cout << "\n\nCurrently available commands:";
+            std::cout << "Currently available commands:";
 
             std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "help" << ESC_SEQ_RESET;
             std::cout << "\n" << std::setw( 14 ) << " " << "prints this message";
@@ -183,12 +180,12 @@ void HelpTask::run( std::shared_ptr<Instance>& instance )
       }
       case USAGE:
       {
-         std::cout << sesame::VERSION_STRING;
+         std::cout << "Usage:";
 
-         std::cout << "\n\n" << "Usage:";
          std::cout << "\n\n" << std::setw( 7 ) << " ";
          std::cout << ESC_SEQ_BOLD << m_Program << ESC_SEQ_RESET;
          std::cout << " [" << ESC_SEQ_ULINE << "FILE" << ESC_SEQ_RESET << "]";
+
          std::cout << "\n" << std::endl;
 
          break;
