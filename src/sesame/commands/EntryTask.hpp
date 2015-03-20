@@ -105,6 +105,15 @@ class EntryTask : public ICommand
        */
       const Vector<uint8_t> askForInputFileAndRead( const Data* date = nullptr );
 
+      /**
+       * Throws an error if input is empty.
+       *
+       * @param input the input to check
+       * @param message error message
+       *
+       * @throw std::runtime_error if input is empty
+       */
+      void checkInput( const String& input, const String& message );
 
       /** task type */
       const Type m_TaskType;

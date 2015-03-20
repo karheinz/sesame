@@ -264,6 +264,8 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
       {
          utils::Reader reader( 1024 );
          String name( reader.readLine( "Name: " ) );
+         name = utils::strip( name );
+         checkInput( name, "empty name" );
          Entry entry( name );
          if ( ! instance->addEntry( entry ) )
          {
@@ -309,8 +311,10 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          utils::Reader reader( 1024 );
          String name( reader.readLine( "Name: " ) );
          name = utils::strip( name );
+         checkInput( name, "empty name" );
          String value( reader.readLine( "Value: " ) );
          value = utils::strip( value );
+         checkInput( value, "empty value" );
 
          if ( ! entry.addAttribute( name, value ) )
          {
@@ -381,8 +385,10 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          utils::Reader reader( 1024 );
          String label( reader.readLine( "Label: " ) );
          label = utils::strip( label );
+         checkInput( label, "empty label" );
          String password( reader.readLine( "Password: " ) );
          password = utils::strip( password );
+         checkInput( password, "empty password or phrase" );
          password = preProcessPassword( password );
 
          if ( ! entry.addLabeledData( label, Data( password ) ) )
@@ -404,6 +410,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          utils::Reader reader( 1024 );
          String label( reader.readLine( "Label: " ) );
          label = utils::strip( label );
+         checkInput( label, "empty label" );
          const Vector<uint8_t> data( askForInputFileAndRead() );
 
          if ( ! entry.addLabeledData( label, Data( data ) ) )
@@ -656,6 +663,7 @@ void EntryTask::decryptEntry( std::shared_ptr<Instance>& instance, Entry& entry 
       utils::Reader reader( 1024 );
       String password( reader.readLine( "password or phrase: ", true ) );
       password = utils::strip( password );
+      checkInput( password, "empty password or phrase" );
       instance->decryptEntry( entry, password );
    }
 }
@@ -667,7 +675,16 @@ void EntryTask::decryptData( std::shared_ptr<Instance>& instance, Data& data )
       utils::Reader reader( 1024 );
       String password( reader.readLine( "password or phrase: ", true ) );
       password = utils::strip( password );
+      checkInput( password, "empty password or phrase" );
       instance->decryptData( data, password );
+   }
+}
+
+void EntryTask::checkInput( const String& input, const String& message )
+{
+   if ( input.empty() )
+   {
+      throw std::runtime_error( message.c_str() );
    }
 }
 

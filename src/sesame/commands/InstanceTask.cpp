@@ -142,6 +142,11 @@ void InstanceTask::run( std::shared_ptr<Instance>& instance )
             String password( reader.readLine( "password or phrase: ", true ) );
             password = utils::strip( password );
 
+            if ( password.empty() )
+            {
+               throw std::runtime_error( "empty password or phrase" );
+            }
+
             file.clear();
             file.seekg( 0, std::ios_base::beg );
             instance.reset( new Instance( file, password ) );
@@ -162,6 +167,11 @@ void InstanceTask::run( std::shared_ptr<Instance>& instance )
             utils::Reader reader( 1024 );
             String password( reader.readLine( "password or phrase: ", true ) );
             password = utils::strip( password );
+
+            if ( password.empty() )
+            {
+               throw std::runtime_error( "empty password or phrase" );
+            }
 
             stream.clear();
             stream.seekg( 0, std::ios_base::beg );
