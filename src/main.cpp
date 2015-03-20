@@ -29,6 +29,9 @@
 #include <string>
 #include <utility>
 
+#include <setjmp.h>
+#include <signal.h>
+
 #include <libtecla.h>
 
 #include "types.hpp"
@@ -50,9 +53,26 @@ String buildPrompt( std::shared_ptr<sesame::Instance>& instance );
 
 std::vector<std::pair<std::string,std::string>> apgCache;
 
+bool stopRequested( false );
+void signal_handler( int signal )
+{
+   std::cout << "\nGot signal " << signal <<
+      ", will quit as soon as possible." << std::endl;
+
+   stopRequested = true;
+}
 
 int main( int argc, char** argv)
 {
+   // Handle signals.
+   struct sigaction action;
+   action.sa_handler = signal_handler;
+   action.sa_flags = ( action.sa_flags & ~SA_SIGINFO );
+
+   sigaction( SIGHUP, &action, nullptr );
+   sigaction( SIGINT, &action, nullptr );
+   sigaction( SIGTERM, &action, nullptr );
+
    // Set locale!
    sesame::utils::setLocale();
 
@@ -79,12 +99,13 @@ int main( int argc, char** argv)
       catch ( std::runtime_error& e )
       {
          std::cerr << "ERROR: " << e.what() << std::endl;;
-         return 1;
       }
-      catch ( std::bad_alloc& e )
+      catch ( std::exception& e )
       {
-         std::cerr << "ERROR: " << e.what() << std::endl;;
-         return 1;
+         if ( ! stopRequested )
+         {
+            std::cerr << "ERROR: " << e.what() << std::endl;;
+         }
       }
    }
 
@@ -96,6 +117,12 @@ int main( int argc, char** argv)
 
    do
    {
+      // Got a signal?
+      if ( stopRequested )
+      {
+         break;
+      }
+
       // Build prompt.
       String prompt( buildPrompt( instance ) );
 
@@ -104,9 +131,14 @@ int main( int argc, char** argv)
       {
          normalized = reader.readLine( prompt );
       }
-      catch ( std::runtime_error& e )
+      catch ( std::exception& e )
       {
-         std::cerr << "ERROR: " << e.what() << std::endl;
+         if ( ! stopRequested )
+         {
+            std::cerr << "ERROR: " << e.what() << std::endl;;
+         }
+
+         // Abort on read line failure.
          break;
       }
 
@@ -155,13 +187,18 @@ int main( int argc, char** argv)
             {
                std::cerr << "ERROR: " << e.what() << std::endl;;
             }
+            catch ( std::exception& e )
+            {
+               if ( ! stopRequested )
+               {
+                  std::cerr << "ERROR: " << e.what() << std::endl;;
+               }
+            }
          }
 
          // Quit only if no instance is open!
          if ( ! instance )
          {
-            // Remove data from X clipboard.
-            sesame::utils::xdeselect();
             break;
          }
       }
@@ -183,10 +220,12 @@ int main( int argc, char** argv)
                   {
                      std::cerr << "ERROR: " << e.what() << std::endl;
                   }
-                  catch ( std::bad_alloc& e )
+                  catch ( std::exception& e )
                   {
-                     std::cerr << "ERROR: " << e.what() << std::endl;;
-                     return 1;
+                     if ( ! stopRequested )
+                     {
+                        std::cerr << "ERROR: " << e.what() << std::endl;;
+                     }
                   }
                }
             }
@@ -198,6 +237,17 @@ int main( int argc, char** argv)
       }
    }
    while ( true );
+
+   // Make sure instance is closed before quit!
+   if ( instance )
+   {
+      const String tmp( instance->getIdAsHexString() );
+      instance.reset();
+      std::cout << "Closed container #" << tmp << "." << std::endl;
+   }
+
+   // Remove data from X clipboard before quit.
+   sesame::utils::xdeselect();
 
    std::cout << "Goodbye!" << std::endl;
 
