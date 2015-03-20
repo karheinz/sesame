@@ -41,17 +41,20 @@ TEST( F4Test, BasicUsage )
    String in( F4_TEST_IMAGE );
    String out( sesame::utils::incrementFileName( in ) );
 
-   sesame::crypto::F4 algo;
-   algo.embed( in, out, data );
+   for ( auto i = 0; i < 10; ++i )
+   {
+      sesame::crypto::F4 algo;
+      algo.embed( in, out, data );
 
-   Vector<char> result;
-   algo.extract( out, result );
+      Vector<char> result;
+      algo.extract( out, result );
 
-   std::size_t length( strnlen( result.data(), result.size() ) );
-   ASSERT_EQ( s1.size(), length );
-   ASSERT_TRUE( length < result.size() );
-   String s2( result.data(), result.data() + length );
-   ASSERT_EQ( s1, s2 );
+      std::size_t length( strnlen( result.data(), result.size() ) );
+      ASSERT_EQ( s1.size(), length );
+      ASSERT_TRUE( length < result.size() );
+      String s2( result.data(), result.data() + length );
+      ASSERT_EQ( s1, s2 );
+   }
 }
 
 

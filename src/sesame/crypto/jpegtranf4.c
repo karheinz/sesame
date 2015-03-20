@@ -46,15 +46,15 @@
 
 #include "jpeglib.h"
 #include "jmemsys.h"
+#include "jvirt_arrays.h"
 
 #include "jpegtranf4.h"
-#include "jvirt_arrays.h"
 
 #include "cdjpeg.h"             /* Common decls for cjpeg/djpeg applications */
 #include "transupp.h"           /* Support routines for jpegtran */
 #include "jversion.h"           /* for version message */
+#include "jconfigint.h"
 #include "jpegint.h"
-
 
 /*
  * Custom error handling using setjmp()/longjmp().
@@ -108,22 +108,27 @@ int f4_extract_message(
   JBLOCKROW blockrow;
   JCOEF value;
 
+  //int count = 0;
+  jvirt_barray_ptr current = *coef_arrays;
+
   // Evaluate coefficients.
-  while ( *coef_arrays != 0 )
+  while ( current != 0 )
   {
-     rows_to_read = ( *coef_arrays )->rows_in_array;
+     //printf( "loop %d\n", ++count );
+
+     rows_to_read = current->rows_in_array;
      rows_read = 0;
      
      while ( rows_to_read > 0 )
      {
         // Determine number of rows allowed to read at once.
-        rows = MIN( rows_to_read, ( *coef_arrays )->maxaccess );
+        rows = MIN( rows_to_read, current->maxaccess );
 
         // Read!
-        blockarray = access_virt_barray(
+        blockarray = info->mem->access_virt_barray(
               info,
               *coef_arrays,
-              ( *coef_arrays )->cur_start_row + rows_read,  // start
+              current->cur_start_row + rows_read,  // start
               rows,                                         // rows
               0                                             // writable
            );
@@ -135,7 +140,7 @@ int f4_extract_message(
         for ( row = 0; row < rows; ++row )
         {
             blockrow = blockarray[ row ];
-            blocks = ( *coef_arrays )->blocksperrow;
+            blocks = current->blocksperrow;
 
             for ( block = 0; block < blocks; ++block ) 
             {
@@ -177,7 +182,8 @@ int f4_extract_message(
         }
      }
 
-     ++coef_arrays;
+     //printf( "next %p\n", (void*)( current->next ) );
+     current = current->next;
   }
 
   // Always return success.
@@ -208,22 +214,27 @@ int f4_embed_message(
   JCOEF value;
   JCOEF bit;
 
+  //int count = 0;
+  jvirt_barray_ptr current = *coef_arrays;
+
   // Evaluate coefficients.
-  while ( *coef_arrays != 0 )
+  while ( current != 0 )
   {
-     rows_to_read = ( *coef_arrays )->rows_in_array;
+     //printf( "loop %d\n", ++count );
+
+     rows_to_read = current->rows_in_array;
      rows_read = 0;
 
      while ( rows_to_read > 0 )
      {
         // Determine number of rows allowed to read at once.
-        rows = MIN( rows_to_read, ( *coef_arrays )->maxaccess );
+        rows = MIN( rows_to_read, current->maxaccess );
 
         // Read!
-        blockarray = access_virt_barray(
+        blockarray = info->mem->access_virt_barray(
               info,
-              *coef_arrays,
-              ( *coef_arrays )->cur_start_row + rows_read,  // start
+              current,
+              current->cur_start_row + rows_read,  // start
               rows,                                         // rows
               1                                             // writable
            );
@@ -235,7 +246,7 @@ int f4_embed_message(
         for ( row = 0; row < rows; ++row )
         {
             blockrow = blockarray[ row ];
-            blocks = ( *coef_arrays )->blocksperrow;
+            blocks = current->blocksperrow;
 
             for ( block = 0; block < blocks; ++block ) 
             {
@@ -282,7 +293,9 @@ int f4_embed_message(
             }
         }
      }
-     ++coef_arrays;
+
+     //printf( "next %p\n", (void*)( current->next ) );
+     current = current->next;
   }
 
   // All data embedded?
@@ -302,8 +315,8 @@ f4_embed( const char *filename_in, const char* filename_out, const char* data, c
   struct jpeg_decompress_struct srcinfo;
   struct jpeg_compress_struct dstinfo;
   struct my_error_mgr jsrcerr, jdsterr;
-  jvirt_barray_ptr * src_coef_arrays;
-  jvirt_barray_ptr * dst_coef_arrays;
+  jvirt_barray_ptr * src_coef_arrays = 0;
+  jvirt_barray_ptr * dst_coef_arrays = 0;
 
   /* We assume all-in-memory processing and can therefore use only a
    * single file pointer for sequential input and output operation.
@@ -354,12 +367,6 @@ f4_embed( const char *filename_in, const char* filename_out, const char* data, c
   /* Read source file as DCT coefficients */
   src_coef_arrays = jpeg_read_coefficients(&srcinfo);
 
-  /* Initialize destination compression parameters from source values */
-  jpeg_copy_critical_parameters(&srcinfo, &dstinfo);
-
-  /* Optimize Huffman table (smaller file, but slow compression) */
-  dstinfo.optimize_coding = TRUE;
-
 ////////////////////////////////////////////////////////////////////////////////
 
   if ( ! f4_embed_message( (j_common_ptr)&srcinfo, src_coef_arrays, data, length ) )
@@ -371,6 +378,13 @@ f4_embed( const char *filename_in, const char* filename_out, const char* data, c
 
 ////////////////////////////////////////////////////////////////////////////////
 
+  /* Initialize destination compression parameters from source values */
+  jpeg_copy_critical_parameters(&srcinfo, &dstinfo);
+
+  /* Optimize Huffman table (smaller file, but slow compression) */
+  dstinfo.optimize_coding = TRUE;
+
+  /* Copy arrays */
   dst_coef_arrays = src_coef_arrays;
 
   /* Close input file, if we opened it.
@@ -419,7 +433,6 @@ f4_embed( const char *filename_in, const char* filename_out, const char* data, c
 int
 f4_extract( const char *filename, char* data, const size_t length )
 {
-  JCOPY_OPTION copyoption = JCOPYOPT_DEFAULT;
   struct jpeg_decompress_struct srcinfo;
   struct my_error_mgr jsrcerr;
   jvirt_barray_ptr * src_coef_arrays;
