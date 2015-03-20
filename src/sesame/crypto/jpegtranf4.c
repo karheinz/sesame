@@ -242,6 +242,12 @@ int f4_embed_message(
                // Ignore last coefficient.
                for ( coeff = 0; coeff < ( coeffs - 1 ); ++coeff )
                {
+                  // Go on if there is nothing left to embed.
+                  if ( mbit == mbits )
+                  {
+                     continue;
+                  }
+
                   bit = data[ mbit / 8 ] >> ( 7 - ( mbit % 8 ) );
                   bit &= 1;
 
@@ -249,11 +255,6 @@ int f4_embed_message(
 
                   // Ignore zero values.
                   if ( value == 0 )
-                  {
-                     continue;
-                  }
-                  // Go on if there is nothing left to embed.
-                  else if ( mbit == mbits )
                   {
                      continue;
                   }
