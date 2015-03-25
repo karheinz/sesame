@@ -42,6 +42,7 @@
 %s START_COND
 %s CMD_COND
 %s ENTRY_COND
+%s LIST_COND
 %s UPDATE_COND
 %s UPDATE_ENTRY_COND
 %s UPDATE_OTHER_COND
@@ -64,7 +65,8 @@ NL  (\r?\n)
 <START_COND>new                           { BEGIN( CMD_COND ); return NEW; }
 <START_COND>open                          { BEGIN( CMD_COND ); return OPEN; }
 <START_COND>close                         { BEGIN( CMD_COND ); return CLOSE; }
-<START_COND>list                          { BEGIN( CMD_COND ); return LIST; }
+<START_COND>list                          { BEGIN( LIST_COND ); return LIST; }
+<START_COND>tags                          { BEGIN( CMD_COND ); return TAGS; }
 <START_COND>search                        { BEGIN( CMD_COND ); return SEARCH; }
 <START_COND>show                          { BEGIN( ENTRY_COND ); return SHOW; }
 <START_COND>decrypt                       { BEGIN( ENTRY_COND ); return DECRYPT; }
@@ -82,9 +84,13 @@ NL  (\r?\n)
 <UPDATE_ENTRY_COND>add_attribute          { BEGIN( CMD_COND ); return ADD_ATTRIBUTE; }
 <UPDATE_ENTRY_COND>update_attribute       { BEGIN( UPDATE_OTHER_COND ); return UPDATE_ATTRIBUTE; }
 <UPDATE_ENTRY_COND>delete_attribute       { BEGIN( UPDATE_OTHER_COND ); return DELETE_ATTRIBUTE; }
+<UPDATE_ENTRY_COND>add_tag                { BEGIN( CMD_COND ); return ADD_TAG; }
+<UPDATE_ENTRY_COND>update_tag             { BEGIN( UPDATE_OTHER_COND ); return UPDATE_TAG; }
+<UPDATE_ENTRY_COND>delete_tag             { BEGIN( UPDATE_OTHER_COND ); return DELETE_TAG; }
 <SELECT_COND>#{HX}+                       { BEGIN( SELECT_ENTRY_COND ); return ENTRY_ID; }
 <SELECT_ENTRY_COND>export_password_or_key { BEGIN( SELECT_OTHER_COND ); return EXPORT_PASSWORD_OR_KEY; }
-<ENTRY_COND,UPDATE_OTHER_COND,SELECT_OTHER_COND>#{HX}+   { BEGIN( CMD_COND ); return OTHER_ID; }
+<ENTRY_COND>#{HX}+                        { BEGIN( CMD_COND ); return OTHER_ID; }
+<LIST_COND,UPDATE_OTHER_COND,SELECT_OTHER_COND>#{DG}+   { BEGIN( CMD_COND ); return OTHER_ID; }
 ^{WS}*                                    /* ignore */
 {WS}*{NL}                                 { BEGIN( INITIAL ); return NEWLINE; }
 {WS}+                                     { return WHITESPACE; }

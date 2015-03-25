@@ -39,6 +39,7 @@ ParseResult::ParseResult() :
    m_CompleteCommand( false ),
    m_CompleteUpdateCommand( false ),
    m_CompleteSelectCommand( false ),
+   m_CompleteTag( false ),
    m_CompleteAttribute( false ),
    m_CompletePasswordOrKey( false ),
    m_EntryId( "" )
@@ -99,6 +100,7 @@ void ParseResult::clear()
    m_CompleteCommand = false;
    m_CompleteUpdateCommand = false;
    m_CompleteSelectCommand = false;
+   m_CompleteTag = false;
    m_CompleteAttribute = false;
    m_CompletePasswordOrKey = false;
    m_EntryId = "";
@@ -173,6 +175,16 @@ void ParseResult::setCompleteSelectCommand()
 bool ParseResult::completeSelectCommand()
 {
    return m_CompleteSelectCommand;
+}
+
+void ParseResult::setCompleteTag()
+{
+   m_CompleteTag = true;
+}
+
+bool ParseResult::completeTag()
+{
+   return m_CompleteTag;
 }
 
 void ParseResult::setCompleteAttribute()

@@ -95,12 +95,29 @@ cmd_line ::= CLOSE(C) NEWLINE.
     parseResult->setCommand(
         std::shared_ptr<ICommand>( new InstanceTask( InstanceTask::CLOSE ) ) );
 }
+cmd_line ::= LIST.             { parseResult->setCompleteSpace(); }
 cmd_line ::= LIST(C) NEWLINE.
 {
     parseResult->addToken( C );
 
     parseResult->setCommand(
         std::shared_ptr<ICommand>( new EntryTask( EntryTask::LIST ) ) );
+}
+cmd_line ::= LIST WHITESPACE.  { parseResult->setCompleteTag(); }
+cmd_line ::= LIST(C) WHITESPACE OTHER_ID(ID) NEWLINE.
+{
+    parseResult->addToken( ID );
+    parseResult->addToken( C );
+
+    parseResult->setCommand(
+        std::shared_ptr<ICommand>( new EntryTask( EntryTask::LIST, ID ) ) );
+}
+cmd_line ::= TAGS(C) NEWLINE.
+{
+    parseResult->addToken( C );
+
+    parseResult->setCommand(
+        std::shared_ptr<ICommand>( new EntryTask( EntryTask::TAGS ) ) );
 }
 cmd_line ::= SEARCH(C) WHITESPACE arguments NEWLINE.
 {
@@ -258,6 +275,45 @@ cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE DELETE_PASSWORD_OR_KEY
 
     parseResult->setCommand(
         std::shared_ptr<ICommand>( new EntryTask( EntryTask::DELETE_PASSWORD_OR_KEY, ID, POS ) ) );
+}
+cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE ADD_TAG(T) NEWLINE.
+{
+    parseResult->addToken( T );
+    parseResult->addToken( ID );
+    parseResult->addToken( C );
+
+    parseResult->setCommand(
+        std::shared_ptr<ICommand>( new EntryTask( EntryTask::ADD_TAG, ID ) ) );
+}
+cmd_line ::= UPDATE WHITESPACE ENTRY_ID(ID) WHITESPACE UPDATE_TAG WHITESPACE.
+{
+   parseResult->setEntryId( ID );
+   parseResult->setCompleteTag();
+}
+cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE UPDATE_TAG(U) WHITESPACE OTHER_ID(POS) NEWLINE.
+{
+    parseResult->addToken( POS );
+    parseResult->addToken( U );
+    parseResult->addToken( ID );
+    parseResult->addToken( C );
+
+    parseResult->setCommand(
+        std::shared_ptr<ICommand>( new EntryTask( EntryTask::UPDATE_TAG, ID, POS ) ) );
+}
+cmd_line ::= UPDATE WHITESPACE ENTRY_ID(ID) WHITESPACE DELETE_TAG WHITESPACE.
+{
+   parseResult->setEntryId( ID );
+   parseResult->setCompleteTag();
+}
+cmd_line ::= UPDATE(C) WHITESPACE ENTRY_ID(ID) WHITESPACE DELETE_TAG(T) WHITESPACE OTHER_ID(POS) NEWLINE.
+{
+    parseResult->addToken( POS );
+    parseResult->addToken( T );
+    parseResult->addToken( ID );
+    parseResult->addToken( C );
+
+    parseResult->setCommand(
+        std::shared_ptr<ICommand>( new EntryTask( EntryTask::DELETE_TAG, ID, POS ) ) );
 }
 cmd_line ::= APG(A) NEWLINE.
 {

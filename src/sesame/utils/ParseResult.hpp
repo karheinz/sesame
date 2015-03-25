@@ -88,6 +88,12 @@ class ParseResult
       /** User requests completion of update command? */
       bool completeSelectCommand();
 
+      void setCompleteTag();
+
+      /** User requests completion of tag? */
+      bool completeTag();
+
+
       void setCompleteAttribute();
 
       /** User requests completion of attribute? */
@@ -123,6 +129,7 @@ class ParseResult
       bool m_CompleteCommand;
       bool m_CompleteUpdateCommand;
       bool m_CompleteSelectCommand;
+      bool m_CompleteTag;
       bool m_CompleteAttribute;
       bool m_CompletePasswordOrKey;
       String m_EntryId;

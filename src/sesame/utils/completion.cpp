@@ -52,11 +52,19 @@ namespace
    const Vector<String> editModes = { "emacs", "vi" };
    const Vector<String> baseCommands = { "help", "clear", "quit", "edit-mode " };
    const Vector<String> noInstanceCommands = { "new", "open " };
-   const Vector<String> instanceCommands = { "apg", "close", "write ", "list", "show ", "decrypt ",
+   const Vector<String> instanceCommands = { "apg", "close", "write ", "list", "tags", "show ", "decrypt ",
                                              "add ", "delete ", "update ", "select " };
    const Vector<String> updateCommands = { "add_attribute", "update_attribute ", "delete_attribute ",
-                                           "add_password", "add_key", "update_password_or_key ", "delete_password_or_key " };
+                                           "add_password", "add_key", "update_password_or_key ", "delete_password_or_key ",
+                                           "add_tag", "update_tag ", "delete_tag " };
    const Vector<String> selectCommands = { "export_password_or_key " };
+
+   const Vector<String> setToSortedVector( const Set<String>& s )
+   {
+      Vector<String> v( s.begin(), s.end() );
+      std::sort( v.begin(), v.end() );
+      return v;
+   }
 
    int cpl_add_completions(
       WordCompletion* cpl,
@@ -158,7 +166,46 @@ CPL_MATCH_FN(cpl_complete_sesame)
    {
       cpl_add_completions( cpl, line, word_end, selectCommands, right );
    }
-   else if ( parseResult.completeAttribute() && instance )
+   else if ( parseResult.completeTag() && instance )
+   {
+      if ( parseResult.getEntryId().empty() )
+      {
+         Vector<String> choices;
+         std::size_t limit( instance->getTags().size() );
+         for ( std::size_t i = 1; i <= limit; ++i )
+         {
+            StringStream s;
+            s << "#" << i;
+            choices.push_back( s.str() );
+         }
+         cpl_add_completions( cpl, line, word_end, choices, right );
+      }
+      else
+      {
+         try
+         {
+            Entry entry( instance->findEntry( parseResult.getEntryId() ) );
+            Set<String> tags( entry.getTags() );
+            Vector<String> allTags( setToSortedVector( instance->getTags() ) );
+
+            Vector<String> choices;
+            for ( std::size_t i = 1; i <= allTags.size(); ++i )
+            {
+               if ( tags.find( allTags[ i - 1 ] ) != tags.end() )
+               {
+                  StringStream s;
+                  s << "#" << i;
+                  choices.push_back( s.str() );
+               }
+            }
+            cpl_add_completions( cpl, line, word_end, choices, right );
+         }
+         catch ( std::runtime_error& )
+         {
+            // entry not found
+         }
+      }
+   }   else if ( parseResult.completeAttribute() && instance )
    {
       try
       {

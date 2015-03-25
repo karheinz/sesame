@@ -171,14 +171,16 @@ namespace sesame
       return ( m_Tags.find( tag ) != m_Tags.cend() );
    }
 
-   void Entry::addTag( const String& tag )
+   bool Entry::addTag( const String& tag )
    {
-      m_Tags.insert( tag );
+      std::pair<Set<String>::const_iterator,bool> result( m_Tags.insert( tag ) );
+
+      return result.second;
    }
 
-   void Entry::deleteTag( const String& tag )
+   bool Entry::deleteTag( const String& tag )
    {
-      m_Tags.erase( tag );
+      return ( m_Tags.erase( tag ) == 1 );
    }
 
    void Entry::clear()

@@ -72,6 +72,36 @@ namespace {
       }
    };
 
+   const Vector<String> setToSortedVector( const Set<String>& s )
+   {
+      Vector<String> v( s.begin(), s.end() );
+      std::sort( v.begin(), v.end() );
+      return v;
+   }
+
+   const String getTagAtPos( const Vector<String>& v, const String& pos )
+   {
+      // Adjust pos.
+      String s( pos );
+
+      if ( s.find( "#" ) == 0 )
+      {
+         s.replace( 0, 1, "" );
+      }
+
+      StringStream ss;
+      ss << s;
+      std::size_t p;
+      ss >> p;
+
+      if ( p < 1 || p > v.size() )
+      {
+         throw std::runtime_error( "tag not found" );
+      }
+
+      return v[ p - 1 ];
+   }
+
    template <class T>
    const Vector<std::pair<String,T>> toSortedVector( const Map<String,T>& m )
    {
@@ -129,6 +159,33 @@ namespace {
 
       return result;
    }
+
+   String preProcessTag( std::shared_ptr<Instance>& instance, const String& tag )
+   {
+      String result( tag );
+
+      // Reference to existing tag?
+      if ( tag.size() > 1 &&
+           tag.find( "#" ) == 0 &&
+           tag.substr( 1 ).find_first_not_of( "0123456789" ) == String::npos
+         )
+      {
+         std::size_t index;
+         StringStream num;
+         num << tag.substr( 1 );
+         num >> index;
+
+         Vector<String> allTags( setToSortedVector( instance->getTags() ) );
+         if ( index < 1 || index > allTags.size() )
+         {
+            throw std::runtime_error( "tag does not exist" );
+         }
+
+         result = allTags[ index - 1 ].c_str();
+      }
+
+      return result;
+   }
 }
 
 EntryTask::EntryTask( const Type taskType, const String& id, const String& pos ) :
@@ -150,7 +207,26 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
    {
       case LIST:
       {
-         const Vector<Entry> entries( toSortedVector( instance->getEntries() ) );
+         Vector<Entry> entries;
+
+         if ( m_Id.empty() )
+         {
+            entries = toSortedVector( instance->getEntries() );
+         }
+         else
+         {
+            Vector<String> tags( setToSortedVector( instance->getTags() ) );
+            String tag( getTagAtPos( tags, m_Id ) );
+            Set<String> filter;
+            filter.insert( tag );
+
+            entries = toSortedVector( instance->getEntries( filter ) );
+         }
+
+         if ( ! m_Id.empty() && entries.empty() )
+         {
+            throw std::runtime_error( "tag not found" );
+         }
 
          if ( entries.empty() )
          {
@@ -183,6 +259,38 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          }
          break;
       }
+      case TAGS:
+      {
+         const Vector<String> tags( setToSortedVector( instance->getTags() ) );
+
+         if ( tags.empty() )
+         {
+            std::cout << "No tags yet." << std::endl;
+         }
+         else
+         {
+            std::cout << "Tags:" << std::endl;
+         }
+
+         std::size_t i( tags.size() );
+         std::size_t k( 1 );
+         for ( auto& tag : tags )
+         {
+            if ( i-- > 1 )
+            {
+               std::cout << utils::branch();
+            }
+            else
+            {
+               std::cout << utils::corner();
+            }
+
+            std::cout << "[#" << k++ << "] "
+                      << tag
+                      << std::endl;
+         }
+         break;
+      }
       case SHOW:
       {
          const Entry entry( instance->findEntry( m_Id ) );
@@ -192,9 +300,32 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
                    << utils::ESC_SEQ_RESET
                    << std::endl;
 
+         const Vector<String> allTags( setToSortedVector( instance->getTags() ) );
+         const Set<String> tags( entry.getTags() );
          const Vector<std::pair<String,String>> attributes( toSortedVector( entry.getAttributes() ) );
          const Vector<std::pair<String,Data>> data( toSortedVector( entry.getLabeledData() ) );
          String filler( utils::down() );
+
+         std::cout << utils::branch() << "Tag(s):" << std::endl;
+         std::size_t h = 0;
+         for ( auto& tag : allTags )
+         {
+            ++h;
+
+            if ( tags.find( tag ) != tags.end() )
+            {
+               if ( h < tags.size() )
+               {
+                  std::cout << filler << utils::branch( 1 );
+               }
+               else
+               {
+                  std::cout << filler << utils::corner( 1 );
+               }
+
+               std::cout << "[#" << h << "] " << tag << std::endl;
+            }
+         }
 
          std::cout << utils::branch() << "Attribute(s):" << std::endl;
          std::size_t i = 1;
@@ -293,15 +424,20 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          namePrompt << "Name (" << entry.getName() << "): ";
          String name( reader.readLine( namePrompt.str() ) );
          name = utils::strip( name );
-         if ( ! name.empty() )
+
+         if ( name.empty() || name == entry.getName() )
          {
-            entry.setName( name );
+            std::cout << "No changes." << std::endl;
+            break;
          }
+
+         entry.setName( name );
          if ( ! instance->updateEntry( entry ) )
          {
             throw std::runtime_error( "failed to update entry" );
          }
          std::cout << "Updated entry #" << entry.getIdAsHexString() << "." << std::endl;
+
          break;
       }
       case ADD_ATTRIBUTE:
@@ -360,6 +496,14 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          valuePrompt << "Value (" << attribute.second << "): ";
          String value( reader.readLine( valuePrompt.str() ) );
          value = utils::strip( value );
+
+         if ( ( name.empty() || name == attribute.first ) &&
+              ( value.empty() || value == attribute.second )
+            )
+         {
+            std::cout << "No changes." << std::endl;
+            break;
+         }
 
          if ( ! entry.updateAttribute(
                   attribute.first,
@@ -478,6 +622,14 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
             password = utils::strip( password );
             password = preProcessPassword( password );
 
+            if ( ( label.empty() || label == labeledDate.first ) &&
+                 ( password.empty() || password == labeledDate.second.getPlaintext<String>() )
+               )
+            {
+               std::cout << "No changes." << std::endl;
+               break;
+            }
+
             if ( ! entry.updateLabeledData(
                      labeledDate.first,
                      label.empty() ? labeledDate.first : label,
@@ -491,6 +643,14 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          else
          {
             const Vector<uint8_t> data( askForInputFileAndRead( &( labeledDate.second ) ) );
+
+            if ( ( label.empty() || label == labeledDate.first ) &&
+                 ( data.empty() || data == labeledDate.second.getPlaintext<Vector<uint8_t>>() )
+               )
+            {
+               std::cout << "No changes." << std::endl;
+               break;
+            }
 
             if ( ! entry.updateLabeledData(
                      labeledDate.first,
@@ -588,6 +748,100 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
                entry.getIdAsHexString() << "." << std::endl;
          }
 
+         break;
+      }
+      case ADD_TAG:
+      {
+         Entry entry( instance->findEntry( m_Id ) );
+
+         utils::Reader reader( 1024 );
+         String tag( reader.readLine( "Tag: " ) );
+         tag = utils::strip( tag );
+         checkInput( tag, "empty tag" );
+         tag = preProcessTag( instance, tag );
+         if ( ! entry.addTag( tag ) )
+         {
+            throw std::runtime_error( "tag already assigned" );
+         }
+         if ( ! instance->updateEntry( entry ) )
+         {
+            throw std::runtime_error( "failed to update entry" );
+         }
+         std::cout << "Added tag to entry #" <<
+            entry.getIdAsHexString() << "." << std::endl;
+         break;
+      }
+      case UPDATE_TAG:
+      {
+         Entry entry( instance->findEntry( m_Id ) );
+
+         String tag( getTagAtPos( setToSortedVector( instance->getTags() ), m_Pos ) );
+
+         if ( ! entry.hasTag( tag ) )
+         {
+            throw std::runtime_error( "tag not assigned to entry" );
+         }
+
+         utils::Reader reader( 1024 );
+         StringStream s;
+         s << "Tag (" << tag << "): ";
+         String newTag( reader.readLine( s.str() ) );
+         newTag = utils::strip( newTag );
+         newTag = preProcessTag( instance, newTag );
+
+         // Change tag of all affected entries!!!
+         if ( newTag.empty() || newTag == tag )
+         {
+            std::cout << "No changes." << std::endl;
+            break;
+         }
+
+         Set<String> filter;
+         filter.insert( tag );
+         Set<Entry> entries( instance->getEntries( filter ) );
+         for ( auto& entry : entries )
+         {
+            if ( ! const_cast<Entry&>( entry ).deleteTag( tag ) )
+            {
+               throw std::runtime_error( "failed to delete old tag" );
+            }
+            if ( ! entry.hasTag( newTag ) )
+            {
+               if ( ! const_cast<Entry&>( entry ).addTag( newTag ) )
+               {
+                  throw std::runtime_error( "failed to add new tag" );
+               }
+            }
+            if ( ! instance->updateEntry( entry ) )
+            {
+               throw std::runtime_error( "failed to update entry" );
+            }
+         }
+         std::cout << "Updated tag of entry #" <<
+            entry.getIdAsHexString() << " and " << ( entries.size() - 1 ) << " others." << std::endl;
+
+         break;
+      }
+      case DELETE_TAG:
+      {
+         Entry entry( instance->findEntry( m_Id ) );
+
+         String tag( getTagAtPos( setToSortedVector( instance->getTags() ), m_Pos ) );
+
+         if ( ! entry.hasTag( tag ) )
+         {
+            throw std::runtime_error( "tag not assigned to entry" );
+         }
+         if ( ! entry.deleteTag( tag ) )
+         {
+            throw std::runtime_error( "failed to delete tag" );
+         }
+         if ( ! instance->updateEntry( entry ) )
+         {
+            throw std::runtime_error( "failed to update entry" );
+         }
+         std::cout << "Deleted tag from entry #" <<
+            entry.getIdAsHexString() << "." << std::endl;
          break;
       }
       default:

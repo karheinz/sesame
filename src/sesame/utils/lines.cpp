@@ -44,7 +44,7 @@ String buildLine( uint8_t level, const String& elem )
    s << elem;
    for ( uint8_t i = 0; i < INDENTATION; ++i )
    {
-      s << u8"\u2500"; 
+      s << u8"\u2500";
    }
 
    return utils::fromUtf8( s.str() );

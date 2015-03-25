@@ -213,15 +213,20 @@ namespace sesame
           * Adds a tag to the entry.
           *
           * @param tag the tag to add
+          *
+          * @return <tt>true</tt> if tag was added,
+          *       <tt>false</tt> if tag already exists
           */
-         void addTag( const String& tag );
+         bool addTag( const String& tag );
 
          /**
           * Removes a tag from the entry.
           *
           * @param tag the tag to delete
+          *
+          * @return <tt>true</tt> if tag was deleted, otherwise <tt>false</tt>
           */
-         void deleteTag( const String& tag );
+         bool deleteTag( const String& tag );
 
          /**
           * Clears data so it can be used in other contexts.

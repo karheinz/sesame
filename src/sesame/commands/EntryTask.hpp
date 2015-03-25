@@ -39,6 +39,7 @@ class EntryTask : public ICommand
       enum Type
       {
          LIST,
+         TAGS,
          SEARCH,
          SHOW,
          DECRYPT,
@@ -53,7 +54,10 @@ class EntryTask : public ICommand
          DELETE_PASSWORD_OR_KEY,
          UPDATE_PASSWORD_OR_KEY,
          EXPORT_PASSWORD_OR_KEY,
-         EXPORT_KEY
+         EXPORT_KEY,
+         ADD_TAG,
+         UPDATE_TAG,
+         DELETE_TAG
       };
 
       /**
