@@ -335,6 +335,18 @@ namespace sesame
       }
    }
 
+   void Instance::decryptEntries( const String& password )
+   {
+      Vector<uint8_t> key;
+
+      if ( ! getCryptoMachine().deriveKey( utils::toUtf8( password ), m_Params2, key ) )
+      {
+         throw std::runtime_error( "key derivation failed" );
+      }
+
+      decryptEntries( key );
+   }
+
    void Instance::decryptEntries( const Vector<uint8_t>& key )
    {
       for ( auto& entry : m_Entries )
@@ -596,6 +608,19 @@ namespace sesame
    void Instance::recalcInitialDigest()
    {
       m_InitialDigest = calcDigest();
+   }
+
+   bool Instance::isPlain() const
+   {
+      for ( const auto& entry : m_Entries )
+      {
+         if ( ! entry.isPlain() )
+         {
+            return false;
+         }
+      }
+
+      return true;
    }
 
    bool Instance::isDirty() const

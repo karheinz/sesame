@@ -51,7 +51,7 @@ InstanceTask::InstanceTask( const Type taskType, const String& path ) :
 
 void InstanceTask::run( std::shared_ptr<Instance>& instance )
 {
-   if ( m_TaskType == CLOSE || m_TaskType == WRITE )
+   if ( m_TaskType == RECRYPT || m_TaskType == CLOSE || m_TaskType == WRITE )
    {
       if ( ! instance )
       {
@@ -181,6 +181,73 @@ void InstanceTask::run( std::shared_ptr<Instance>& instance )
          std::cout << "Opened container #" << instance->getIdAsHexString() << "." << std::endl;
          break;
       }
+      case RECRYPT:
+      {
+         if ( ! instance->isPlain() )
+         {
+            // decrypt first
+            utils::Reader reader( 1024 );
+            String password( reader.readLine( "password or phrase: ", true ) );
+            password = utils::strip( password );
+
+            if ( password.empty() )
+            {
+               throw std::runtime_error( "empty password or phrase" );
+            }
+
+            instance->decryptEntries( password );
+            std::cout << "Decrypted entries.\n" << std::endl;
+         }
+
+         utils::Reader reader( 1024 );
+         String choice;
+         uint32_t ldN;
+
+         std::cout << "First you have to specify how much memory should be used for\n";
+         std::cout << "derivation of the key used for encryption of the container:" << std::endl;
+         choice = reader.readLine( "[1] 512MiB, [2] 1024MiB or [3] 2048MiB?  " );
+         choice = utils::strip( utils::toUtf8( choice ) );
+         if ( choice == u8"1" ) { ldN = 19; }
+         else if ( choice == u8"2" ) { ldN = 20; }
+         else if ( choice == u8"3" ) { ldN = 21; }
+         else { throw std::runtime_error( "invalid choice" ); }
+         Map<String,Vector<uint8_t>> params1;
+         {
+            Vector<uint8_t> ldNVector;
+            packV( ldNVector, ldN );
+            params1[ utils::fromUtf8( u8"ldN" ) ] = ldNVector;
+         }
+
+         std::cout << "Second you have to specify how much memory should be used for\n";
+         std::cout << "derivation of the key used for encryption of the embedded secrets:" << std::endl;
+         choice = reader.readLine( "[1] 64MiB, [2] 128MiB or [3] 256MiB?  " );
+         choice = utils::strip( utils::toUtf8( choice ) );
+         if ( choice == u8"1" ) { ldN = 16; }
+         else if ( choice == u8"2" ) { ldN = 17; }
+         else if ( choice == u8"3" ) { ldN = 18; }
+         else { throw std::runtime_error( "invalid choice" ); }
+         Map<String,Vector<uint8_t>> params2;
+         {
+            Vector<uint8_t> ldNVector;
+            packV( ldNVector, ldN );
+            params2[ utils::fromUtf8( u8"ldN" ) ] = ldNVector;
+         }
+
+         std::shared_ptr<Instance> newInstance( new Instance( PROTOCOL_SCRYPT_AES_CBC_SHA_V1, params1, params2 ) );
+         Set<Entry> entries( instance->getEntries() );
+         for ( auto& entry : entries )
+         {
+            Entry& alias( const_cast<Entry&>( entry ) );
+            alias.clear();
+            newInstance->addEntry( alias );
+         }
+         instance = newInstance;
+
+         std::cout << "Copied entries to new container #" << instance->getIdAsHexString() << ".\n";
+         std::cout << "Don't forget to write your changes!" << std::endl;
+         break;
+      }
+
       case WRITE:
       {
          String ext( utils::getExtension( m_Path ) );

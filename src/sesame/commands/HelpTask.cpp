@@ -101,6 +101,9 @@ void HelpTask::run( std::shared_ptr<Instance>& instance )
             std::cout << ESC_SEQ_ULINE << "FILE" << ESC_SEQ_RESET;
             std::cout << " is a JPEG image";
 
+            std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "recrypt" << ESC_SEQ_RESET;
+            std::cout << "\n" << std::setw( 14 ) << " " << "recrypts the container with new crypto params";
+
             std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "close" << ESC_SEQ_RESET;
             std::cout << "\n" << std::setw( 14 ) << " " << "closes the current container";
 
@@ -113,7 +116,12 @@ void HelpTask::run( std::shared_ptr<Instance>& instance )
             std::cout << "use " << ESC_SEQ_BOLD << "-h" << ESC_SEQ_RESET << " for help";
 
             std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "list" << ESC_SEQ_RESET;
-            std::cout << "\n" << std::setw( 14 ) << " " << "lists entries of the container";
+            std::cout << " [" << ESC_SEQ_ULINE << "TAG" << ESC_SEQ_RESET << "]";
+            std::cout << "\n" << std::setw( 14 ) << " " << "lists entries of the container (tagged";
+            std::cout << " with " << ESC_SEQ_ULINE << "TAG" << ESC_SEQ_RESET << ")";
+
+            std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "tags" << ESC_SEQ_RESET;
+            std::cout << "\n" << std::setw( 14 ) << " " << "lists all tags assigned to entries";
 
             std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "add" << ESC_SEQ_RESET;
             std::cout << "\n" << std::setw( 14 ) << " " << "adds an entry to the current container";
@@ -130,32 +138,35 @@ void HelpTask::run( std::shared_ptr<Instance>& instance )
             std::cout << "\n\n" << std::setw( 7 ) << " ";
             std::cout << ESC_SEQ_BOLD << "update" << ESC_SEQ_RESET << " ";
             std::cout << ESC_SEQ_ULINE << "ENTRY" << ESC_SEQ_RESET << " (";
+            std::cout << ESC_SEQ_BOLD << "add_tag" << ESC_SEQ_RESET << "|";
             std::cout << ESC_SEQ_BOLD << "add_attribute" << ESC_SEQ_RESET << "|";
             std::cout << ESC_SEQ_BOLD << "add_password" << ESC_SEQ_RESET << "|";
             std::cout << ESC_SEQ_BOLD << "add_key" << ESC_SEQ_RESET << ")";
             std::cout << "\n" << std::setw( 14 ) << " ";
-            std::cout << "adds an attribute, password or key to ";
+            std::cout << "adds a tag, attribute, password or key to ";
             std::cout << "the specified " << ESC_SEQ_ULINE << "ENTRY" << ESC_SEQ_RESET;
 
             std::cout << "\n\n" << std::setw( 7 ) << " ";
             std::cout << ESC_SEQ_BOLD << "update" << ESC_SEQ_RESET << " ";
             std::cout << ESC_SEQ_ULINE << "ENTRY" << ESC_SEQ_RESET << " (";
+            std::cout << ESC_SEQ_BOLD << "update_tag" << ESC_SEQ_RESET << "|";
             std::cout << ESC_SEQ_BOLD << "update_attribute" << ESC_SEQ_RESET << "|";
             std::cout << ESC_SEQ_BOLD << "update_password_or_key" << ESC_SEQ_RESET << ") ";
             std::cout << ESC_SEQ_ULINE << "ID" << ESC_SEQ_RESET;
             std::cout << "\n" << std::setw( 14 ) << " ";
-            std::cout << "updates attribute, password or key with ";
+            std::cout << "updates tag, attribute, password or key with ";
             std::cout << ESC_SEQ_ULINE << "ID" << ESC_SEQ_RESET << " of the specified ";
             std::cout << ESC_SEQ_ULINE << "ENTRY" << ESC_SEQ_RESET;
 
             std::cout << "\n\n" << std::setw( 7 ) << " ";
             std::cout << ESC_SEQ_BOLD << "update" << ESC_SEQ_RESET << " ";
             std::cout << ESC_SEQ_ULINE << "ENTRY" << ESC_SEQ_RESET << " (";
+            std::cout << ESC_SEQ_BOLD << "delete_tag" << ESC_SEQ_RESET << "|";
             std::cout << ESC_SEQ_BOLD << "delete_attribute" << ESC_SEQ_RESET << "|";
             std::cout << ESC_SEQ_BOLD << "delete_password_or_key" << ESC_SEQ_RESET << ") ";
             std::cout << ESC_SEQ_ULINE << "ID" << ESC_SEQ_RESET;
             std::cout << "\n" << std::setw( 14 ) << " ";
-            std::cout << "deletes attribute, password or key with ";
+            std::cout << "deletes tag, attribute, password or key with ";
             std::cout << ESC_SEQ_ULINE << "ID" << ESC_SEQ_RESET << " of the specified ";
             std::cout << ESC_SEQ_ULINE << "ENTRY" << ESC_SEQ_RESET;
 

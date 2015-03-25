@@ -40,6 +40,7 @@ class InstanceTask : public ICommand
       {
          NEW,
          OPEN,
+         RECRYPT,
          WRITE,
          CLOSE
       };

@@ -177,6 +177,15 @@ namespace sesame
          void decryptEntry( Entry& entry, const String& password );
 
          /**
+          * Decrypts all entries.
+          *
+          * @param password the password to use
+          *
+          * @throw std::runtime_error on failure
+          */
+         void decryptEntries( const String& password );
+
+         /**
           * Decrypts data.
           *
           * @param data the data to decrypt
@@ -217,6 +226,15 @@ namespace sesame
           * Recalcs initial digest.
           */
          void recalcInitialDigest();
+
+         /**
+          * Returns <tt>true</tt> if all entries are plain,
+          * meaning plaintexts of all data are available.
+          *
+          * @return <tt>true</tt> if all entries are plain,
+          *       otherwise <tt>false</tt>
+          */
+         bool isPlain() const;
 
          /**
           * Returns <tt>true</tt> if there are unsafed changes.

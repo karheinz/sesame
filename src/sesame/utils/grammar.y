@@ -341,6 +341,13 @@ cmd_line ::= WRITE(C) WHITESPACE ARGUMENT(A) NEWLINE.
     parseResult->setCommand(
         std::shared_ptr<ICommand>( new InstanceTask( InstanceTask::WRITE, A ) ) );
 }
+cmd_line ::= RECRYPT(C) NEWLINE.
+{
+    parseResult->addToken( C );
+
+    parseResult->setCommand(
+        std::shared_ptr<ICommand>( new InstanceTask( InstanceTask::RECRYPT ) ) );
+}
 arguments ::= ARGUMENT(A).
 {
     parseResult->addToken( A );

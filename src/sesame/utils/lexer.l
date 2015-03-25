@@ -75,6 +75,7 @@ NL  (\r?\n)
 <START_COND>update                        { BEGIN( UPDATE_COND ); return UPDATE; }
 <START_COND>select                        { BEGIN( SELECT_COND ); return SELECT; }
 <START_COND>write                         { BEGIN( CMD_COND ); return WRITE; }
+<START_COND>recrypt                       { BEGIN( CMD_COND ); return RECRYPT; }
 <START_COND>{CH}+                         { return START; }
 <UPDATE_COND>#{HX}+                       { BEGIN( UPDATE_ENTRY_COND ); return ENTRY_ID; }
 <UPDATE_ENTRY_COND>add_password           { BEGIN( CMD_COND ); return ADD_PASSWORD; }

@@ -52,7 +52,7 @@ namespace
    const Vector<String> editModes = { "emacs", "vi" };
    const Vector<String> baseCommands = { "help", "clear", "quit", "edit-mode " };
    const Vector<String> noInstanceCommands = { "new", "open " };
-   const Vector<String> instanceCommands = { "apg", "close", "write ", "list", "tags", "show ", "decrypt ",
+   const Vector<String> instanceCommands = { "apg", "close", "write ", "recrypt", "list", "tags", "show ", "decrypt ",
                                              "add ", "delete ", "update ", "select " };
    const Vector<String> updateCommands = { "add_attribute", "update_attribute ", "delete_attribute ",
                                            "add_password", "add_key", "update_password_or_key ", "delete_password_or_key ",
