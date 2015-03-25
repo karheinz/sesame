@@ -8,7 +8,7 @@ before_install: |
   fi
   sudo apt-get update -qq
 install: |
-  sudo apt-get install cmake
+  sudo apt-get install cmake cmake-data
   if [[ "$CXX" == "g++" ]]; then
     sudo apt-get install -qq g++-4.8
   fi
