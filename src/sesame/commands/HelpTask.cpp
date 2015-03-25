@@ -102,7 +102,8 @@ void HelpTask::run( std::shared_ptr<Instance>& instance )
             std::cout << " is a JPEG image";
 
             std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "recrypt" << ESC_SEQ_RESET;
-            std::cout << "\n" << std::setw( 14 ) << " " << "recrypts the container with new crypto params";
+            std::cout << "\n" << std::setw( 14 ) << " ";
+            std::cout << "recrypts the container with new crypto params and/or password/phrase";
 
             std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "close" << ESC_SEQ_RESET;
             std::cout << "\n" << std::setw( 14 ) << " " << "closes the current container";
