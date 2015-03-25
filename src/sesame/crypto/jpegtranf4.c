@@ -118,7 +118,7 @@ int f4_extract_message(
 
      rows_to_read = current->rows_in_array;
      rows_read = 0;
-     
+
      while ( rows_to_read > 0 )
      {
         // Determine number of rows allowed to read at once.
@@ -142,7 +142,7 @@ int f4_extract_message(
             blockrow = blockarray[ row ];
             blocks = current->blocksperrow;
 
-            for ( block = 0; block < blocks; ++block ) 
+            for ( block = 0; block < blocks; ++block )
             {
                // Ignore last coefficient.
                for ( coeff = 0; coeff < ( coeffs - 1 ); ++coeff )
@@ -248,7 +248,7 @@ int f4_embed_message(
             blockrow = blockarray[ row ];
             blocks = current->blocksperrow;
 
-            for ( block = 0; block < blocks; ++block ) 
+            for ( block = 0; block < blocks; ++block )
             {
                // Ignore last coefficient.
                for ( coeff = 0; coeff < ( coeffs - 1 ); ++coeff )
