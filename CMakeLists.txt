@@ -2,7 +2,8 @@ CMAKE_MINIMUM_REQUIRED( VERSION 2.8.9 )
 
 ENABLE_TESTING()
 
-SET( CMAKE_CXX_FLAGS "-std=c++11 -Wall" )
+SET( CMAKE_CXX_FLAGS "-std=c++11 -Os -Wall" )
+SET( CMAKE_BUILD_TYPE "Release" )
 
 # nasm (netwide assembler)
 FIND_PROGRAM( BINNASM "nasm" )
