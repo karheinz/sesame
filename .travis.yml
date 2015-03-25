@@ -1,0 +1,10 @@
+language: cpp
+compiler:
+  - gcc
+script:
+  - cmake
+  - make
+after_success:
+  - make test
+os:
+  - linux
