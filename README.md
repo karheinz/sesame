@@ -31,15 +31,15 @@ What you can do so far is:
 
 * create, open, close and write containers
 * list, show, add, update and delete entries
-* add, update and delete attributes, passwords and keys
+* add, update and delete attributes, passwords, keys and tags
 * export passwords and keys
 * embed container into jpeg image
 * generate passwords
 
 What is missing/planned?
 
-* signal handler for clean shutdown (on SIGTERM etc.)
-* man page and documentation
+* improve allocator (avoid swapping)
+* add man page and more documentation
 * ...
 
 
@@ -86,7 +86,7 @@ Used libraries
   - http://www.adel.nursat.kz/apg/
 * xsel (modified)
   - http://www.vergenet.net/~conrad/software/xsel/
-* libjpeg-turbo (modified)
+* libjpeg-turbo
   - http://www.libjpeg-turbo.org/
 
 The sources and - at least - the licenses of the stated libraries
