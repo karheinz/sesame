@@ -66,6 +66,7 @@ NL  (\r?\n)
 <START_COND>open                          { BEGIN( CMD_COND ); return OPEN; }
 <START_COND>close                         { BEGIN( CMD_COND ); return CLOSE; }
 <START_COND>list                          { BEGIN( LIST_COND ); return LIST; }
+<START_COND>tree                          { BEGIN( CMD_COND ); return TREE; }
 <START_COND>tags                          { BEGIN( CMD_COND ); return TAGS; }
 <START_COND>search                        { BEGIN( CMD_COND ); return SEARCH; }
 <START_COND>show                          { BEGIN( ENTRY_COND ); return SHOW; }

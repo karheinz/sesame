@@ -240,7 +240,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          std::size_t i( entries.size() );
          for ( auto& entry : entries )
          {
-            if ( i > 1 )
+            if ( i-- > 1 )
             {
                std::cout << utils::branch();
             }
@@ -254,8 +254,114 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
                       << entry.getName()
                       << utils::ESC_SEQ_RESET
                       << std::endl;
+         }
+         break;
+      }
+      case TREE:
+      {
+         const Vector<String> tags( setToSortedVector( instance->getTags() ) );
+         Vector<Entry> entries( toSortedVector( instance->getEntries() ) );
 
-            --i;
+         // No entries!
+         if ( entries.empty() )
+         {
+            std::cout << "No entries yet." << std::endl;
+            break;
+         }
+
+         std::cout << "Entries by tags:" << std::endl;
+
+         // Untagged entries?
+         std::size_t untagged( 0 );
+         for ( const auto& entry : entries )
+         {
+            if ( entry.getTags().empty() )
+            {
+               ++untagged;
+            }
+         }
+
+         if ( untagged > 0 )
+         {
+            if ( tags.size() > 0 )
+            {
+               std::cout << utils::branch();
+            }
+            else
+            {
+               std::cout << utils::corner();
+            }
+            std::cout << "Untagged:" << std::endl;
+
+            for ( const auto& entry : entries )
+            {
+               if ( entry.getTags().empty() )
+               {
+                  std::cout << utils::down();
+
+                  if ( untagged-- > 1 )
+                  {
+                     std::cout << utils::branch( 1 );
+                  }
+                  else
+                  {
+                     std::cout << utils::corner( 1 );
+                  }
+
+                  std::cout << "[#" << entry.getIdAsHexString() << "] "
+                      << utils::ESC_SEQ_BOLD
+                      << entry.getName()
+                      << utils::ESC_SEQ_RESET
+                      << std::endl;
+               }
+            }
+         }
+
+         // Entries by tag.
+         std::size_t i( 1 );
+         for ( const auto& tag : tags )
+         {
+            if ( i < tags.size() )
+            {
+               std::cout << utils::branch();
+            }
+            else
+            {
+               std::cout << utils::corner();
+            }
+            std::cout << "[#" << i++ << "] " << tag << ":" << std::endl;
+
+            Set<String> filter;
+            filter.insert( tag );
+            entries = toSortedVector( instance->getEntries( filter ) );
+
+            std::size_t k( entries.size() );
+            for ( const auto& entry : entries )
+            {
+               if ( i > tags.size() )
+               {
+                  std::cout << utils::empty();
+               }
+               else
+               {
+                  std::cout << utils::down();
+               }
+
+               if ( k-- > 1 )
+               {
+                  std::cout << utils::branch( 1 );
+               }
+               else
+               {
+                  std::cout << utils::corner( 1 );
+               }
+
+               std::cout << "[#" << entry.getIdAsHexString() << "] "
+                         << utils::ESC_SEQ_BOLD
+                         << entry.getName()
+                         << utils::ESC_SEQ_RESET
+                         << std::endl;
+            }
          }
          break;
       }
@@ -818,7 +924,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
             }
          }
          std::cout << "Updated tag of entry #" <<
-            entry.getIdAsHexString() << " and " << ( entries.size() - 1 ) << " others." << std::endl;
+            entry.getIdAsHexString() << " and " << ( entries.size() - 1 ) << " other(s)." << std::endl;
 
          break;
       }

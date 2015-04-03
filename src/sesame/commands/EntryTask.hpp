@@ -39,6 +39,7 @@ class EntryTask : public ICommand
       enum Type
       {
          LIST,
+         TREE,
          TAGS,
          SEARCH,
          SHOW,

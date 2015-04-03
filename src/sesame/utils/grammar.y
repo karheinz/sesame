@@ -112,6 +112,13 @@ cmd_line ::= LIST(C) WHITESPACE OTHER_ID(ID) NEWLINE.
     parseResult->setCommand(
         std::shared_ptr<ICommand>( new EntryTask( EntryTask::LIST, ID ) ) );
 }
+cmd_line ::= TREE(C) NEWLINE.
+{
+    parseResult->addToken( C );
+
+    parseResult->setCommand(
+        std::shared_ptr<ICommand>( new EntryTask( EntryTask::TREE ) ) );
+}
 cmd_line ::= TAGS(C) NEWLINE.
 {
     parseResult->addToken( C );

@@ -32,8 +32,8 @@
 namespace sesame {
 
 const uint32_t VERSION_MAJOR = 0;
-const uint32_t VERSION_MINOR = 2;
-const uint32_t VERSION_BUGFIX = 1;
+const uint32_t VERSION_MINOR = 3;
+const uint32_t VERSION_BUGFIX = 0;
 
 namespace
 {
