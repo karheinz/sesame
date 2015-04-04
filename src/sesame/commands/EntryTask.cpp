@@ -208,45 +208,86 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
       case LIST:
       {
          Vector<Entry> entries;
+         String tag;
 
+         // All entries.
          if ( m_Id.empty() )
          {
             entries = toSortedVector( instance->getEntries() );
+
+            if ( entries.empty() )
+            {
+               std::cout << "No entries yet." << std::endl;
+               break;
+            }
          }
+         // Untagged entries.
+         else if ( m_Id == "#0" )
+         {
+            tag = "Untagged";
+            Vector<Entry> allEntries( toSortedVector( instance->getEntries() ) );
+
+            if ( allEntries.empty() )
+            {
+               std::cout << "No entries yet." << std::endl;
+               break;
+            }
+
+            for ( const auto& entry : allEntries )
+            {
+               if ( entry.getTags().empty() )
+               {
+                  entries.push_back( entry );
+               }
+            }
+
+            if ( entries.empty() )
+            {
+               std::cout << "No untagged entries." << std::endl;
+               break;
+            }
+         }
+         // Tagged entries.
          else
          {
             Vector<String> tags( setToSortedVector( instance->getTags() ) );
-            String tag( getTagAtPos( tags, m_Id ) );
+            tag = getTagAtPos( tags, m_Id );
             Set<String> filter;
             filter.insert( tag );
 
             entries = toSortedVector( instance->getEntries( filter ) );
+            if ( entries.empty() )
+            {
+               throw std::runtime_error( "tag not found" );
+            }
          }
 
-         if ( ! m_Id.empty() && entries.empty() )
-         {
-            throw std::runtime_error( "tag not found" );
-         }
-
-         if ( entries.empty() )
-         {
-            std::cout << "No entries yet." << std::endl;
-         }
-         else
+         // List entries.
+         if ( m_Id.empty() )
          {
             std::cout << "Entries:" << std::endl;
          }
+         else
+         {
+            std::cout << "Entries by tag:\n" <<
+               utils::corner() << "[" << m_Id << "] " << tag << ":" << std::endl;
+         }
 
          std::size_t i( entries.size() );
-         for ( auto& entry : entries )
+         for ( const auto& entry : entries )
          {
+            if ( ! m_Id.empty() )
+            {
+               std::cout << utils::empty();
+            }
+
             if ( i-- > 1 )
             {
-               std::cout << utils::branch();
+               std::cout << utils::branch( m_Id.empty() ? 0 : 1 );
             }
             else
             {
-               std::cout << utils::corner();
+               std::cout << utils::corner( m_Id.empty() ? 0 : 1 );
             }
 
             std::cout << "[#" << entry.getIdAsHexString() << "] "
@@ -255,6 +296,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
                       << utils::ESC_SEQ_RESET
                       << std::endl;
          }
+
          break;
       }
       case TREE:
@@ -283,30 +325,15 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
 
          if ( untagged > 0 )
          {
-            if ( tags.size() > 0 )
-            {
-               std::cout << utils::branch();
-            }
-            else
-            {
-               std::cout << utils::corner();
-            }
-            std::cout << "Untagged:" << std::endl;
+            std::cout << ( tags.size() > 0 ? utils::branch() : utils::corner() );
+            std::cout << "[#0] Untagged:" << std::endl;
 
             for ( const auto& entry : entries )
             {
                if ( entry.getTags().empty() )
                {
-                  std::cout << utils::down();
-
-                  if ( untagged-- > 1 )
-                  {
-                     std::cout << utils::branch( 1 );
-                  }
-                  else
-                  {
-                     std::cout << utils::corner( 1 );
-                  }
+                  std::cout << ( tags.size() > 0 ? utils::down() : utils::empty() );
+                  std::cout << ( untagged-- > 1 ? utils::branch( 1 ) : utils::corner( 1 ) );
 
                   std::cout << "[#" << entry.getIdAsHexString() << "] "
                       << utils::ESC_SEQ_BOLD
@@ -321,14 +348,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          std::size_t i( 1 );
          for ( const auto& tag : tags )
          {
-            if ( i < tags.size() )
-            {
-               std::cout << utils::branch();
-            }
-            else
-            {
-               std::cout << utils::corner();
-            }
+            std::cout << ( i < tags.size() ? utils::branch() : utils::corner() );
             std::cout << "[#" << i++ << "] " << tag << ":" << std::endl;
 
             Set<String> filter;
@@ -338,23 +358,8 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
             std::size_t k( entries.size() );
             for ( const auto& entry : entries )
             {
-               if ( i > tags.size() )
-               {
-                  std::cout << utils::empty();
-               }
-               else
-               {
-                  std::cout << utils::down();
-               }
-
-               if ( k-- > 1 )
-               {
-                  std::cout << utils::branch( 1 );
-               }
-               else
-               {
-                  std::cout << utils::corner( 1 );
-               }
+               std::cout << ( i > tags.size() ? utils::empty() : utils::down() );
+               std::cout << ( k-- > 1 ? utils::branch( 1 ) : utils::corner( 1 ) );
 
                std::cout << "[#" << entry.getIdAsHexString() << "] "
                          << utils::ESC_SEQ_BOLD
@@ -376,20 +381,14 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          else
          {
             std::cout << "Tags:" << std::endl;
+            std::cout << utils::branch() << "[#0] Untagged" << std::endl;
          }
 
          std::size_t i( tags.size() );
          std::size_t k( 1 );
          for ( auto& tag : tags )
          {
-            if ( i-- > 1 )
-            {
-               std::cout << utils::branch();
-            }
-            else
-            {
-               std::cout << utils::corner();
-            }
+            std::cout << ( i-- > 1 ? utils::branch() : utils::corner() );
 
             std::cout << "[#" << k++ << "] "
                       << tag

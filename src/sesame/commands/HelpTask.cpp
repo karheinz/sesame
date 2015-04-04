@@ -121,6 +121,9 @@ void HelpTask::run( std::shared_ptr<Instance>& instance )
             std::cout << "\n" << std::setw( 14 ) << " " << "lists entries of the container (tagged";
             std::cout << " with " << ESC_SEQ_ULINE << "TAG" << ESC_SEQ_RESET << ")";
 
+            std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "tree" << ESC_SEQ_RESET;
+            std::cout << "\n" << std::setw( 14 ) << " " << "lists all entries by tags";
+
             std::cout << "\n\n" << std::setw( 7 ) << " " << ESC_SEQ_BOLD << "tags" << ESC_SEQ_RESET;
             std::cout << "\n" << std::setw( 14 ) << " " << "lists all tags assigned to entries";
 

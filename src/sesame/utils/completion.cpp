@@ -172,6 +172,10 @@ CPL_MATCH_FN(cpl_complete_sesame)
       {
          Vector<String> choices;
          std::size_t limit( instance->getTags().size() );
+         if ( limit > 0 )
+         {
+            choices.push_back( "#0" );
+         }
          for ( std::size_t i = 1; i <= limit; ++i )
          {
             StringStream s;
