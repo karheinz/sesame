@@ -129,14 +129,37 @@ namespace sesame
          String getIdAsHexString() const;
 
          /**
+          * Returns number of entries of the container with specified tags applied.
+          *
+          * @param tags tags to use as filter
+          *
+          * @return number of entries of the container with specified tags applied
+          */
+         std::size_t getNumOfEntries( const Set<String>& tags = Set<String>() ) const;
+
+         /**
           * Returns all entries of the container with specified tags applied.
           *
           * @param tags tags to use as filter
           *
-          * @return all entries of the container with specified tags applied.
+          * @return all entries of the container with specified tags applied
           */
          Set<Entry> getEntries(
             const Set<String>& tags = Set<String>() ) const;
+
+         /**
+          * Returns number of entries of the container with no tags applied.
+          *
+          * @return number of entries of the container with no tags applied
+          */
+         std::size_t getNumOfUntaggedEntries() const;
+
+         /**
+          * Returns all entries of the container with no tags applied.
+          *
+          * @return all entries of the container with no tags applied
+          */
+         Set<Entry> getUntaggedEntries() const;
 
          /**
           * Returns all tags applied to container entries.

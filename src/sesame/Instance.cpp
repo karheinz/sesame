@@ -226,6 +226,34 @@ namespace sesame
       return s.str();
    }
 
+   std::size_t Instance::getNumOfEntries( const Set<String>& tags ) const
+   {
+      if ( tags.empty() )
+      {
+         return m_Entries.size();
+      }
+      else
+      {
+         std::size_t count( 0 );
+         Set<String> tmp;
+         Vector<String> intersection;
+
+         for ( Set<Entry>::const_iterator it = m_Entries.cbegin(); it != m_Entries.cend(); ++it )
+         {
+            tmp = it->getTags();
+            intersection.clear();
+
+            std::set_intersection( tmp.begin(), tmp.end(), tags.begin(), tags.end(), std::back_inserter( intersection ) );
+            if ( ! intersection.empty() )
+            {
+               ++count;
+            }
+         }
+
+         return count;
+      }
+   }
+
    Set<Entry> Instance::getEntries( const Set<String>& tags ) const
    {
       if ( tags.empty() )
@@ -252,6 +280,36 @@ namespace sesame
 
          return entries;
       }
+   }
+
+   std::size_t Instance::getNumOfUntaggedEntries() const
+   {
+      std::size_t count( 0 );
+
+      for ( Set<Entry>::const_iterator it = m_Entries.cbegin(); it != m_Entries.cend(); ++it )
+      {
+         if ( it->getTags().empty() )
+         {
+            ++count;
+         }
+      }
+
+      return count;
+   }
+
+   Set<Entry> Instance::getUntaggedEntries() const
+   {
+      Set<Entry> entries;
+
+      for ( Set<Entry>::const_iterator it = m_Entries.cbegin(); it != m_Entries.cend(); ++it )
+      {
+         if ( it->getTags().empty() )
+         {
+            entries.insert( *it );
+         }
+      }
+
+      return entries;
    }
 
    Set<String> Instance::getTags() const

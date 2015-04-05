@@ -213,38 +213,27 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          // All entries.
          if ( m_Id.empty() )
          {
-            entries = toSortedVector( instance->getEntries() );
-
-            if ( entries.empty() )
+            if ( instance->getNumOfEntries() == 0 )
             {
                std::cout << "No entries yet." << std::endl;
                break;
+            }
+            else
+            {
+               entries = toSortedVector( instance->getEntries() );
             }
          }
          // Untagged entries.
          else if ( m_Id == "#0" )
          {
-            tag = "Untagged";
-            Vector<Entry> allEntries( toSortedVector( instance->getEntries() ) );
-
-            if ( allEntries.empty() )
+            if ( instance->getNumOfUntaggedEntries() == 0 )
             {
-               std::cout << "No entries yet." << std::endl;
-               break;
+               throw std::runtime_error( "tag not found" );
             }
-
-            for ( const auto& entry : allEntries )
+            else
             {
-               if ( entry.getTags().empty() )
-               {
-                  entries.push_back( entry );
-               }
-            }
-
-            if ( entries.empty() )
-            {
-               std::cout << "No untagged entries." << std::endl;
-               break;
+               tag = "Untagged";
+               entries = toSortedVector( instance->getUntaggedEntries() );
             }
          }
          // Tagged entries.
@@ -255,10 +244,13 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
             Set<String> filter;
             filter.insert( tag );
 
-            entries = toSortedVector( instance->getEntries( filter ) );
-            if ( entries.empty() )
+            if ( instance->getNumOfEntries( filter ) == 0 )
             {
                throw std::runtime_error( "tag not found" );
+            }
+            else
+            {
+               entries = toSortedVector( instance->getEntries( filter ) );
             }
          }
 
@@ -314,15 +306,7 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          std::cout << "Entries by tags:" << std::endl;
 
          // Untagged entries?
-         std::size_t untagged( 0 );
-         for ( const auto& entry : entries )
-         {
-            if ( entry.getTags().empty() )
-            {
-               ++untagged;
-            }
-         }
-
+         std::size_t untagged( instance->getNumOfUntaggedEntries() );
          if ( untagged > 0 )
          {
             std::cout << ( tags.size() > 0 ? utils::branch() : utils::corner() );
@@ -377,10 +361,12 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
          if ( tags.empty() )
          {
             std::cout << "No tags yet." << std::endl;
+            break;
          }
-         else
+
+         std::cout << "Tags:" << std::endl;
+         if ( instance->getNumOfUntaggedEntries() > 0 )
          {
-            std::cout << "Tags:" << std::endl;
             std::cout << utils::branch() << "[#0] Untagged" << std::endl;
          }
 
