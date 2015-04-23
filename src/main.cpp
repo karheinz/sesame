@@ -23,6 +23,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+#include <cstring>
 #include <iomanip>
 #include <iostream>
 #include <memory>
@@ -66,8 +67,9 @@ int main( int argc, char** argv)
 {
    // Handle signals.
    struct sigaction action;
+   std::memset( &action, 0, sizeof( action ) );
    action.sa_handler = signal_handler;
-   action.sa_flags = ( action.sa_flags & ~SA_SIGINFO );
+   action.sa_flags = ~SA_SIGINFO;
 
    sigaction( SIGHUP, &action, nullptr );
    sigaction( SIGINT, &action, nullptr );

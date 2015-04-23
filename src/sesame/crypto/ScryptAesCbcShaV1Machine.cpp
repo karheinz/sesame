@@ -58,28 +58,35 @@ namespace sesame { namespace crypto {
 
       if ( EVP_CIPHER_CTX_iv_length( &context ) != AES_BLOCK_SIZE )
       {
+         EVP_CIPHER_CTX_cleanup( &context );
          throw std::runtime_error( "wrong AES block size" );
       }
 
       if ( EVP_CIPHER_CTX_key_length( &context ) != AES_KEY_SIZE )
       {
+         EVP_CIPHER_CTX_cleanup( &context );
          throw std::runtime_error( "wrong AES key size" );
       }
 
       if ( EVP_CIPHER_CTX_block_size( &context ) != AES_BLOCK_SIZE )
       {
+         EVP_CIPHER_CTX_cleanup( &context );
          throw std::runtime_error( "wrong AES padding size" );
       }
 
       if ( ( EVP_CIPHER_CTX_mode( &context ) & EVP_CIPH_CBC_MODE ) != EVP_CIPH_CBC_MODE )
       {
+         EVP_CIPHER_CTX_cleanup( &context );
          throw std::runtime_error( "wrong AES mode of operation" );
       }
 
       if ( ! usesPkcs7Padding() )
       {
+         EVP_CIPHER_CTX_cleanup( &context );
          throw std::runtime_error( "wrong AES padding mode" );
       }
+
+      EVP_CIPHER_CTX_cleanup( &context );
    }
 
    bool ScryptAesCbcShaV1Machine::encrypt(

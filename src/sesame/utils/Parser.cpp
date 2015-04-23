@@ -80,6 +80,7 @@ const ParseResult Parser::parse( const String& line ) const
    while ( true );
 
    // Finish parsing.
+   yy_delete_buffer( buffer, m_Lexer );
    Parse( m_Parser, 0, nullptr, &parseResult );
 
    return parseResult;
