@@ -1086,22 +1086,25 @@ struct XSelTask
    }
 
    /*
-    * set_selection (selection, sel)
+    * set_selection (mutex, sel)
     *
-    * Takes ownership of the selection 'selection', then loops waiting for
-    * its SelectionClear or SelectionRequest events.
+    * Takes ownership of the selections 'CLIPBOARD' and 'PRIMARY',
+    * then loops waiting for its SelectionClear or SelectionRequest events.
     *
     * Handles SelectionRequest events, first checking for additional
     * input if the user has specified 'follow' mode. Returns when a
-    * SelectionClear event is received for the specified selection.
+    * SelectionClear event is received for one of the specified selection.
     */
    void
-   set_selection (Atom selection, std::mutex* mutex, unsigned char * sel)
+   set_selection (std::mutex* mutex, unsigned char * sel)
    {
      XEvent event;
      IncrTrack * it;
 
-     if (own_selection (selection) == False) return;
+     Atom selection1( XInternAtom (display, "CLIPBOARD", False) );
+     Atom selection2( XInternAtom (display, "PRIMARY", False) );
+     if (own_selection (selection1) == False) return;
+     if (own_selection (selection2) == False) return;
 
      {
         std::lock_guard<std::mutex> g( *mutex );
@@ -1120,10 +1123,10 @@ struct XSelTask
 
        switch (event.type) {
        case SelectionClear:
-         if (event.xselectionclear.selection == selection) return;
+         if (event.xselectionclear.selection == selection1 || event.xselectionclear.selection == selection2 ) return;
          break;
        case SelectionRequest:
-         if (event.xselectionrequest.selection != selection) break;
+         if (event.xselectionrequest.selection != selection1 && event.xselectionrequest.selection != selection2 ) break;
 
          {
             std::lock_guard<std::mutex> g( *mutex );
@@ -1175,9 +1178,7 @@ void xclip(
   {
      XSelTask task;
 
-     /* Find the "CLIPBOARD" selection if required */
-     Atom selection( XInternAtom (task.display, "CLIPBOARD", False) );
-     task.set_selection (selection, mutex, (unsigned char*)text);
+     task.set_selection (mutex, (unsigned char*)text);
      print_debug (D_INFO, "exit xclip()");
   }
   catch ( std::runtime_error& e )
