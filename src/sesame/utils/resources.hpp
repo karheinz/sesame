@@ -22,34 +22,46 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#ifndef SESAME_UTILS_RESOURCES_HPP
+#define SESAME_UTILS_RESOURCES_HPP
 
-#ifndef SESAME_VERSION_HPP
-#define SESAME_VERSION_HPP
+namespace sesame { namespace utils {
 
-#include <cstdint>
+/**
+ * Returns <tt>true</tt> if user is root.
+ *
+ * @return <tt>true</tt> if user is root.
+ */
+bool isRoot();
 
+/**
+ * Returns <tt>true</tt> if user has root privileges.
+ *
+ * @return <tt>true</tt> if user has root privileges
+ */
+bool hasRootPrivileges();
 
-namespace sesame {
+/**
+ * Drops root privileges (if gathered).
+ *
+ * @return <tt>true</tt> for success, otherwise <tt>false</tt>
+ */
+bool dropPrivileges();
 
-const uint32_t VERSION_MAJOR = 0;
-const uint32_t VERSION_MINOR = 4;
-const uint32_t VERSION_BUGFIX = 0;
+/**
+ * Sets RLIMIT_CORE to zero.
+ *
+ * @return <tt>true</tt> for success, otherwise <tt>false</tt>
+ */
+bool disableCoreFiles();
 
-namespace
-{
-   static const String getVersionString()
-   {
-      StringStream s;
-      s << "Sesame ";
-      s << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_BUGFIX;
-      s << " - Copyright (c), 2015 Karsten Heinze";
+/**
+ * Locks allocated memory (present and future) to avoid swapping.
+ *
+ * @return <tt>true</tt> for success, otherwise <tt>false</tt>
+ */
+bool lockMemory();
 
-      return s.str();
-   }
-}
-
-static const String VERSION_STRING( getVersionString() );
-
-}
+} }
 
 #endif

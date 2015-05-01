@@ -19,6 +19,9 @@ which uses scrypt for password based key derivation (extended PBKDF2)
 and OpenSSL for symmetric cryptography (AES256), checksums (SHA256)
 and message authentication codes (HMAC-SHA256). A custom memory allocator
 is used to ensure that text and binary data are zeroed after usage.
+If the sesame binary is owned by root and the suid bit is set,
+all memory allocated by sesame will be locked (no swapping)
+and no core files will be written.
 
 Containers are (de)serialized using MessagePack binary format.
 Interactive command line editing facilities are provided by Tecla.
@@ -33,12 +36,16 @@ What you can do so far is:
 * list, show, add, update and delete entries
 * add, update and delete attributes, passwords, keys and tags
 * export passwords and keys
-* embed container into jpeg image
 * generate passwords
+* embed container into jpeg image
+
+If the binary is owned by root and suid bit is set:
+
+* memory will be locked (no swapping)
+* no core files will be written
 
 What is missing/planned?
 
-* improve allocator (avoid swapping)
 * add man page and more documentation
 * ...
 
@@ -51,7 +58,7 @@ Installation
    # apt-get install flex libfl-dev nasm openssl libtecla1-dev libx11-dev
 ```
 
-2. Build sesame and run tests.
+2. Build sesame and run tests:
 ```
    $ mkdir build
    $ cd build
@@ -61,6 +68,12 @@ Installation
 ```
 
 The binary is located under build/src.
+
+3. Change ownership and set suid bit:
+```
+   $ sudo chown root src/sesame
+   $ sudo chmod u+s src/sesame
+```
 
 
 Used libraries

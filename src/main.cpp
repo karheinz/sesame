@@ -41,6 +41,7 @@
 #include "sesame/commands/InstanceTask.hpp"
 #include "sesame/utils/completion.hpp"
 #include "sesame/utils/filesystem.hpp"
+#include "sesame/utils/resources.hpp"
 #include "sesame/utils/string.hpp"
 #include "sesame/utils/xselection.hpp"
 #include "sesame/utils/Parser.hpp"
@@ -65,6 +66,41 @@ void signal_handler( int signal )
 
 int main( int argc, char** argv)
 {
+   if ( sesame::utils::hasRootPrivileges() )
+   {
+#ifndef DEBUG
+      if ( ! sesame::utils::disableCoreFiles() )
+      {
+         std::cerr << "ERROR: failed to disable core files ("
+                   << std::strerror( errno ) << ")" << std::endl;
+         return 1;
+      }
+#endif
+
+      if ( ! sesame::utils::lockMemory() )
+      {
+         std::cerr << "ERROR: failed to lock memory ("
+                   << std::strerror( errno ) << ")" << std::endl;
+         return 1;
+      }
+
+      if ( ! sesame::utils::isRoot() )
+      {
+         if ( ! sesame::utils::dropPrivileges() )
+         {
+            std::cerr << "ERROR: failed to drop privileges ("
+                      << std::strerror( errno ) << ")" << std::endl;
+            return 1;
+         }
+      }
+   }
+   else
+   {
+      std::cerr << "WARNING: Failed to disable core files and swapping!\n"
+                << "         Consider to make root owner of the program"
+                << " and to set suid bit.\n\n" << std::endl;
+   }
+
    // Handle signals.
    struct sigaction action;
    std::memset( &action, 0, sizeof( action ) );
