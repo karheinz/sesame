@@ -67,8 +67,6 @@ Installation
    $ make test
 ```
 
-The binary is located under build/src.
-
 3. Change ownership and set suid bit:
 ```
    $ sudo chown root src/sesame
