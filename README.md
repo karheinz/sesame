@@ -50,28 +50,122 @@ What is missing/planned?
 * ...
 
 
+Commands
+--------
+
+* Without container:
+
+   ```
+   sesame> help
+   Currently available commands:
+
+          help
+                 prints this message
+
+          edit-mode (emacs|vi)
+                 sets editing mode to either emacs or vi
+
+          clear
+                 clears the screen
+
+          quit
+                 quits sesame
+
+          new
+                 creates a new empty container
+
+          open FILE
+                 opens an existing container stored in FILE
+
+   sesame>
+   ```
+
+* With container:
+
+   ```
+   sesame #b894ed8a> help
+   Currently available commands:
+
+          help
+                 prints this message
+
+          edit-mode (emacs|vi)
+                 sets editing mode to either emacs or vi
+
+          clear
+                 clears the screen
+
+          write FILE
+                 writes current container to FILE or
+                 embeds container, if FILE is a JPEG image
+
+          recrypt
+                 recrypts the container with new crypto params and/or password/phrase
+
+          close
+                 closes the current container
+
+          quit
+                 quits sesame
+
+          apg [OPTION...]
+                 runs (a) (p)assword (g)enerator, use -h for help
+
+          list [TAG]
+                 lists entries of the container (tagged with TAG)
+
+          tree
+                 lists all entries by tags
+
+          tags
+                 lists all tags assigned to entries
+
+          add
+                 adds an entry to the current container
+
+         (decrypt|show|update|delete) ENTRY
+                 decrypts, shows, updates or deletes the specified ENTRY
+
+          update ENTRY (add_tag|add_attribute|add_password|add_key)
+                 adds a tag, attribute, password or key to the specified ENTRY
+
+          update ENTRY (update_tag|update_attribute|update_password_or_key) ID
+                 updates tag, attribute, password or key with ID of the specified ENTRY
+
+          update ENTRY (delete_tag|delete_attribute|delete_password_or_key) ID
+                 deletes tag, attribute, password or key with ID of the specified ENTRY
+
+          select ENTRY export_password_or_key ID
+                 exports password with ID of the specified ENTRY to clipboard or
+                 exports key with ID of the specified ENTRY to file
+
+   sesame #b894ed8a>
+   ```
+
+
 Installation
 ------------
 
 1. Install the required programs and libraries:
-```
-   # apt-get install flex libfl-dev nasm openssl libtecla1-dev libx11-dev
-```
 
+   ```
+   $ sudo apt-get install flex libfl-dev nasm openssl libtecla1-dev libx11-dev
+   ```
 2. Build sesame and run tests:
-```
+
+   ```
    $ mkdir build
    $ cd build
    $ cmake <src-dir>
    $ make
    $ make test
-```
-
+   ```
 3. Change ownership and set suid bit:
-```
+
+   ```
    $ sudo chown root src/sesame
    $ sudo chmod u+s src/sesame
-```
+   ```
 
 
 Used libraries
