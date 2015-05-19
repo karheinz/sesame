@@ -108,7 +108,7 @@ CPL_MATCH_FN(cpl_complete_sesame)
       instance = reinterpret_cast<std::shared_ptr<Instance>* >( data )->get();
    }
 
-   std::pair<String,String> splitted( split( line ) );
+   std::pair<String,String> splitted( split( String( line, word_end ) ) );
    String left( splitted.first );
    left = lstrip( left );
    String right( splitted.second );
