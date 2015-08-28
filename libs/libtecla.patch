@@ -1,0 +1,13 @@
+diff --git a/getline.h b/getline.h
+index 9dba35f..51d841d 100644
+--- a/getline.h
++++ b/getline.h
+@@ -77,7 +77,7 @@
+  * Specify the string of characters other than the alphanumeric characters,
+  * that are to be considered parts of words.
+  */
+-#define GL_WORD_CHARS "_*\?\\[]"
++#define GL_WORD_CHARS "_*\?\\[]#"
+ 
+ /*
+  * Define the escape character, both as a string and as a character.
