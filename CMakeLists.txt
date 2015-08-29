@@ -20,7 +20,7 @@ ELSEIF( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
 ENDIF()
 
 STRING( TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_UPPER )
-SET( CFLAGS "-fPIC ${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE_UPPER}}" )
+SET( CFLAGS ${CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE_UPPER}} )
 
 # nasm (netwide assembler)
 FIND_PROGRAM( BINNASM "nasm" )
@@ -62,7 +62,7 @@ ADD_SUBDIRECTORY( ${LIBAPG_DIR} )
 
 # libs/scrypt
 SET( LIBSCRYPT "scrypt" )
-SET( LIBSCRYPT_DIR "libs/scrypt-1.1.6" )
+SET( LIBSCRYPT_DIR "libs/scrypt-1.2.0" )
 SET( LIBSCRYPT_INCLUDE_DIR "${LIBSCRYPT_DIR}/lib/crypto" )
 ADD_SUBDIRECTORY( ${LIBSCRYPT_DIR} )
 
@@ -98,7 +98,7 @@ ADD_CUSTOM_TARGET(
     )
 ADD_CUSTOM_TARGET(
     libtecla
-    COMMAND sh -c 'if [ ! -f ${LIBTECLA} ]; then
+    COMMAND sh -c 'if [ ! -f ${LIBTECLA} ]\; then
             cp -r ${LIBTECLA_SOURCE_DIR}/* ${LIBTECLA_BINARY_DIR}/ \;
             patch -p1 < ${LIBTECLA_SOURCE_DIR}/../libtecla.patch \;
             CFLAGS=${CFLAGS} ./configure \;
