@@ -149,7 +149,7 @@ Installation
 1. Install the required programs and libraries:
 
    ```
-   $ sudo apt-get install flex libfl-dev nasm openssl libtecla1-dev libx11-dev
+   $ sudo apt-get install flex libfl-dev nasm openssl libx11-dev
    ```
 2. Build sesame and run tests:
 
