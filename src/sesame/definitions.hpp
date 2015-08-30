@@ -26,7 +26,7 @@
 #ifndef SESAME_DEFINITIONS_HPP
 #define SESAME_DEFINITIONS_HPP
 
-#include "msgpack_fwd.hpp"
+#include "msgpack.hpp"
 
 namespace sesame
 {

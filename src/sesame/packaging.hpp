@@ -30,9 +30,6 @@
 #include <stdexcept>
 
 #include "types.hpp"
-#include "msgpack_fwd.hpp"
-#include "msgpack/adaptor/String_fwd.hpp"
-#include "msgpack/adaptor/Vector_uint8_fwd.hpp"
 #include "msgpack.hpp"
 #include "msgpack/adaptor/String.hpp"
 #include "msgpack/adaptor/Vector_uint8.hpp"

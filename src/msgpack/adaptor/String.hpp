@@ -15,69 +15,87 @@
 //    See the License for the specific language governing permissions and
 //    limitations under the License.
 //
-#ifndef MSGPACK_ADAPTOR_STRING_HPP
-#define MSGPACK_ADAPTOR_STRING_HPP
+#ifndef MSGPACK_TYPE_SESAME_STRING_HPP
+#define MSGPACK_TYPE_SESAME_STRING_HPP
 
 #include "types.hpp"
 #include "msgpack/versioning.hpp"
-#include "msgpack/object_fwd.hpp"
+#include "msgpack/adaptor/adaptor_base.hpp"
 #include "msgpack/adaptor/check_container_size.hpp"
 #include "sesame/utils/string.hpp"
 
+#include <string>
+
 namespace msgpack {
 
+/// @cond
 MSGPACK_API_VERSION_NAMESPACE(v1) {
+/// @endcond
 
-inline msgpack::object const& operator>> (msgpack::object const& o, String& s)
-{
-    switch (o.type) {
-    case msgpack::type::BIN:
-        s.assign(o.via.bin.ptr, o.via.bin.size);
-        break;
-    case msgpack::type::STR:
-        s.assign(o.via.str.ptr, o.via.str.size);
-        break;
-    default:
-        throw msgpack::type_error();
-        break;
+namespace adaptor {
+
+template <>
+struct convert<String> {
+    msgpack::object const& operator()(msgpack::object const& o, String& v) const {
+        switch (o.type) {
+        case msgpack::type::BIN:
+            v.assign(o.via.bin.ptr, o.via.bin.size);
+            break;
+        case msgpack::type::STR:
+            v.assign(o.via.str.ptr, o.via.str.size);
+            break;
+        default:
+            throw msgpack::type_error();
+            break;
+        }
+
+        v = sesame::utils::fromUtf8( v );
+        return o;
     }
+};
 
-    s = sesame::utils::fromUtf8( s );
-    return o;
-}
+template <>
+struct pack<String> {
+    template <typename Stream>
+    msgpack::packer<Stream>& operator()(msgpack::packer<Stream>& o, const String& s) const {
+        String v( sesame::utils::toUtf8( s ) );
+        uint32_t size = checked_get_container_size(v.size());
+        o.pack_str(size);
+        o.pack_str_body(v.data(), size);
+        return o;
+    }
+};
 
-template <typename Stream>
-inline msgpack::packer<Stream>& operator<< (msgpack::packer<Stream>& o, const String& s)
-{
-    String v( sesame::utils::toUtf8( s ) );
-    uint32_t size = checked_get_container_size(v.size());
-    o.pack_str(size);
-    o.pack_str_body(v.data(), size);
-    return o;
-}
+template <>
+struct object<String> {
+    void operator()(msgpack::object& o, const String& s) const {
+        String v( sesame::utils::toUtf8( s ) );
+        uint32_t size = checked_get_container_size(v.size());
+        o.type = msgpack::type::STR;
+        o.via.str.ptr = v.data();
+        o.via.str.size = size;
+    }
+};
 
-inline void operator<< (msgpack::object::with_zone& o, const String& s)
-{
-    String v( sesame::utils::toUtf8( s ) );
-    uint32_t size = checked_get_container_size(v.size());
-    o.type = msgpack::type::STR;
-    char* ptr = static_cast<char*>(o.zone.allocate_align(size));
-    o.via.str.ptr = ptr;
-    o.via.str.size = size;
-    std::memcpy(ptr, v.data(), v.size());
-}
+template <>
+struct object_with_zone<String> {
+    void operator()(msgpack::object::with_zone& o, const String& s) const {
+        String v( sesame::utils::toUtf8( s ) );
+        uint32_t size = checked_get_container_size(v.size());
+        o.type = msgpack::type::STR;
+        char* ptr = static_cast<char*>(o.zone.allocate_align(size));
+        o.via.str.ptr = ptr;
+        o.via.str.size = size;
+        std::memcpy(ptr, v.data(), v.size());
+    }
+};
 
-inline void operator<< (msgpack::object& o, const String& s)
-{
-    String v( sesame::utils::toUtf8( s ) );
-    uint32_t size = checked_get_container_size(v.size());
-    o.type = msgpack::type::STR;
-    o.via.str.ptr = v.data();
-    o.via.str.size = size;
-}
+} // namespace adaptor
 
+/// @cond
 }  // MSGPACK_API_VERSION_NAMESPACE(v1)
+/// @endcond
 
 }  // namespace msgpack
 
-#endif // MSGPACK_ADAPTOR_STRING_HPP
+#endif // MSGPACK_TYPE_SESAME_STRING_HPP
