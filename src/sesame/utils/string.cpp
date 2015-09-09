@@ -185,6 +185,7 @@ void setLocale()
 
 String getEncoding()
 {
+#ifdef __gnu_linux__
    String curLoc( std::cin.getloc().name().c_str() );
    if ( curLoc == "*" )
    {
@@ -197,6 +198,10 @@ String getEncoding()
       throw std::runtime_error( "encoding unknown" );
    }
    return curLoc.substr( dot + 1 );
+#else
+   // Assume UTF-8 encoding on non Linux systems.
+   return "UTF-8";
+#endif
 }
 
 } }
