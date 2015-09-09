@@ -48,8 +48,6 @@ class Transcoder
 
       const String m_To;
       iconv_t m_Descriptor;
-      Vector<char> m_Buffer;
-      std::size_t m_ChunkSize;
 };
 
 } }

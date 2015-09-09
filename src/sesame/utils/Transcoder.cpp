@@ -46,9 +46,7 @@ namespace sesame { namespace utils {
 
 Transcoder::Transcoder( const String& from, const String& to ) :
    m_To( to + "//TRANSLIT" ),
-   m_Descriptor( iconv_open( m_To.c_str(), from.c_str() ) ),
-   m_Buffer( 4096 ),
-   m_ChunkSize( m_Buffer.size() / 4 )
+   m_Descriptor( iconv_open( m_To.c_str(), from.c_str() ) )
 {
    if ( m_Descriptor == (iconv_t)( -1 ) )
    {
@@ -67,70 +65,39 @@ Transcoder::~Transcoder()
 String Transcoder::transcode( const char* string, const std::size_t length )
 {
    String result;
-   std::size_t rc;
-   std::size_t in( length );
-   std::size_t read;
-   std::size_t out( m_Buffer.size() );
+   result.resize( length * 4 );
 
-   char* i( const_cast<char*>( string ) );
-   char* end( const_cast<char*>( string ) + length );
-   char* o( m_Buffer.data() );
+   char* in( const_cast<char*>( string ) );
+   std::size_t inBytes( length );
+   char* out( const_cast<char*>( result.data() ) );
+   std::size_t outBytes( length * 4 );
 
    // Reset internal state of conversion descriptor.
-   iconv( m_Descriptor, nullptr, &in, nullptr, &out );
+   iconv( m_Descriptor, nullptr, nullptr, nullptr, nullptr );
+   std::size_t rc(
+      iconv(
+         m_Descriptor,
+         &in,
+         &inBytes,
+         &out,
+         &outBytes
+         )
+      );
 
-   uint8_t error( 0 );
-   while ( i < end )
+   switch ( rc )
    {
-      // Set in and out sizes.
-      if ( ( i + m_ChunkSize ) <= end )
-      {
-         in = m_ChunkSize;
-      }
-      else
-      {
-         in = end - i;
-      }
-      read = in;
-      out = m_Buffer.size();
-
-      rc = iconv(
-            m_Descriptor,
-            &i,
-            &in,
-            &o,
-            &out
-            );
-
-      switch ( rc )
-      {
-         case -1:
-            // only handle illegal sequence
-            if ( errno == EILSEQ )
-            {
-               throw std::runtime_error( "illegal multibyte sequence detected" );
-            }
-            ++error;
-            break;
-         default:
-            if ( out < m_Buffer.size() )
-            {
-               result.insert( result.end(), m_Buffer.data(), m_Buffer.data() + m_Buffer.size() - out );
-            }
-            if ( error > 0 )
-            {
-               --error;
-            }
-      }
-
-      i += ( read - in );
-
-      if ( error > 1 )
-      {
-         throw std::runtime_error( "error occurred while transcoding string" );
-      }
+      case -1:
+         // only handle illegal sequence
+         if ( errno == EILSEQ )
+         {
+            throw std::runtime_error( "illegal multibyte sequence detected" );
+         }
+         break;
+      default:
+         ;
    }
 
+   result.resize( length * 4 - outBytes );
    std::size_t bomSize( getBomSize( result ) );
    return result.substr( bomSize );
 }

@@ -127,15 +127,21 @@ TEST( TranscoderTest, LargeStrings )
 {
    String s1( utf16.begin(), utf16.end() );
    String s2;
-   s2.reserve( s1.size() * 500 + 10 );
-   for ( uint32_t i = 0; i < 500; ++i )
+   s2.reserve( s1.size() * 2000 );
+   for ( uint32_t i = 0; i < 2000; ++i )
    {
       s2.insert( s2.end(), s1.begin(), s1.end() );
    }
+   ASSERT_EQ( 2000 * s1.size(), s2.size() );
 
-   utils::Transcoder transcoder( "UTF-16", "UTF-8" );
-   transcoder.transcode( s2 );
-   ASSERT_EQ( 500 * s1.size(), s2.size() );
+   utils::Transcoder transcoder1( "UTF-16", "UTF-8" );
+   String s3( transcoder1.transcode( s2 ) );
+   ASSERT_EQ( s2.size() / 2, s3.size() );
+
+   utils::Transcoder transcoder2( "UTF-8", "UTF-16" );
+   String s4( transcoder2.transcode( s3 ) );
+
+   ASSERT_EQ( s2, s4 );
 }
 
 } }
