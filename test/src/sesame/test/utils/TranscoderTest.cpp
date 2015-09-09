@@ -61,7 +61,7 @@ TEST( TranscoderTest, ToUtf8 )
    ASSERT_TRUE( empty1.empty() );
 
    String s3( utf16.begin(), utf16.end() );
-   utils::Transcoder transcoder2( "UTF-16", "UTF-8" );
+   utils::Transcoder transcoder2( "UTF-16LE", "UTF-8" );
    String s4( transcoder2.transcode( s3 ) );
    ASSERT_EQ( s1, s4 );
    String empty2( transcoder2.transcode( empty ) );
@@ -86,8 +86,9 @@ TEST( TranscoderTest, FromUtf8 )
    String empty1( transcoder1.transcode( empty ) );
    ASSERT_TRUE( empty1.empty() );
 
-   utils::Transcoder transcoder2( "UTF-8", "UTF-16" );
+   utils::Transcoder transcoder2( "UTF-8", "UTF-16LE" );
    String s3( transcoder2.transcode( s1 ) );
+   ASSERT_EQ( s1.size() * 2, s3.size() );
    String s4( utf16.begin(), utf16.end() );
    ASSERT_EQ( s4, s3 );
    String empty2( transcoder2.transcode( empty ) );
@@ -134,11 +135,11 @@ TEST( TranscoderTest, LargeStrings )
    }
    ASSERT_EQ( 2000 * s1.size(), s2.size() );
 
-   utils::Transcoder transcoder1( "UTF-16", "UTF-8" );
+   utils::Transcoder transcoder1( "UTF-16LE", "UTF-8" );
    String s3( transcoder1.transcode( s2 ) );
    ASSERT_EQ( s2.size() / 2, s3.size() );
 
-   utils::Transcoder transcoder2( "UTF-8", "UTF-16" );
+   utils::Transcoder transcoder2( "UTF-8", "UTF-16LE" );
    String s4( transcoder2.transcode( s3 ) );
 
    ASSERT_EQ( s2, s4 );
