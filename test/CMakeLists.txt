@@ -17,7 +17,7 @@ ADD_EXECUTABLE( string_test src/sesame/test/utils/string_test.cpp
    ${SESAME_SOURCE_DIR}/utils/string.cpp
    ${SESAME_SOURCE_DIR}/utils/Transcoder.cpp
    )
-TARGET_LINK_LIBRARIES( string_test ${LIBGTEST} ${LIBGTEST_MAIN} )
+TARGET_LINK_LIBRARIES( string_test ${LIBGTEST} ${LIBGTEST_MAIN} ${LIBICONV} )
 ADD_DEPENDENCIES( tests string_test )
 ADD_TEST( run_string_test string_test )
 
@@ -26,7 +26,7 @@ ADD_EXECUTABLE( TranscoderTest src/sesame/test/utils/TranscoderTest.cpp
    ${SESAME_SOURCE_DIR}/utils/Transcoder.cpp
    ${SESAME_SOURCE_DIR}/utils/Reader.cpp
    )
-TARGET_LINK_LIBRARIES( TranscoderTest ${LIBGTEST} ${LIBGTEST_MAIN} )
+TARGET_LINK_LIBRARIES( TranscoderTest ${LIBGTEST} ${LIBGTEST_MAIN} ${LIBICONV} )
 ADD_DEPENDENCIES( tests TranscoderTest )
 ADD_TEST( RunTranscoderTest TranscoderTest )
 
@@ -41,7 +41,7 @@ ADD_EXECUTABLE( EntryTest src/sesame/test/EntryTest.cpp
    ${SESAME_SOURCE_DIR}/Data.cpp
    ${SESAME_SOURCE_DIR}/Entry.cpp
    )
-TARGET_LINK_LIBRARIES( EntryTest ${LIBGTEST} ${LIBGTEST_MAIN} ${LIBMSGPACK} )
+TARGET_LINK_LIBRARIES( EntryTest ${LIBGTEST} ${LIBGTEST_MAIN} ${LIBMSGPACK} ${LIBICONV} )
 ADD_DEPENDENCIES( tests EntryTest )
 ADD_TEST( RunEntryTest EntryTest )
 
@@ -54,7 +54,7 @@ ADD_EXECUTABLE( InstanceTest src/sesame/test/InstanceTest.cpp
    ${SESAME_SOURCE_DIR}/crypto/MachineFactory.cpp
    ${SESAME_SOURCE_DIR}/crypto/ScryptAesCbcShaV1Machine.cpp
    )
-TARGET_LINK_LIBRARIES( InstanceTest ${LIBSSL} ${LIBCRYPTO} ${LIBSCRYPT} ${LIBGTEST} ${LIBGTEST_MAIN} ${LIBMSGPACK} )
+TARGET_LINK_LIBRARIES( InstanceTest ${LIBSSL} ${LIBCRYPTO} ${LIBSCRYPT} ${LIBGTEST} ${LIBGTEST_MAIN} ${LIBMSGPACK} ${LIBICONV} )
 ADD_DEPENDENCIES( tests InstanceTest )
 ADD_TEST( RunInstanceTest InstanceTest )
 
@@ -63,7 +63,7 @@ ADD_EXECUTABLE( ScryptAesCbcShaV1MachineTest src/sesame/test/crypto/ScryptAesCbc
    ${SESAME_SOURCE_DIR}/utils/Transcoder.cpp
    ${SESAME_SOURCE_DIR}/crypto/ScryptAesCbcShaV1Machine.cpp
    )
-TARGET_LINK_LIBRARIES( ScryptAesCbcShaV1MachineTest ${LIBSSL} ${LIBCRYPTO} ${LIBSCRYPT} ${LIBGTEST} ${LIBGTEST_MAIN} ${LIBMSGPACK} )
+TARGET_LINK_LIBRARIES( ScryptAesCbcShaV1MachineTest ${LIBSSL} ${LIBCRYPTO} ${LIBSCRYPT} ${LIBGTEST} ${LIBGTEST_MAIN} ${LIBMSGPACK} ${LIBICONV} )
 ADD_DEPENDENCIES( tests ScryptAesCbcShaV1MachineTest )
 ADD_TEST( RunScryptAesCbcShaV1MachineTest ScryptAesCbcShaV1MachineTest )
 
@@ -73,7 +73,7 @@ ADD_EXECUTABLE( ScryptAesCbcShaV1MachineAesAvsTest src/sesame/test/crypto/Scrypt
    ${SESAME_SOURCE_DIR}/utils/Transcoder.cpp
    ${SESAME_SOURCE_DIR}/crypto/ScryptAesCbcShaV1Machine.cpp
    )
-TARGET_LINK_LIBRARIES( ScryptAesCbcShaV1MachineAesAvsTest ${LIBSSL} ${LIBCRYPTO} ${LIBSCRYPT} ${LIBGTEST} ${LIBGTEST_MAIN} ${LIBMSGPACK} )
+TARGET_LINK_LIBRARIES( ScryptAesCbcShaV1MachineAesAvsTest ${LIBSSL} ${LIBCRYPTO} ${LIBSCRYPT} ${LIBGTEST} ${LIBGTEST_MAIN} ${LIBMSGPACK} ${LIBICONV} )
 ADD_DEPENDENCIES( tests ScryptAesCbcShaV1MachineAesAvsTest )
 ADD_TEST( RunScryptAesCbcShaV1MachineAesAvsTest ScryptAesCbcShaV1MachineAesAvsTest )
 
@@ -98,6 +98,6 @@ ADD_EXECUTABLE( F4Test src/sesame/test/crypto/F4Test.cpp
    "${CMAKE_CURRENT_BINARY_DIR}/tux_by_Gabriel_dos_Santos.jpg"
    $<TARGET_OBJECTS:${JPEGTRANF4}>
    )
-TARGET_LINK_LIBRARIES( F4Test ${LIBGTEST} ${LIBGTEST_MAIN} ${LIBJPEGTURBO} )
+TARGET_LINK_LIBRARIES( F4Test ${LIBGTEST} ${LIBGTEST_MAIN} ${LIBJPEGTURBO} ${LIBJPEG} ${LIBICONV} )
 ADD_DEPENDENCIES( tests F4Test )
 ADD_TEST( RunF4Test F4Test )

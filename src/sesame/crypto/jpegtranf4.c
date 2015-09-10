@@ -359,7 +359,9 @@ f4_embed( const char *filename_in, const char* filename_out, const char* data, c
   jpeg_stdio_src(&srcinfo, fp);
 
   /* Enable saving of extra markers that we want to copy */
+#ifdef __gnu_linux__
   jcopy_markers_setup(&srcinfo, copyoption);
+#endif
 
   /* Read file header */
   (void) jpeg_read_header(&srcinfo, TRUE);
@@ -411,7 +413,9 @@ f4_embed( const char *filename_in, const char* filename_out, const char* data, c
   jpeg_write_coefficients(&dstinfo, dst_coef_arrays);
 
   /* Copy to the output file any extra markers that we want to preserve */
+#ifdef __gnu_linux__
   jcopy_markers_execute(&srcinfo, &dstinfo, copyoption);
+#endif
 
   /* Finish compression and release memory */
   jpeg_finish_compress(&dstinfo);
