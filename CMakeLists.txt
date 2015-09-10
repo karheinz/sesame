@@ -115,10 +115,9 @@ ADD_CUSTOM_TARGET(
     )
 ADD_CUSTOM_TARGET(
     libflex
-    COMMAND sh -c 'if [ ! -f .libs/${LIBFLEX} ]\; then
+    COMMAND sh -c 'if [ ! -f ${BINFLEX} -o ! -f .libs/${LIBFLEX} ]\; then
             cp -r ${LIBFLEX_SOURCE_DIR}/* . \;
             CFLAGS=${CFLAGS} ./configure \;
-            echo all: > doc/Makefile \;
             make all \;
         fi'
     DEPENDS genlibflexdir
