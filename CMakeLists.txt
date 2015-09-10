@@ -28,13 +28,6 @@ IF( "${BINNASM}" STREQUAL "BINNASM-NOTFOUND" )
     MESSAGE( FATAL_ERROR "nasm not found" )
 ENDIF()
 
-# flex for lexer
-FIND_PROGRAM( BINFLEX "flex" )
-IF( "${BINFLEX}" STREQUAL "BINFLEX-NOTFOUND" )
-    MESSAGE( FATAL_ERROR "flex not found" )
-ENDIF()
-FIND_LIBRARY( LIBFLEX "fl" )
-
 # threads
 FIND_LIBRARY( LIBPTHREAD "pthread" )
 
@@ -99,7 +92,7 @@ ADD_CUSTOM_TARGET(
 ADD_CUSTOM_TARGET(
     libtecla
     COMMAND sh -c 'if [ ! -f ${LIBTECLA} ]\; then
-            cp -r ${LIBTECLA_SOURCE_DIR}/* ${LIBTECLA_BINARY_DIR}/ \;
+            cp -r ${LIBTECLA_SOURCE_DIR}/* . \;
             patch -p1 < ${LIBTECLA_SOURCE_DIR}/../libtecla.patch \;
             CFLAGS=${CFLAGS} ./configure \;
             make \;
@@ -108,6 +101,30 @@ ADD_CUSTOM_TARGET(
     WORKING_DIRECTORY "${LIBTECLA_BINARY_DIR}"
     )
 SET_PROPERTY( DIRECTORY APPEND PROPERTY LINK_DIRECTORIES "${LIBTECLA_BINARY_DIR}" )
+
+# libs/flex
+SET( LIBFLEX "libfl_pic.a" )
+SET( LIBFLEX_DIR "libs/flex-2.5.39" )
+SET( LIBFLEX_INCLUDE_DIR "${LIBFLEX_DIR}" )
+SET( LIBFLEX_SOURCE_DIR "${CMAKE_SOURCE_DIR}/${LIBFLEX_DIR}" )
+SET( LIBFLEX_BINARY_DIR "${CMAKE_BINARY_DIR}/${LIBFLEX_DIR}" )
+SET( BINFLEX "${LIBFLEX_BINARY_DIR}/flex" )
+ADD_CUSTOM_TARGET(
+    genlibflexdir
+    mkdir -p "${LIBFLEX_BINARY_DIR}"
+    )
+ADD_CUSTOM_TARGET(
+    libflex
+    COMMAND sh -c 'if [ ! -f .libs/${LIBFLEX} ]\; then
+            cp -r ${LIBFLEX_SOURCE_DIR}/* . \;
+            CFLAGS=${CFLAGS} ./configure \;
+            echo all: > doc/Makefile \;
+            make all \;
+        fi'
+    DEPENDS genlibflexdir
+    WORKING_DIRECTORY "${LIBFLEX_BINARY_DIR}"
+    )
+SET_PROPERTY( DIRECTORY APPEND PROPERTY LINK_DIRECTORIES "${LIBFLEX_BINARY_DIR}/.libs" )
 
 # libs/libjpeg-turbo and related stuff
 SET( JPEGTRANF4 "jpegtranf4" )
