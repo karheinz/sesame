@@ -150,14 +150,17 @@ Installation
 
 1. Install the required programs and libraries:
    * GNU/Linux (Ubuntu)
+
       ```
       $ sudo apt-get install cmake nasm openssl libx11-dev
       ```
    * (Open)BSD
+
       ```
       $ sudo pkg_add cmake gcc g++ nasm openssl
       ```
 2. Set environment (OpenBSD):
+
    ```
    $ . set_env_openbsd.sh
    ```
