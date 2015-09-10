@@ -26,6 +26,8 @@ and no core files will be written.
 Containers are (de)serialized using MessagePack binary format.
 Interactive command line editing facilities are provided by Tecla.
 
+Sesame currently builds for GNU/Linux and (Open)BSD.
+
 
 Features
 --------
@@ -147,11 +149,19 @@ Installation
 ------------
 
 1. Install the required programs and libraries:
-
+   * GNU/Linux (Ubuntu)
+      ```
+      $ sudo apt-get install cmake nasm openssl libx11-dev
+      ```
+   * (Open)BSD
+      ```
+      $ sudo pkg_add cmake gcc g++ nasm openssl
+      ```
+2. Set environment (OpenBSD):
    ```
-   $ sudo apt-get install flex libfl-dev nasm openssl libx11-dev
+   $ . set_env_openbsd.sh
    ```
-2. Build sesame and run tests:
+3. Build sesame and run tests:
 
    ```
    $ mkdir build
@@ -160,11 +170,16 @@ Installation
    $ make
    $ make test
    ```
-3. Change ownership and set suid bit:
+4. Install:
 
    ```
-   $ sudo chown root src/sesame
-   $ sudo chmod u+s src/sesame
+   $ sudo cp src/sesame /usr/local/bin/
+   ```
+5. Change ownership and set suid bit:
+
+   ```
+   $ sudo chown root /usr/local/bin/sesame
+   $ sudo chmod u+s /usr/local/bin/sesame
    ```
 
 
