@@ -4,6 +4,7 @@ INCLUDE_DIRECTORIES( libcperciva/alg libcperciva/cpusupport libcperciva/crypto l
 
 ADD_LIBRARY(
     scrypt
+    STATIC
     ${CMAKE_CURRENT_BINARY_DIR}/config.h
     ${CMAKE_CURRENT_BINARY_DIR}/cpusupport-config.h
     lib/crypto/crypto_scrypt.c
