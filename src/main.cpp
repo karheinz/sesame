@@ -120,13 +120,15 @@ int main( int argc, char** argv)
    // Print version info.
    std::cout << sesame::VERSION_STRING << "\n" << std::endl;
 
-   // File passed?
+   // More than one argument passed?
    if ( argc > 2 )
    {
       HelpTask task( HelpTask::USAGE, argv[ 0 ] );
       task.run( instance );
       return 1;
    }
+   // File passed?
+   // Abort immediately if opening the container fails.
    else if ( argc == 2 )
    {
       try
@@ -137,6 +139,7 @@ int main( int argc, char** argv)
       catch ( std::runtime_error& e )
       {
          std::cerr << "ERROR: " << e.what() << std::endl;;
+         return 1;
       }
       catch ( std::exception& e )
       {
@@ -144,6 +147,7 @@ int main( int argc, char** argv)
          {
             std::cerr << "ERROR: " << e.what() << std::endl;;
          }
+         return 1;
       }
    }
 
