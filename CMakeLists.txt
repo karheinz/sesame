@@ -125,6 +125,7 @@ ADD_CUSTOM_TARGET(
             cp -r ${LIBFLEX_SOURCE_DIR}/* . \;
             CFLAGS=${CFLAGS} ./configure \;
             make all \;
+            rm -f .libs/*.so .libs/*.so.* \;
         fi'
     DEPENDS genlibflexdir
     WORKING_DIRECTORY "${LIBFLEX_BINARY_DIR}"
@@ -156,6 +157,7 @@ ADD_CUSTOM_COMMAND(
     "${LIBJPEGTURBO_BINARY_DIR}/jconfigint.h"
     COMMAND sh -c 'CFLAGS=${CFLAGS} ${LIBJPEGTURBO_SOURCE_DIR}/configure'
     COMMAND make
+    COMMAND rm -f .libs/*.so .libs/*.so.*
     DEPENDS genlibjpegturbodir
     WORKING_DIRECTORY "${LIBJPEGTURBO_BINARY_DIR}"
     )
