@@ -178,8 +178,9 @@ void setLocale()
    {
       throw std::runtime_error( "failed to set locale" );
    }
-#endif
+#else
    const char* currentLocaleName( "C" );
+#endif
    std::locale currentLocale( currentLocaleName );
    std::cout.imbue( currentLocale );
    std::cerr.imbue( currentLocale );
