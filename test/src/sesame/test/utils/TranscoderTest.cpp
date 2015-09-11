@@ -27,6 +27,7 @@
 #include <locale>
 #include "gtest/gtest.h"
 #include "types.hpp"
+#include "sesame/utils/string.hpp"
 #include "sesame/utils/Transcoder.hpp"
 #include "sesame/utils/Reader.hpp"
 
@@ -104,13 +105,7 @@ TEST( TranscoderTest, FromUtf8 )
 
 TEST( TranscoderTest, Reader )
 {
-   // Set locale!
-   char* currentLocaleName( std::setlocale( LC_ALL, "" ) );
-   ASSERT_TRUE( currentLocaleName != nullptr );
-   std::locale currentLocale( currentLocaleName );
-   std::cout.imbue( currentLocale );
-   std::cerr.imbue( currentLocale );
-   std::cin.imbue( currentLocale );
+   utils::setLocale();
 
    std::istringstream line( "Hello, world!\n" );
    std::streambuf* backup( std::cin.rdbuf() );

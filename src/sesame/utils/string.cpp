@@ -172,11 +172,14 @@ String fromUtf8( const String& text )
 
 void setLocale()
 {
+#ifdef __gnu_linux__
    char* currentLocaleName( std::setlocale( LC_ALL, "" ) );
    if ( ! currentLocaleName )
    {
       throw std::runtime_error( "failed to set locale" );
    }
+#endif
+   const char* currentLocaleName( "C" );
    std::locale currentLocale( currentLocaleName );
    std::cout.imbue( currentLocale );
    std::cerr.imbue( currentLocale );
