@@ -829,14 +829,24 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
                throw std::runtime_error( "failed to open file" );
             }
 
-            decryptData( instance, labeledDate.second );
-            Vector<uint8_t> key( labeledDate.second.getPlaintext<Vector<uint8_t>>() );
-            if ( ! key.empty() )
+            try
             {
-               file.write( reinterpret_cast<char*>( key.data() ), key.size() );
+               decryptData( instance, labeledDate.second );
+               Vector<uint8_t> key( labeledDate.second.getPlaintext<Vector<uint8_t>>() );
+               if ( ! key.empty() )
+               {
+                  file.write( reinterpret_cast<char*>( key.data() ), key.size() );
+               }
+
+               std::cout << "Exported key " << m_Pos << " of entry #" <<
+                  entry.getIdAsHexString() << "." << std::endl;
             }
-            std::cout << "Exported key " << m_Pos << " of entry #" <<
-               entry.getIdAsHexString() << "." << std::endl;
+            catch ( std::runtime_error& e )
+            {
+               // Cleanup and rethrow!
+               utils::removeFile( path );
+               throw;
+            }
          }
 
          break;
