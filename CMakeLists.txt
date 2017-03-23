@@ -34,6 +34,9 @@ IF( "${LIBICONV}" STREQUAL "LIBICONV-NOTFOUND" )
     SET( LIBICONV "" )
 ENDIF()
 
+# ncurses
+FIND_LIBRARY( LIBNCURSES "ncurses" )
+
 # threads
 FIND_LIBRARY( LIBPTHREAD "pthread" )
 
