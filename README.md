@@ -35,7 +35,7 @@ Features
 What you can do so far is:
 
 * create, open, close and write containers
-* list, show, add, update and delete entries
+* list, search, show, add, update and delete entries
 * add, update and delete attributes, passwords, keys and tags
 * export passwords and keys
 * generate passwords
@@ -115,6 +115,9 @@ Currently available commands:
 
        list [TAG]
               lists entries of the container (tagged with TAG)
+
+       search PATTERN
+              searches for entries matching PATTERN (ERE)
 
        tree
               lists all entries by tags

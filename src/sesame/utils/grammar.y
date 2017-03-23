@@ -126,9 +126,15 @@ cmd_line ::= TAGS(C) NEWLINE.
     parseResult->setCommand(
         std::shared_ptr<ICommand>( new EntryTask( EntryTask::TAGS ) ) );
 }
-cmd_line ::= SEARCH(C) WHITESPACE arguments NEWLINE.
+cmd_line ::= SEARCH.             { parseResult->setCompleteSpace(); }
+cmd_line ::= SEARCH WHITESPACE.
+cmd_line ::= SEARCH(C) WHITESPACE ARGUMENT(A) NEWLINE.
 {
+    parseResult->addToken( A );
     parseResult->addToken( C );
+
+    parseResult->setCommand(
+        std::shared_ptr<ICommand>( new EntryTask( EntryTask::SEARCH, A ) ) );
 }
 cmd_line ::= SHOW.             { parseResult->setCompleteSpace(); }
 cmd_line ::= SHOW WHITESPACE.  { parseResult->setCompleteEntry(); }

@@ -53,7 +53,7 @@ namespace
    const Vector<String> baseCommands = { "help", "clear", "quit", "edit-mode " };
    const Vector<String> noInstanceCommands = { "new", "open " };
    const Vector<String> instanceCommands = { "apg", "close", "write ", "recrypt", "list", "tree", "tags", "show ", "decrypt ",
-                                             "add ", "delete ", "update ", "select " };
+                                             "add ", "delete ", "update ", "select ", "search " };
    const Vector<String> updateCommands = { "add_attribute", "update_attribute ", "delete_attribute ",
                                            "add_password", "add_key", "update_password_or_key ", "delete_password_or_key ",
                                            "add_tag", "update_tag ", "delete_tag " };

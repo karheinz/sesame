@@ -291,6 +291,11 @@ void EntryTask::run( std::shared_ptr<Instance>& instance )
 
          break;
       }
+      case SEARCH:
+      {
+         std::cout << "Some day i will search for /" << m_Id << "/ ..." << std::endl;
+         break;
+      }
       case TREE:
       {
          const Vector<String> tags( setToSortedVector( instance->getTags() ) );
