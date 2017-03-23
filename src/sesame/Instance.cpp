@@ -545,7 +545,7 @@ namespace sesame
       }
 
       // Check.
-      if ( ! success );
+      if ( ! success )
       {
          Vector<uint8_t> calculatedHmac;
          calcHmac( m_Id, key, calculatedHmac );
