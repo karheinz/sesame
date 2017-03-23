@@ -61,6 +61,7 @@ const ParseResult Parser::parse( const String& line ) const
    // Start parsing.
    int token;
    Vector<String> tokens;
+   tokens.reserve( 32 );
    ParseResult parseResult;
 
    do
@@ -77,7 +78,7 @@ const ParseResult Parser::parse( const String& line ) const
          break;
       }
    }
-   while ( true );
+   while ( tokens.capacity() > tokens.size() );
 
    // Finish parsing.
    yy_delete_buffer( buffer, m_Lexer );
