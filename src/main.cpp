@@ -96,9 +96,11 @@ int main( int argc, char** argv)
    }
    else
    {
-      std::cerr << "WARNING: Failed to disable core files and swapping!\n"
-                << "         Consider to make root owner of the program"
-                << " and to set suid bit.\n\n" << std::endl;
+      std::cerr << "WARNING: Failed to disable core files and swapping!\n\n"
+                << "Consider to make root the owner of the program and to set the suid bit:\n\n"
+                << "    # chown root:root /path/to/sesame\n"
+                << "    # chmod u+s /path/to/sesame\n\n"
+                << std::endl;
    }
 
    // Handle signals.
