@@ -56,7 +56,7 @@ void ApgTask::run( std::shared_ptr<Instance>& instance )
 
    Vector<char*> args( m_Tokens.size() + 1, nullptr );
    std::size_t count( 0 );
-   for ( auto token : m_Tokens )
+   for ( auto& token : m_Tokens )
    {
       args[ count++ ] = const_cast<char*>( token.c_str() );
    }
@@ -67,14 +67,14 @@ void ApgTask::run( std::shared_ptr<Instance>& instance )
    if ( ! apgCache.empty() )
    {
       std::size_t maxLength( 0 );
-      for ( auto tuple : apgCache )
+      for ( auto& tuple : apgCache )
       {
          maxLength = std::max( maxLength, tuple.first.size() );
       }
 
       std::cout << "Generated passwords:" << std::endl;
       count = 1;
-      for ( auto tuple : apgCache )
+      for ( auto& tuple : apgCache )
       {
          if ( count < apgCache.size() )
          {
