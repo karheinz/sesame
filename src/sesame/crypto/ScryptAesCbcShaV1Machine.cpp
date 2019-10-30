@@ -52,41 +52,47 @@ namespace sesame { namespace crypto {
       m_PRNG( std::random_device()() )
    {
       // Check used AES configuration.
-      EVP_CIPHER_CTX context;
-      EVP_CIPHER_CTX_init( &context );
-      EVP_CipherInit_ex( &context, EVP_aes_256_cbc(), nullptr, nullptr, nullptr, 1 );
+      EVP_CIPHER_CTX* context = EVP_CIPHER_CTX_new();
+      EVP_CIPHER_CTX_init( context );
+      EVP_CipherInit_ex( context, EVP_aes_256_cbc(), nullptr, nullptr, nullptr, 1 );
 
-      if ( EVP_CIPHER_CTX_iv_length( &context ) != AES_BLOCK_SIZE )
+      if ( EVP_CIPHER_CTX_iv_length( context ) != AES_BLOCK_SIZE )
       {
-         EVP_CIPHER_CTX_cleanup( &context );
+         EVP_CIPHER_CTX_cleanup( context );
+         EVP_CIPHER_CTX_free( context );
          throw std::runtime_error( "wrong AES block size" );
       }
 
-      if ( EVP_CIPHER_CTX_key_length( &context ) != AES_KEY_SIZE )
+      if ( EVP_CIPHER_CTX_key_length( context ) != AES_KEY_SIZE )
       {
-         EVP_CIPHER_CTX_cleanup( &context );
+         EVP_CIPHER_CTX_cleanup( context );
+         EVP_CIPHER_CTX_free( context );
          throw std::runtime_error( "wrong AES key size" );
       }
 
-      if ( EVP_CIPHER_CTX_block_size( &context ) != AES_BLOCK_SIZE )
+      if ( EVP_CIPHER_CTX_block_size( context ) != AES_BLOCK_SIZE )
       {
-         EVP_CIPHER_CTX_cleanup( &context );
+         EVP_CIPHER_CTX_cleanup( context );
+         EVP_CIPHER_CTX_free( context );
          throw std::runtime_error( "wrong AES padding size" );
       }
 
-      if ( ( EVP_CIPHER_CTX_mode( &context ) & EVP_CIPH_CBC_MODE ) != EVP_CIPH_CBC_MODE )
+      if ( ( EVP_CIPHER_CTX_mode( context ) & EVP_CIPH_CBC_MODE ) != EVP_CIPH_CBC_MODE )
       {
-         EVP_CIPHER_CTX_cleanup( &context );
+         EVP_CIPHER_CTX_cleanup( context );
+         EVP_CIPHER_CTX_free( context );
          throw std::runtime_error( "wrong AES mode of operation" );
       }
 
       if ( ! usesPkcs7Padding() )
       {
-         EVP_CIPHER_CTX_cleanup( &context );
+         EVP_CIPHER_CTX_cleanup( context );
+         EVP_CIPHER_CTX_free( context );
          throw std::runtime_error( "wrong AES padding mode" );
       }
 
-      EVP_CIPHER_CTX_cleanup( &context );
+      EVP_CIPHER_CTX_cleanup( context );
+      EVP_CIPHER_CTX_free( context );
    }
 
    bool ScryptAesCbcShaV1Machine::encrypt(
@@ -150,16 +156,16 @@ namespace sesame { namespace crypto {
       std::memcpy( ciphertext.data(), ivec.data(), ivec.size() );
 
       // Setup AES CBC 256.
-      EVP_CIPHER_CTX context;
-      EVP_CIPHER_CTX_init( &context );
-      EVP_CipherInit_ex( &context, EVP_aes_256_cbc(), nullptr, key.data(), ivec.data(), 1 );
+      EVP_CIPHER_CTX* context = EVP_CIPHER_CTX_new();
+      EVP_CIPHER_CTX_init( context );
+      EVP_CipherInit_ex( context, EVP_aes_256_cbc(), nullptr, key.data(), ivec.data(), 1 );
 
       int32_t written1( 0 );
       int32_t written2( 0 );
 
       // Update ...
       if ( ! EVP_CipherUpdate(
-                &context,
+                context,
                 ciphertext.data() + AES_BLOCK_SIZE,
                 &written1,
                 plaintext,
@@ -167,23 +173,26 @@ namespace sesame { namespace crypto {
                 )
          )
       {
-         EVP_CIPHER_CTX_cleanup( &context );
+         EVP_CIPHER_CTX_cleanup( context );
+         EVP_CIPHER_CTX_free( context );
          return false;
       }
 
       // ... and finalize.
       if ( ! EVP_CipherFinal_ex(
-                &context,
+                context,
                 ciphertext.data() + AES_BLOCK_SIZE + written1,
                 &written2
                 )
          )
       {
-         EVP_CIPHER_CTX_cleanup( &context );
+         EVP_CIPHER_CTX_cleanup( context );
+         EVP_CIPHER_CTX_free( context );
          return false;
       }
 
-      EVP_CIPHER_CTX_cleanup( &context );
+      EVP_CIPHER_CTX_cleanup( context );
+      EVP_CIPHER_CTX_free( context );
 
       ciphertext.shrink_to_fit();
       return ( ciphertext.size() == ( AES_BLOCK_SIZE + written1 + written2 ) );
@@ -245,17 +254,17 @@ namespace sesame { namespace crypto {
       plaintext.resize( length - AES_BLOCK_SIZE );
 
       // Setup AES CBC 256.
-      EVP_CIPHER_CTX context;
-      EVP_CIPHER_CTX_init( &context );
-      EVP_CipherInit_ex( &context, EVP_aes_256_cbc(), nullptr, key.data(), ciphertext, 0 );
-      EVP_CIPHER_CTX_set_padding( &context, padding ? 1 : 0 );
+      EVP_CIPHER_CTX* context = EVP_CIPHER_CTX_new();
+      EVP_CIPHER_CTX_init( context );
+      EVP_CipherInit_ex( context, EVP_aes_256_cbc(), nullptr, key.data(), ciphertext, 0 );
+      EVP_CIPHER_CTX_set_padding( context, padding ? 1 : 0 );
 
       int32_t written1( 0 );
       int32_t written2( 0 );
 
       // Update ...
       if ( ! EVP_CipherUpdate(
-                &context,
+                context,
                 plaintext.data(),
                 &written1,
                 ciphertext + AES_BLOCK_SIZE,
@@ -263,23 +272,26 @@ namespace sesame { namespace crypto {
                 )
          )
       {
-         EVP_CIPHER_CTX_cleanup( &context );
+         EVP_CIPHER_CTX_cleanup( context );
+         EVP_CIPHER_CTX_free( context );
          return false;
       }
 
       // ... and finalize.
       if ( ! EVP_CipherFinal_ex(
-                &context,
+                context,
                 plaintext.data() + written1,
                 &written2
                 )
          )
       {
-         EVP_CIPHER_CTX_cleanup( &context );
+         EVP_CIPHER_CTX_cleanup( context );
+         EVP_CIPHER_CTX_free( context );
          return false;
       }
 
-      EVP_CIPHER_CTX_cleanup( &context );
+      EVP_CIPHER_CTX_cleanup( context );
+      EVP_CIPHER_CTX_free( context );
 
       // Resize plaintext (was probably padded).
       plaintext.resize( static_cast<uint32_t>( written1 ) + written2 );
@@ -311,12 +323,12 @@ namespace sesame { namespace crypto {
       digest.resize( DIGEST_SIZE );
 
       uint32_t written( 0 );
-      EVP_MD_CTX context;
-      EVP_MD_CTX_init( &context );
-      EVP_DigestInit_ex( &context, EVP_sha256(), nullptr );
-      EVP_DigestUpdate( &context, data, length );
-      EVP_DigestFinal_ex( &context, digest.data(), &written );
-      EVP_MD_CTX_cleanup( &context );
+      EVP_MD_CTX* context = EVP_MD_CTX_new();
+      EVP_MD_CTX_init( context );
+      EVP_DigestInit_ex( context, EVP_sha256(), nullptr );
+      EVP_DigestUpdate( context, data, length );
+      EVP_DigestFinal_ex( context, digest.data(), &written );
+      EVP_MD_CTX_free( context );
 
       return ( written == DIGEST_SIZE );
    }
@@ -350,12 +362,11 @@ namespace sesame { namespace crypto {
       hmac.resize( HMAC_DIGEST_SIZE );
 
       uint32_t written( 0 );
-      HMAC_CTX context;
-      HMAC_CTX_init( &context );
-      HMAC_Init_ex( &context, key.data(), key.size(), EVP_sha256(), nullptr );
-      HMAC_Update( &context, data, length );
-      HMAC_Final( &context, hmac.data(), &written );
-      HMAC_CTX_cleanup( &context );
+      HMAC_CTX* context = HMAC_CTX_new();
+      HMAC_Init_ex( context, key.data(), key.size(), EVP_sha256(), nullptr );
+      HMAC_Update( context, data, length );
+      HMAC_Final( context, hmac.data(), &written );
+      HMAC_CTX_free( context );
 
       return ( written == HMAC_DIGEST_SIZE );
    }
