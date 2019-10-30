@@ -1,8 +1,14 @@
-os: linux
 language: cpp
+jobs:
+    include:
+        - os: linux
+          dist: bionic
+        - os: linux
+          dist: xenial
+        - os: linux
+          dist: trusty
 compiler:
   - gcc
-  - clang
 install: |
   sudo apt-get -y install nasm openssl libx11-dev
 script: |
