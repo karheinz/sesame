@@ -12,10 +12,9 @@ compiler:
 install: |
   sudo apt-get -y install nasm openssl libx11-dev
 script: |
-  mkdir -p build
+  mkdir -p build/dist
   cd build
   cmake ..
   make
-after_success:
-  - make test
-
+  make test
+  DESTDIR=$(pwd)/dist make install
