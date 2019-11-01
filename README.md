@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/karheinz/sesame.svg?branch=master)](https://travis-ci.org/karheinz/sesame)
+
 Sesame - A command line password manager
 ========================================
 
