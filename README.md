@@ -1,30 +1,35 @@
-Sesame - a cmd line password manager
-====================================
+Sesame - A command line password manager
+========================================
 
 Introduction
 ------------
 
-Sesame is a command line tool to manage passwords and keys.
-The program is written in C++ and released under the BSD 2-Clause License.
-The name of the program is derived from the folk-tale "Ali Baba and the
-Forty Thieves" (Open Sesame!).
+Sesame is a command line tool to manage confidential data.  The
+name of the program is derived from the folk-tale "Ali Baba and
+the Forty Thieves".
 
-A container managed by sesame consists of various entries. Each entry has
-a name and is identified by an unique id. An arbitrary number of tags,
-attributes and labeled data (text or binary) can be assigned to an entry.
+The program comes with its own shell.  It organizes data into
+entries which live in an encrypted container.  Additionally each
+confidential data element is encrypted on its own.  An entry has
+an unique identifier and a name. It covers attributes (meta data)
+and confidential data (passwords, keys, etc.). Entries can be
+grouped by tags.  A container can be stored as binary blob or
+embedded into a jpeg image.
 
 The program and container layout is designed to support various
-crypto protocols and backends. Currently one backend is available,
-which uses scrypt for password based key derivation (extended PBKDF2)
-and OpenSSL for symmetric cryptography (AES256), checksums (SHA256)
-and message authentication codes (HMAC-SHA256). A custom memory allocator
-is used to ensure that text and binary data are zeroed after usage.
-If the sesame binary is owned by root and the suid bit is set,
-all memory allocated by sesame will be locked (no swapping)
-and no core files will be written.
+crypto protocols and backends. Currently one backend is
+available, which uses scrypt for password based key derivation
+(extended PBKDF2) and OpenSSL for symmetric cryptography
+(AES256), checksums (SHA256) and message authentication codes
+(HMAC-SHA256). A custom memory allocator is used to ensure that
+text and binary data are zeroed after usage.  If the sesame
+binary is owned by root and the suid bit is set, all memory
+allocated by sesame will be locked (no swapping) and no core
+files will be written.
 
 Containers are (de)serialized using MessagePack binary format.
-Interactive command line editing facilities are provided by Tecla.
+Interactive command line editing facilities are provided by
+Tecla.
 
 Sesame currently builds for GNU/Linux and (Open)BSD.
 
@@ -32,14 +37,13 @@ Sesame currently builds for GNU/Linux and (Open)BSD.
 Features
 --------
 
-What you can do so far is:
-
 * create, open, close and write containers
 * list, search, show, add, update and delete entries
 * add, update and delete attributes, passwords, keys and tags
-* export passwords and keys
+* export a password (text) to clipboard
+* export a key (binary data) to file
 * generate passwords
-* embed container into jpeg image
+* embed a container into a jpeg image
 
 If the binary is owned by root and suid bit is set:
 
@@ -52,8 +56,8 @@ What is missing/planned?
 * ...
 
 
-Commands
---------
+Usage
+-----
 
 Without container:
 
@@ -179,13 +183,7 @@ Installation
 4. Install:
 
    ```
-   $ sudo cp src/sesame /usr/local/bin/
-   ```
-5. Change ownership and set suid bit:
-
-   ```
-   $ sudo chown root /usr/local/bin/sesame
-   $ sudo chmod u+s /usr/local/bin/sesame
+   $ sudo make install
    ```
 
 
@@ -215,7 +213,5 @@ Used libraries
 * libjpeg-turbo
   - http://www.libjpeg-turbo.org/
 
-The sources and - at least - the licenses of the stated libraries
-can be found in the libs directory. The LEMON sources are located
-under src/lemon.
-
+The (patched) sources of some of the libraries can be found in
+the libs directory. The LEMON sources are located under src/lemon.
