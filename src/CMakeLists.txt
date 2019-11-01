@@ -53,4 +53,12 @@ TARGET_LINK_LIBRARIES( sesame
     ${LIBTERMCAP} ${LIBICONV} ${LIBNCURSES}
     )
 
+IF(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" )
+    ADD_CUSTOM_COMMAND(
+        TARGET sesame
+        POST_BUILD
+        COMMAND strip ARGS $<TARGET_FILE:sesame>
+        )
+ENDIF()
+
 INSTALL(TARGETS sesame)
